@@ -1,6 +1,6 @@
 # One L1fe
 
-One L1fe (OL) is a personal health-tracking project focused on wellness, self-tracking, and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
+One L1fe (OL) is a private-first personal health-tracking project focused on wellness, self-tracking, and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
 
 ## Repo Overview
 
@@ -9,13 +9,34 @@ One L1fe (OL) is a personal health-tracking project focused on wellness, self-tr
 | `One-L1fe` | Product repo | Product docs, compliance baseline, app implementation, schemas, and user-facing logic. |
 | `One-L1fe-Ops` | Agent ops workspace | Operational memory, automations, runbooks, prompts, and agent workflow infrastructure. |
 
+## Architecture Skeleton
+
+```text
+One-L1fe/
+├── apps/
+│   └── mobile/                # React Native client app
+├── packages/
+│   └── domain/                # Biomarker models, units, contracts, shared domain logic
+├── supabase/
+│   ├── migrations/            # Database migrations
+│   ├── functions/             # Server-side functions and AI-facing endpoints
+│   └── seed/                  # Seed and local dev data helpers
+├── docs/
+│   ├── architecture/          # System shape and repo structure docs
+│   ├── compliance/            # Parked boundary docs, not a Phase 0 blocker
+│   └── roadmap/               # Build order and project phases
+├── MEMORY.md
+├── GLOSSARY.md
+└── AGENTS.md
+```
+
 ## Tech Stack
 
 | Layer | Choice | Notes |
 | --- | --- | --- |
 | Mobile App | React Native | Primary application client. |
 | Backend | Supabase | Database, auth, storage, and backend services. |
-| AI Layer | OpenAI API | Model access for assistant and reasoning features. |
+| AI Layer | OpenAI API | Accessed server-side, not directly from the mobile client. |
 | Agent Runtime | OpenClaw 4.9 | Local development and operational agent workflows. |
 | Source Control | GitHub | Remote hosting and collaboration. |
 
@@ -24,6 +45,9 @@ One L1fe (OL) is a personal health-tracking project focused on wellness, self-tr
 - [MEMORY.md](./MEMORY.md)
 - [GLOSSARY.md](./GLOSSARY.md)
 - [AGENTS.md](./AGENTS.md)
+- [docs/architecture/overview.md](./docs/architecture/overview.md)
+- [docs/architecture/repo-structure.md](./docs/architecture/repo-structure.md)
+- [docs/roadmap/phase-0.md](./docs/roadmap/phase-0.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
 
 ## Phase 0 Status Checklist
@@ -32,12 +56,16 @@ One L1fe (OL) is a personal health-tracking project focused on wellness, self-tr
 - [x] Project glossary established
 - [x] Agent operating guide established
 - [x] Intended-use and compliance baseline documented
-- [ ] Product architecture skeleton defined
+- [x] Architecture skeleton defined
+- [ ] Biomarker canonical schema drafted
 - [ ] Supabase schema drafted
 - [ ] React Native scaffold prepared
+- [ ] Auth flow defined
 - [ ] Recommendation pipeline and evidence model defined
-- [ ] Data governance and consent flow specified
+- [ ] Data governance details specified
 
 ## Working Constraint
 
-Until the data-governance layer is explicit, do not place real personal health data in this repo.
+- Treat compliance and business topics as **parked but not deleted** during the private MVP phase.
+- Do not let them block core product shaping right now.
+- Do not put real personal health data into this repo anyway.

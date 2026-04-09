@@ -30,6 +30,17 @@ Out of scope:
 - emergency guidance,
 - medical-device claims.
 
+## Current Execution Posture
+
+This is currently a **private-first build phase**.
+
+Meaning:
+- speed, clarity, and product learning matter more than formal business packaging,
+- compliance and business work stay documented but are not allowed to dominate Phase 0 execution,
+- architecture and domain clarity take priority over premature polish.
+
+Guardrail: parked does not mean forgotten. If external users, data sharing, public claims, or broader deployment enter scope, the parked areas must be reactivated.
+
 ## Tech Stack Snapshot
 
 | Layer | Choice | Notes |
@@ -54,6 +65,15 @@ Why the split exists:
 - reduces accidental mixing of operational artifacts with product artifacts,
 - lowers risk of leaking sensitive notes or agent internals into the shipping repo,
 - makes the operating surface easier to reason about.
+
+## Architecture Decisions (Current)
+
+- Use a **simple monorepo-style structure** inside the product repo, not an early microservice split.
+- Keep the first product client in `apps/mobile`.
+- Keep reusable health/domain logic in `packages/domain` instead of scattering it across UI code and database code.
+- Keep OpenAI access **server-side only**, likely behind Supabase functions or equivalent backend endpoints.
+- Keep raw biomarker records separate from derived insights and recommendation text.
+- Build one credible path first: biomarker capture, storage, trend view, bounded recommendation layer.
 
 ## Biomarker MVP Set
 
@@ -96,7 +116,7 @@ These are working assumptions derived from prior project experience and should b
 - Repo separation matters. Product work and agent-ops work should not collapse into one ambiguous workspace.
 - Narrow scope wins early. A smaller biomarker set is more credible and easier to reason about than a broad but weakly defined one.
 - The assistant should be direct, verdict-first, and explicit about uncertainty.
-- Compliance framing must appear near the top of the project, not as a late-stage cleanup task.
+- Compliance framing must appear near the top of the project, but it does not need to drive every early implementation decision.
 
 ## Active Risks
 
@@ -115,6 +135,8 @@ These are working assumptions derived from prior project experience and should b
 - Data handling should follow explicit consent, data minimization, purpose limitation, least privilege, and deletion/export readiness.
 - Do not store real health data in public repos, public issues, or informal operational notes.
 - Every user-facing recommendation should carry evidence, confidence, and scope boundaries.
+
+Note for current phase: this section is intentionally documented and intentionally not driving day-to-day build order yet.
 
 ## Immediate Operating Rules
 
