@@ -1,7 +1,5 @@
-// biomarkers.ts
-
-// 1) Canonical status enum
-enum CanonicalStatus {
+// Enums for Canonical Status
+export enum CanonicalStatus {
     Optimal = 'optimal',
     Good = 'good',
     Borderline = 'borderline',
@@ -10,54 +8,56 @@ enum CanonicalStatus {
     Missing = 'missing',
 }
 
-// 2) Biomarkers with thresholds
-const biomarkers = {
-    ApoB: { threshold: 130, multiplier: 3 },
-    LDL: { threshold: 100, multiplier: 1 },
-    Triglycerides: { threshold: 150, multiplier: 1 },
-    LpA: { threshold: 30, multiplier: 1 },
-    HbA1c: { threshold: 5.7, multiplier: 2 },
-    FastingGlucose: { threshold: 100, multiplier: 1 },
-    CRP: { threshold: 3, multiplier: 1.5 },
-    VitaminD: { threshold: 20, multiplier: 1 },
-    Ferritin: { threshold: 30, multiplier: 1 },
-    B12: { threshold: 400, multiplier: 1 },
-    Magnesium: { threshold: 1.8, multiplier: 1 },
-    DAO: { threshold: 10, multiplier: 1 },
-};
-
-// 3) Gender-specific thresholds (example)
-const genderSpecificThresholds = {
-    LDL: { Male: 100, Female: 110 },
-    HbA1c: { Male: 5.7, Female: 5.4 },
-};
-
-// 4) Weight multipliers
-function calculateWeightedValue(biomarker: string, value: number): number {
-    const { multiplier } = biomarkers[biomarker];
-    return value * multiplier;
+// Biomarkers Definitions with Weights
+export interface Biomarker {
+    name: string;
+    weight: number;
+    threshold?: number | Record<string, number>;
+    evidenceLevel: EvidenceLevel;
 }
 
-// 5) Evidence levels
-enum EvidenceLevel {
+export const biomarkers: Biomarker[] = [
+    { name: 'ApoB', weight: 3, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'HbA1c', weight: 2, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'CRP', weight: 1.5, evidenceLevel: EvidenceLevel.Secondary },
+    { name: 'LDL', weight: 1, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'Triglycerides', weight: 1, evidenceLevel: EvidenceLevel.Secondary },
+    { name: 'Lp(a)', weight: 1, evidenceLevel: EvidenceLevel.Experimental },
+    { name: 'Fasting Glucose', weight: 1, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'Fasting Insulin', weight: 1, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'Vitamin D', weight: 1, evidenceLevel: EvidenceLevel.Secondary },
+    { name: 'Ferritin', weight: 1, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'B12', weight: 1, evidenceLevel: EvidenceLevel.Primary },
+    { name: 'Magnesium', weight: 1, evidenceLevel: EvidenceLevel.Secondary },
+    { name: 'DAO', weight: 1, evidenceLevel: EvidenceLevel.Experimental },
+];
+
+// Evidence Levels
+export enum EvidenceLevel {
     Primary = 'primary',
     Secondary = 'secondary',
     Experimental = 'experimental',
 }
 
-// 6) Helper functions
-function determineStatus(value: number, threshold: number): CanonicalStatus {
-    if (value < threshold) return CanonicalStatus.Optimal;
-    if (value < threshold + 10) return CanonicalStatus.Good;
-    if (value < threshold + 20) return CanonicalStatus.Borderline;
-    if (value < threshold + 30) return CanonicalStatus.High;
-    return CanonicalStatus.Critical;
+// Helper Functions
+export function calculateCanonicalStatus(biomarkerValues: Record<string, number>): CanonicalStatus {
+    // Implement logic to calculate canonical status based on biomarker values
 }
 
-function calculatePriorityScore(biomarker: string, value: number): number {
-    const weightedValue = calculateWeightedValue(biomarker, value);
-    // Add scoring logic based on health-system-map calculation chain and principles
-    return weightedValue; // Placeholder
+export function mapPriorityScore(score: number): number {
+    // Map score to priority score from 0-4 scale
 }
 
-export { CanonicalStatus, biomarkers, genderSpecificThresholds, EvidenceLevel, determineStatus, calculatePriorityScore };
+export function calculateWeightedScore(biomarker: Biomarker, value: number): number {
+    // Calculation based on weight and value
+}
+
+export function aggregateTotalPriorityScore(biomarkerValues: Record<string, number>): number {
+    // Aggregate scores for total priority
+}
+
+export function determinePrimaryFocus(priorityScores: number[]): string {
+    // Determine primary focus based on scores
+}
+
+// References and detailed comments can be added here based on health-system-map.md and deep-research-report.md principles.
