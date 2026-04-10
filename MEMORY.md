@@ -4,6 +4,55 @@ Project long-term operating memory for **One L1fe (OL)**.
 
 Important: this file stores project memory, not personal health records. Do not place raw user health data, lab reports, or personally identifiable medical information here.
 
+---
+
+## Session Update — 2026-04-10 (~03:00–05:15 CEST)
+
+### Was passiert ist
+
+Diese Session war primär ein **OC-Infrastruktur-Fix**, kein Product-Build. Folgendes wurde erledigt:
+
+1. **ChatGPT-Quota erschöpft** (~96% cached, gpt-5.4 throttled). Root cause: Free-Tier Rate-Limit des OAuth-Accounts `arthaeed24@rungkad.app` (Fremd-Account, nicht Projekt-Account).
+
+2. **OpenRouter als neuer LLM-Provider eingerichtet:**
+   - Account erstellt, API-Key generiert
+   - Key in OC Dashboard hinterlegt (`OPENROUTER_API_KEY` als Environment Variable)
+   - Plugin `openrouter` aktiviert
+
+3. **Modell-Stack konfiguriert (Free-Tier Fallback-Kette):**
+   - Primary: `openrouter/xiaomi/mimo-v2-flash:free` (MiMo-V2-Flash — #1 SWE-Bench Coding, 262K ctx)
+   - Fallback 1: `openrouter/google/gemma-4-26b-it:free`
+   - Fallback 2: `openrouter/nvidia/llama-3.1-nemotron-ultra-253b-v1:free`
+   - Fallback 3: `openrouter/minimax/minimax-m1:free`
+   - Fallback 4: `openrouter/meta-llama/llama-3.3-70b-instruct:free`
+   - Fallback 5: `openrouter/free` (OpenRouter Auto — vollautomatisch, zero maintenance)
+   - Alle kostenlos, kein Ablaufdatum, kein monatliches Budget
+
+4. **Security Audit bereinigt:**
+   - Sandbox für alle kleinen Modelle aktiviert (`agents.defaults.sandbox.mode=all`)
+   - Web-Tools für kleine Modelle deaktiviert
+   - Ergebnis: **0 critical · 1 warn** (verbleibender WARN = loopback/kein Reverse Proxy → ignorierbar)
+
+5. **Telegram-Channel eingerichtet:**
+   - Bot erstellt via @BotFather
+   - Channel in OC konfiguriert und live
+   - OC ist jetzt über Telegram erreichbar
+
+6. **GitHub-Account gewechselt:**
+   - Perplexity (AI-Assistent) ist jetzt mit `gzug`-Account verknüpft
+   - Direkter Repo-Zugriff auf `gzug/One-L1fe` bestätigt
+
+### Offene Tasks aus dieser Session
+
+- [ ] **Ollama-Setup als lokaler Fallback** (gemma4B + qwen3b lokal — Modelle nicht installiert, `ollama list` leer). Für später wenn OC stabil läuft.
+- [ ] **Product-Arbeit hat noch nicht begonnen** — Repo-Struktur existiert aber keine neuen Product-Commits diese Session.
+
+### Wichtige Lernregel (neu)
+
+> Immer vollständige, ausführbare Scripts in einem Schritt liefern — nie manuelle Suchen/Ersetzen im Terminal verlangen. User bevorzugt One-Liner die alles erledigen.
+
+---
+
 ## Project Vision
 
 One L1fe is a **personal health-tracking project** with the long-term ambition of a **Digital Avatar (DA)**.
@@ -47,8 +96,9 @@ Guardrail: parked does not mean forgotten. If external users, data sharing, publ
 | --- | --- | --- |
 | Mobile App | React Native | Primary app client. |
 | Backend | Supabase | Database, auth, storage, and backend services. |
-| LLM Layer | OpenAI API | Model access for reasoning, summarization, and assistant features. |
-| Agent Ops | OpenClaw 4.9 | Local orchestration and agent runtime for development workflows. |
+| LLM Layer | OpenRouter (Free-Tier) | MiMo-V2-Flash primary + 5-model fallback chain. OpenAI API as future option. |
+| Agent Ops | OpenClaw 4.9 | Local orchestration, LaunchAgent, Telegram channel live. |
+| Channel | Telegram Bot | Primary OC interaction channel. |
 
 ## Two-Repo Split
 
@@ -71,7 +121,7 @@ Why the split exists:
 - Use a **simple monorepo-style structure** inside the product repo, not an early microservice split.
 - Keep the first product client in `apps/mobile`.
 - Keep reusable health/domain logic in `packages/domain` instead of scattering it across UI code and database code.
-- Keep OpenAI access **server-side only**, likely behind Supabase functions or equivalent backend endpoints.
+- Keep LLM access **server-side only**, likely behind Supabase functions or equivalent backend endpoints.
 - Keep raw biomarker records separate from derived insights and recommendation text.
 - Build one credible path first: biomarker capture, storage, trend view, bounded recommendation layer.
 
@@ -100,9 +150,12 @@ Guiding rule: keep the MVP biomarker scope intentionally narrow and defensible b
 ## OC Setup-Stand
 
 Current OpenClaw setup snapshot:
-- OpenClaw version: **4.9**
-- Model: **gpt-5.4 via OAuth**
+- OpenClaw version: **2026.4.9**
+- Primary Model: **MiMo-V2-Flash via OpenRouter (free)**
+- Fallback chain: Gemma 4 26B → Nemotron 253B → MiniMax M1 → Llama 3.3 70B → openrouter/free
 - Runtime exposure: **LaunchAgent on 127.0.0.1:18789**
+- Channel: **Telegram Bot (live)**
+- GitHub: **gzug account**
 - Role: local agent operations and development support
 
 Operating assumption: this setup is development-oriented until a hardened production posture is explicitly defined.
@@ -117,6 +170,7 @@ These are working assumptions derived from prior project experience and should b
 - Narrow scope wins early. A smaller biomarker set is more credible and easier to reason about than a broad but weakly defined one.
 - The assistant should be direct, verdict-first, and explicit about uncertainty.
 - Compliance framing must appear near the top of the project, but it does not need to drive every early implementation decision.
+- **Always deliver complete, executable one-liner scripts. Never ask the user to manually search or edit lines in the terminal.**
 
 ## Active Risks
 
@@ -127,6 +181,7 @@ These are working assumptions derived from prior project experience and should b
 - **Agent overreach**: tooling may attempt actions beyond safe operational boundaries if guardrails are vague.
 - **Architecture blur**: unclear boundaries between product repo and ops repo can create confusion and maintenance drag.
 - **Vendor dependency**: reliance on external AI APIs adds cost, reliability, and policy exposure.
+- **OC config schema instability**: OC 2026.x config validator rejects undocumented keys — always use onboard wizard or dashboard UI for credential setup, never manual JSON edits for auth fields.
 
 ## Legal & Compliance Notes
 
@@ -143,3 +198,4 @@ Note for current phase: this section is intentionally documented and intentional
 - Read **GLOSSARY.md** and this file at session start before repo-level planning.
 - Read **docs/compliance/intended-use.md** before drafting health-adjacent copy or recommendation logic.
 - Update this file when core project assumptions, stack choices, risk posture, or repo structure change.
+- Deliver terminal commands always as complete, executable scripts — never as manual step-by-step edits.
