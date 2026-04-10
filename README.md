@@ -1,6 +1,6 @@
 # One L1fe
 
-One L1fe (OL) is a private-first personal health intelligence project focused on evidence-based self-tracking and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
+One L1fe is a private-first personal health intelligence project focused on evidence-based self-tracking and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
 
 ## Repo Overview
 
