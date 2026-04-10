@@ -1,13 +1,15 @@
 # One L1fe
 
-One L1fe (OL) is a private-first personal health-tracking project focused on wellness, self-tracking, and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
+One L1fe (OL) is a private-first personal health intelligence project focused on evidence-based self-tracking and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
 
 ## Repo Overview
 
-| Repo / Workspace | Role | Notes |
+This project lives in a single active repository: `One-L1fe`.
+
+| Workspace | Role | Notes |
 | --- | --- | --- |
 | `One-L1fe` | Product repo | Product docs, compliance baseline, app implementation, schemas, and user-facing logic. |
-| `One-L1fe-Ops` | Agent ops workspace | Operational memory, automations, runbooks, prompts, and agent workflow infrastructure. |
+| `One-L1fe-Ops` | Future option — not active | Reserved for agent ops, runbooks, and automation infrastructure if/when the project scales. |
 
 ## Architecture Skeleton
 
@@ -36,8 +38,8 @@ One-L1fe/
 | --- | --- | --- |
 | Mobile App | React Native | Primary application client. |
 | Backend | Supabase | Database, auth, storage, and backend services. |
-| AI Layer | OpenAI API | Accessed server-side, not directly from the mobile client. |
-| Agent Runtime | OpenClaw 4.9 | Local development and operational agent workflows. |
+| AI Layer | OpenRouter | Accessed server-side, not directly from the mobile client. |
+| Agent Runtime | OpenClaw 2026.4.9 | Local development and operational agent workflows. |
 | Source Control | GitHub | Remote hosting and collaboration. |
 
 ## Core Project Docs
