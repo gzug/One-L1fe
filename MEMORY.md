@@ -75,6 +75,61 @@ It explains:
 
 ---
 
+## Session Update — 2026-04-12 (~21:15–22:05 CEST)
+
+### What happened
+
+This session reconciled the targeted second-pass research outputs in `inbox/research/` against the current One L1fe V1 planning baseline.
+
+Completed:
+
+1. **Reconciled the targeted research set against the V1 rule posture**
+   - confirmed the main architecture still holds,
+   - identified where the research strengthened the baseline,
+   - and identified a few areas that needed softer or more bounded handling.
+
+2. **Tightened the core V1 policy docs**
+   - `docs/architecture/measurement-interpretation-policy.md`
+   - `docs/architecture/v1-rule-matrix.md`
+   - `docs/architecture/priority-score-v1.md`
+   - `docs/architecture/recommendation-contract-v1.md`
+   - `docs/architecture/weekly-self-report-anchors-v1.md`
+   - `docs/notion/notion-vs-backend-calculation-boundary.md`
+   - `docs/notion/final-first-automation-structure.md`
+   - `docs/research/v1-research-gaps-and-targeted-followups.md`
+   - `README.md`
+
+3. **Added two new grounding documents**
+   - `docs/architecture/evidence-registry-and-rule-governance-v1.md`
+   - `docs/research/v1-targeted-research-reconciliation-2026-04-12.md`
+
+### Main substantive changes
+
+- **ApoB vs LDL:** strengthened the existing posture, no reversal. ApoB remains primary; LDL remains fallback or secondary lens.
+- **Lp(a):** softened from a near-hard recurring signal into a more clearly bounded one-time inherited risk-enhancing modifier with strict unit handling.
+- **hs-CRP / CRP:** tightened assay gating and made the preventive use more clearly supporting and context-sensitive.
+- **Ferritin:** moved toward clearly contextual handling with stronger context gates before escalation.
+- **Vitamin D:** clarified deficiency vs adequacy vs optional optimization vs excess caution.
+- **Evidence governance:** added explicit source-registry and rule-anchor posture so active rules do not silently inherit mixed-quality evidence.
+
+### Result
+
+The V1 architecture survived the new research well.
+The repo did not need a philosophical reset.
+What it needed was a tightening pass:
+- stronger evidence governance,
+- more unit and assay discipline,
+- and more caution around contextual markers.
+
+### Next sensible step
+
+Translate the improved policy posture into implementation-safe artifacts:
+- explicit normalization rules for HbA1c and glucose,
+- source-to-rule linkage for active rules,
+- and schema-level support for evidence anchors, bounded modifiers, and interpretation-limited states.
+
+---
+
 ## Session Update — 2026-04-12 (~18:00 CEST)
 
 ### Was passiert ist

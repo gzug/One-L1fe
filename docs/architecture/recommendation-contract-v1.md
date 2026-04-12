@@ -92,6 +92,8 @@ Meaning:
 - safety state
 - score version
 - evidence class
+- rule origin
+- anchor source id
 
 ## Recommendation Eligibility Rules
 
@@ -100,7 +102,9 @@ A recommendation may be created only if:
 2. the rule hardness is known,
 3. the output fits one allowed recommendation type,
 4. the scope is explicit,
-5. the text does not overclaim.
+5. the text does not overclaim,
+6. the current safety state permits that output,
+7. the rule has an explicit evidence posture.
 
 ## What Recommendations Must Not Do in V1
 
@@ -118,12 +122,13 @@ Old style:
 - the system could jump from a number straight into advice text.
 
 New style:
-- every recommendation must answer five simple questions:
+- every recommendation must answer six simple questions:
   1. what kind of recommendation is this?
   2. what is the verdict?
   3. why are we saying this?
   4. how sure are we?
   5. what is this recommendation actually about?
+  6. what evidence posture or rule origin is behind it?
 
 Why this is better:
 - easier to trust,

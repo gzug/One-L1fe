@@ -5,7 +5,10 @@
 The current research corpus is strong enough to build a serious V1.
 We should not pause implementation for a broad new research phase.
 
-However, a few targeted follow-ups are still worth doing so that the first automation layer stays high-quality and honest.
+A targeted reconciliation pass was completed on 2026-04-12 and is recorded in:
+- `docs/research/v1-targeted-research-reconciliation-2026-04-12.md`
+
+That pass strengthened the core architecture, but also made a few bounded revisions around Lp(a), hs-CRP, ferritin, vitamin D, and evidence governance.
 
 ## What Is Already Good Enough for V1
 
@@ -21,6 +24,9 @@ These areas are sufficiently grounded for a first bounded system design:
 - Supabase as long-term measurement system of record.
 
 ## Remaining Gaps Worth Closing
+
+The highest-priority conceptual gaps are now narrower than before.
+The biggest remaining work is no longer broad literature gathering, but converting the improved policy posture into structured rule artifacts and implementation-safe schemas.
 
 ### 1. Core marker primary-source tightening
 Goal:
@@ -42,6 +48,11 @@ Priority topics:
 - glucose mg/dL vs mmol/L,
 - CRP vs hs-CRP naming and assay field requirements.
 
+Status after reconciliation:
+- Lp(a) unit strictness is now much clearer.
+- CRP assay gating is now much clearer.
+- HbA1c and glucose normalization still need explicit implementation specs.
+
 ### 3. Ferritin context policy
 Goal:
 - avoid false priority signals from isolated ferritin values.
@@ -58,6 +69,9 @@ Goal:
 Priority topics:
 - difference between sufficiency and chosen target zone,
 - upper-bound caution and U-curve handling.
+
+Status after reconciliation:
+- framing is clearer, but the exact implementation spec still needs to stay explicitly policy-labeled.
 
 ### 5. Weekly self-report anchor quality
 Goal:
@@ -105,12 +119,11 @@ Instead:
 
 ## Suggested First Follow-Up Queue
 
-1. ApoB and LDL fallback policy
-2. Lp(a) unit policy
-3. hs-CRP assay policy
-4. Ferritin context gate
-5. HbA1c and fasting glucose normalization policy
-6. Vitamin D optimization wording
+1. HbA1c and fasting glucose normalization policy
+2. evidence registry implementation shape
+3. source-to-rule linkage for the active V1 matrix
+4. score metadata and bounded-modifier implementation details
+5. ferritin and vitamin D schema fields in the actual database layer
 
 ## Working Standard for V1
 

@@ -29,6 +29,7 @@ Create a first durable structure that can:
 6. Unit and assay metadata are part of the truth.
 7. Recommendation logic must be explicit and bounded.
 8. Notion should summarize and organize, not hide core domain logic.
+9. Active rules should be anchorable to explicit sources and evidence posture.
 
 ## Final V1 Layer Model
 
@@ -264,7 +265,9 @@ Optional in Notion, strongly recommended in GitHub and/or Supabase later.
 
 Purpose:
 - map claims to quality,
-- track where threshold or rule logic came from.
+- track where threshold or rule logic came from,
+- distinguish strong sources from heuristic or discard sources,
+- keep active rules attached to source anchors.
 
 ## What Changes From the Old Structure
 

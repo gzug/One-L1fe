@@ -19,6 +19,12 @@ The goal is better consistency over time.
 Use the same mental standard each week.
 The score should reflect the last 7 days, not one unusually good or bad day.
 
+Important V1 guidance:
+- prefer behavioral anchors over dramatic emotional language,
+- let `7` mean a solid baseline week, not perfection,
+- let users interpolate between anchor points instead of over-describing every number,
+- allow an optional one-line context note so unusual weeks do not silently distort trends.
+
 Recommended anchor points:
 - 0 = extremely poor / near-total breakdown
 - 3 = clearly bad and limiting
@@ -142,10 +148,14 @@ Suggested labels:
 - Unknown
 
 ### Suggested logic
+- use a simple recent baseline such as a rolling 4-week average when enough history exists
 - Improving: current score is above the recent reference
 - Stable: current score is near the recent reference
 - Declining: current score is below the recent reference
 - Unknown: not enough history
+
+Trend logic should remain modest and explainable.
+It should not pretend to be a clinical or psychometric instrument.
 
 V1 should prefer simple and explainable trend logic over clever trend math.
 

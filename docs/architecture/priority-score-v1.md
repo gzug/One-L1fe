@@ -31,14 +31,16 @@ It does not answer:
 
 ## What Is Allowed Into V1 Priority Score
 
-Allowed early inputs:
+Allowed early core inputs:
 - ApoB
 - LDL only under fallback or explicitly separate-lens rules
 - Triglycerides
-- Lp(a) only under bounded logic
 - HbA1c
 - Glucose
-- hs-CRP when assay is known
+
+Allowed only as bounded modifiers:
+- Lp(a) only under bounded one-time logic
+- hs-CRP only when assay is known and interpretation context is suitable
 
 ## What Stays Out of V1 Priority Score
 
@@ -49,17 +51,19 @@ Excluded or downgraded inputs:
 - magnesium as direct hard-risk input
 - B12 as direct hard-risk input
 - weekly self-report pillars
+- generic CRP without assay clarity
 - stale or interpretation-limited data
 
 ## Scoring Logic Shape
 
 Suggested chain:
 1. determine whether row is interpretable,
-2. map value to canonical status,
-3. map canonical status to severity,
-4. apply weight only if score-eligible,
-5. sum allowed contributions,
-6. expose score version and coverage note.
+2. determine whether the marker is a core input, bounded modifier, or excluded input,
+3. map value to canonical status,
+4. map canonical status to severity,
+5. apply weight only if score-eligible,
+6. sum allowed contributions,
+7. expose score version and coverage note.
 
 ## Status to Severity Mapping
 
@@ -84,9 +88,11 @@ Instead, expose separately:
 Every displayed score should eventually have:
 - score_version
 - included marker count
+- bounded modifier note
 - excluded marker note
 - coverage summary
 - freshness note
+- top drivers
 
 ## Beginner Explanation
 
@@ -102,4 +108,5 @@ That makes the MVP better because it is:
 - more honest,
 - easier to defend,
 - easier to improve later,
+- less likely to double-count the same biology,
 - and less likely to mislead.

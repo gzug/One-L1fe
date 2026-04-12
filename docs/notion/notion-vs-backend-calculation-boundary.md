@@ -58,6 +58,7 @@ Do not make Notion the only place for:
 - recommendation type boundaries
 - unit policies
 - assay interpretation rules
+- source registry and rule-governance posture
 
 ### Backend / Supabase later
 - normalized ingestion
@@ -68,6 +69,7 @@ Do not make Notion the only place for:
 - insight generation
 - recommendation generation
 - source mapping
+- audit-friendly rule anchoring
 
 ## Beginner Explanation
 

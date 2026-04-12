@@ -19,25 +19,26 @@ Initial core set:
 - ApoB
 - LDL (fallback or secondary lens, not co-equal with ApoB in primary lipid scoring)
 - Triglycerides
-- Lp(a)
 - HbA1c
 - Glucose
-- hs-CRP / CRP only with assay clarity
 
 ### Supporting
 Useful markers with value, but more context-sensitive interpretation.
 
 Initial supporting set:
-- Vitamin D
-- Ferritin
-- B12
-- Magnesium
+- Lp(a)
+- hs-CRP only when assay is clear enough for preventive interpretation
 
 ### Contextual
 Useful for context or personalization, but not suitable for hard core scoring.
 
 Initial contextual set:
+- Vitamin D
+- Ferritin
+- B12
+- Magnesium
 - DAO
+
 
 ### Deferred / later candidates
 Present in old structure, but not yet mature enough for V1 scoring until rules are tightened.
@@ -72,14 +73,15 @@ Examples:
 - ApoB high vs target policy,
 - HbA1c target bands,
 - glucose target bands,
-- hs-CRP with explicit assay,
-- Lp(a) one-time elevated vs not elevated.
+- LDL fallback logic when ApoB is missing.
 
 ### Medium / policy-based
 Usable, but should be explicitly marked as policy or bounded heuristic.
 
 Examples:
-- Vitamin D optimal zone above deficiency threshold,
+- Lp(a) elevated as a bounded inherited risk-enhancing flag,
+- hs-CRP with explicit assay and stable-context assumptions,
+- Vitamin D target zone above deficiency threshold,
 - triglyceride target for optimization,
 - magnesium optimization zone,
 - weekly self-report focus logic.
@@ -113,10 +115,12 @@ Rules:
 - ApoB
 - LDL only when ApoB is missing or explicitly treated as a separate lens
 - Triglycerides
-- Lp(a) with one-time logic and no recurring missing penalty
 - HbA1c
 - Glucose
-- hs-CRP when assay type is known
+
+### Allowed only as bounded modifiers, not as major recurring score drivers
+- Lp(a) with one-time logic, unit-specific thresholds, and no recurring missing penalty
+- hs-CRP when assay type is known and the measurement context is suitable for preventive interpretation
 
 ### Not allowed in first hard core score
 - DAO
@@ -124,6 +128,7 @@ Rules:
 - vitamin D as direct hard-risk input
 - magnesium as direct hard-risk input
 - B12 as direct hard-risk input
+- generic CRP without assay clarity
 
 These may still appear in:
 - supporting summaries,
@@ -152,6 +157,7 @@ A value without usable unit or assay metadata may be stored, but not necessarily
 - unit must be explicit
 - mg/dL and nmol/L must not be silently converted into each other for V1
 - interpretation and threshold policy must be unit-specific
+- treat as a one-time or infrequently repeated inherited marker, not a recurring weekly completeness burden
 
 ### HbA1c
 - unit format must be explicit
@@ -162,15 +168,19 @@ A value without usable unit or assay metadata may be stored, but not necessarily
 - mg/dL vs mmol/L needs conversion policy before use
 
 ### CRP / hs-CRP
-- assay name is required for reliable interpretation
+- assay type is required for reliable preventive interpretation
+- hs-CRP and standard CRP must not be treated as automatically interchangeable
 - if assay type is unknown, value may be stored but should become "interpretation limited"
+- values that likely reflect acute inflammation should not behave like stable cardiometabolic baseline signals
 
 ### Ferritin
 - unit must be explicit
-- interpretation should require context gate if elevated
+- low ferritin may be more directly interpretable than high ferritin
+- elevated ferritin should require context gate before escalation
 
 ### Vitamin D
 - unit must be explicit
+- interpretation should separate deficiency prevention, adequacy, optional optimization, and excess caution
 - optimization zone must be labeled as policy choice, not universal consensus
 
 ### Magnesium
@@ -185,13 +195,13 @@ A value without usable unit or assay metadata may be stored, but not necessarily
 
 ### Ferritin context gate
 Elevated ferritin should not create a high-priority signal without context such as:
-- CRP / inflammation context,
+- CRP or inflammation context,
 - liver markers,
-- iron context if available.
+- transferrin saturation or broader iron context if available.
 
 ### Lp(a) cadence gate
 Lp(a) should not repeatedly create a weekly missing or missing-score penalty.
-It is a static or slow-changing marker.
+It is a static or slow-changing inherited marker.
 
 ### Biomarker freshness gate
 A biomarker result should not silently act current forever.
@@ -257,3 +267,4 @@ unless a validated model is being used and clearly identified as such.
 3. Missing data becomes a coverage issue, not a disease signal.
 4. Unit and assay fields become first-class properties.
 5. Recommendation output must use explicit evidence/confidence/scope fields.
+6. Active rules should point to an explicit source anchor and evidence posture.
