@@ -44,6 +44,43 @@ Der Repo-Stand ist jetzt ein deutlich saubererer Ausgangspunkt für Product-Owne
 
 ---
 
+## Session Update — 2026-04-12 (~18:25 CEST)
+
+### Was passiert ist
+
+Diese Session war der **Supabase-Baseline-Draft** nach dem Domain-Cleanup.
+
+Erledigt:
+
+1. **Erste echte Migration angelegt**
+   - `supabase/migrations/20260412163000_phase0_initial_schema.sql`
+   - Tabellen: `profiles`, `biomarker_definitions`, `lab_results`, `lab_result_entries`, `derived_insights`, `recommendations`
+   - RLS-Policies für user-owned Daten ergänzt
+   - MVP-Biomarker als Seed-Daten ergänzt
+
+2. **Architektur-Doku ergänzt**
+   - `docs/architecture/supabase-schema.md` beschreibt jetzt die Datenbank-Baseline und deren Zweck
+
+3. **README / Roadmap / Supabase-README synchronisiert**
+   - Supabase schema ist jetzt als drafted markiert
+   - nächster Schritt ist jetzt React Native scaffold + erster enger End-to-End-Flow
+
+### Ergebnis
+
+Der Repo-Stand ist jetzt als Product-Startpunkt deutlich robuster:
+- Domain-Baseline vorhanden,
+- Datenbank-Baseline vorhanden,
+- Roadmap und Doku zeigen auf denselben nächsten Schritt.
+
+### Nächster sinnvoller Schritt
+
+**React Native scaffold** für den ersten schmalen Workflow:
+- biomarker list,
+- manual entry shell,
+- trend detail shell.
+
+---
+
 ## Session Update — 2026-04-10 (~03:00–05:15 CEST)
 
 ### Was passiert ist

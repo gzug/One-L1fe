@@ -17,4 +17,14 @@ Backend surface for One L1fe.
 
 ## Current Status
 
-Folder skeleton created. Schema and migrations are not drafted yet.
+Initial schema draft now exists in `migrations/20260412163000_phase0_initial_schema.sql`.
+
+Current baseline includes:
+- `profiles`,
+- `biomarker_definitions`,
+- `lab_results`,
+- `lab_result_entries`,
+- `derived_insights`,
+- `recommendations`,
+- starter RLS policies,
+- seed data for the MVP biomarker registry.

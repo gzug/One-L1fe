@@ -24,7 +24,7 @@ Define for each MVP biomarker:
 - whether it is core, supporting, or contextual.
 
 ### 3. Supabase schema draft
-Status: next
+Status: drafted
 
 Likely first tables:
 - profiles,
@@ -35,7 +35,7 @@ Likely first tables:
 - recommendations.
 
 ### 4. React Native app scaffold
-Status: pending
+Status: next
 
 Start with:
 - auth shell,
@@ -73,5 +73,6 @@ Target outcome:
 
 ## My Recommended Next Step
 
-Draft the Supabase schema directly against the canonical biomarker registry in `packages/domain/biomarkers.ts`.
-That will keep the database shape aligned with the domain layer before app scaffolding begins.
+Create the React Native app scaffold around one narrow workflow:
+manual biomarker entry, list view, and a simple trend detail shell.
+That is now the cleanest next move because the domain and Supabase baselines exist.
