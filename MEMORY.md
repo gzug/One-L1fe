@@ -59,7 +59,19 @@ This should reduce rebuild risk before app/UI implementation starts.
 
 ### Next sensible step
 
-Build the React Native scaffold and first narrow end-to-end flow against these V1 boundaries.
+Before product implementation moves deeper, run one focused refinement pass using the newly imported targeted research outputs in `inbox/research/`.
+Then update the V1 planning files where the new research clearly strengthens, weakens, or revises the current assumptions.
+
+### Handoff checkpoint created
+
+A compact handoff file for the next work round now exists at:
+- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md`
+
+It explains:
+- what changed,
+- what is already stable,
+- what new research is available,
+- and what the next agent should do.
 
 ---
 

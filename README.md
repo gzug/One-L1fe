@@ -63,6 +63,7 @@ One-L1fe/
 - [docs/notion/v1-implementation-sequence.md](./docs/notion/v1-implementation-sequence.md)
 - [docs/research/v1-research-gaps-and-targeted-followups.md](./docs/research/v1-research-gaps-and-targeted-followups.md)
 - [docs/roadmap/phase-0.md](./docs/roadmap/phase-0.md)
+- [docs/roadmap/v1-checkpoint-and-next-agent-brief.md](./docs/roadmap/v1-checkpoint-and-next-agent-brief.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
 
 ## Phase 0 Status Checklist
