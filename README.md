@@ -50,6 +50,18 @@ One-L1fe/
 - [docs/architecture/overview.md](./docs/architecture/overview.md)
 - [docs/architecture/repo-structure.md](./docs/architecture/repo-structure.md)
 - [docs/architecture/supabase-schema.md](./docs/architecture/supabase-schema.md)
+- [docs/architecture/measurement-interpretation-policy.md](./docs/architecture/measurement-interpretation-policy.md)
+- [docs/architecture/recommendation-contract-v1.md](./docs/architecture/recommendation-contract-v1.md)
+- [docs/architecture/v1-rule-matrix.md](./docs/architecture/v1-rule-matrix.md)
+- [docs/architecture/priority-score-v1.md](./docs/architecture/priority-score-v1.md)
+- [docs/architecture/data-freshness-and-coverage-policy-v1.md](./docs/architecture/data-freshness-and-coverage-policy-v1.md)
+- [docs/architecture/weekly-self-report-anchors-v1.md](./docs/architecture/weekly-self-report-anchors-v1.md)
+- [docs/notion/final-first-automation-structure.md](./docs/notion/final-first-automation-structure.md)
+- [docs/notion/v1-database-property-spec.md](./docs/notion/v1-database-property-spec.md)
+- [docs/notion/old-to-v1-migration-map.md](./docs/notion/old-to-v1-migration-map.md)
+- [docs/notion/notion-vs-backend-calculation-boundary.md](./docs/notion/notion-vs-backend-calculation-boundary.md)
+- [docs/notion/v1-implementation-sequence.md](./docs/notion/v1-implementation-sequence.md)
+- [docs/research/v1-research-gaps-and-targeted-followups.md](./docs/research/v1-research-gaps-and-targeted-followups.md)
 - [docs/roadmap/phase-0.md](./docs/roadmap/phase-0.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
 
@@ -64,13 +76,19 @@ One-L1fe/
 - [x] Supabase schema drafted
 - [ ] React Native scaffold prepared
 - [ ] Auth flow defined
-- [ ] Recommendation pipeline and evidence model defined
-- [ ] Data governance details specified
+- [x] Recommendation pipeline and evidence model drafted
+- [x] Data governance and interpretation guardrails drafted
 
 ## Current Build State
 
 The canonical biomarker registry now exists in `packages/domain/biomarkers.ts` and is documented in `docs/architecture/biomarker-model.md`.
-The next clean implementation step is the React Native scaffold and the first end-to-end product flow.
+The Supabase Phase 0 baseline is drafted.
+The first serious V1 interpretation and Notion-automation architecture is now also documented across the architecture, notion, and research docs.
+
+The next clean implementation step is:
+1. keep the new rule and data-shape decisions stable,
+2. build the React Native scaffold,
+3. implement one narrow end-to-end flow against the shared domain and database baseline.
 
 ## Working Constraint
 

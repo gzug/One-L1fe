@@ -45,7 +45,12 @@ Start with:
 - manual entry flow.
 
 ### 5. Recommendation contract
-Status: pending
+Status: drafted
+
+The first contract and safety framing now exist in:
+- `docs/architecture/recommendation-contract-v1.md`
+- `docs/architecture/measurement-interpretation-policy.md`
+- `docs/architecture/v1-rule-matrix.md`
 
 Define the structure for:
 - verdict,
@@ -71,8 +76,26 @@ Target outcome:
 - broad regulatory packaging,
 - multi-agent expansion inside the product repo.
 
+## Supporting V1 design work now completed
+
+The repo now also contains a first serious V1 planning layer for:
+- measurement and interpretation policy,
+- rule hardness and scoring boundaries,
+- freshness and coverage policy,
+- weekly self-report anchors,
+- Notion V1 data model and migration planning.
+
+This reduces the risk of rebuilding the first MVP data model later.
+
 ## My Recommended Next Step
 
 Create the React Native app scaffold around one narrow workflow:
 manual biomarker entry, list view, and a simple trend detail shell.
-That is now the cleanest next move because the domain and Supabase baselines exist.
+
+But implement it against the newly documented V1 boundaries so that:
+- raw data,
+- derived insights,
+- recommendations,
+- and Notion-facing summaries
+
+do not collapse back into one mixed layer.

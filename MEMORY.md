@@ -6,6 +6,63 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ---
 
+## Session Update — 2026-04-12 (~20:00–21:15 CEST)
+
+### What happened
+
+This session established the first serious V1 planning and interpretation layer for One L1fe, based on:
+- the old Notion MVP structure,
+- imported research summaries,
+- source-quality review,
+- and a deliberate redesign away from hidden Notion logic.
+
+Completed:
+
+1. **Defined the first serious Notion V1 automation structure**
+   - `docs/notion/final-first-automation-structure.md`
+   - `docs/notion/v1-database-property-spec.md`
+   - `docs/notion/old-to-v1-migration-map.md`
+   - `docs/notion/notion-vs-backend-calculation-boundary.md`
+   - `docs/notion/v1-implementation-sequence.md`
+
+2. **Defined the first interpretation / scoring / recommendation guardrails**
+   - `docs/architecture/measurement-interpretation-policy.md`
+   - `docs/architecture/recommendation-contract-v1.md`
+   - `docs/architecture/v1-rule-matrix.md`
+   - `docs/architecture/priority-score-v1.md`
+   - `docs/architecture/data-freshness-and-coverage-policy-v1.md`
+   - `docs/architecture/weekly-self-report-anchors-v1.md`
+
+3. **Captured the research follow-up posture for V1**
+   - `docs/research/v1-research-gaps-and-targeted-followups.md`
+   - conclusion: enough research exists for a strong V1, but a few targeted follow-ups still matter
+
+### Core design shift
+
+The main redesign decision is:
+- keep the useful old layered MVP shape,
+- but stop treating Notion as the hidden source of core health logic.
+
+Key consequences:
+- split wide biomarker tables into panel rows + entry rows,
+- separate raw measurements from derived insights and recommendations,
+- treat missing data as coverage, not severity,
+- treat ApoB as primary and LDL as fallback/secondary lens,
+- move weak/contextual markers out of the hard core score,
+- make unit and assay constraints explicit,
+- frame the main score as a **Priority Score**, not a medical risk score.
+
+### Result
+
+The repo now has a much more serious planning baseline for the first MVP data and interpretation layer.
+This should reduce rebuild risk before app/UI implementation starts.
+
+### Next sensible step
+
+Build the React Native scaffold and first narrow end-to-end flow against these V1 boundaries.
+
+---
+
 ## Session Update — 2026-04-12 (~18:00 CEST)
 
 ### Was passiert ist
