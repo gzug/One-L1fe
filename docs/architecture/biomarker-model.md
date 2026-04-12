@@ -1,202 +1,166 @@
-# Mapping the 13 Core Principles
+# Canonical Biomarker Model
 
-This document details and maps the 13 core principles from the Deep Research Report to their specific implementation locations within the codebase. The implementation can be found in the `packages/domain/biomarkers.ts` file. Each principle is explained below with corresponding code examples and references.
+This document replaces the previous placeholder mapping with a practical baseline for the biomarker domain.
 
-## Core Principle 1: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Here you explain why this principle is essential and provide context about it in the research.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Discuss the significance of this principle in the application and overall project.
-- **References**: 
-  - Source 1
-  - Source 2
+## Verdict
 
-## Core Principle 2: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+The repo now has a **real first-pass biomarker registry** in `packages/domain/biomarkers.ts`.
+It is not a finished medical model, but it is now a clean technical starting point for product work, Supabase schema design, and recommendation contracts.
 
-## Core Principle 3: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+## What lives in code now
 
-## Core Principle 4: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+Implementation location: `packages/domain/biomarkers.ts`
 
-## Core Principle 5: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+The file now defines:
+- canonical status values,
+- biomarker categories,
+- evidence levels,
+- reference-range shapes,
+- typed biomarker definitions,
+- the MVP biomarker registry,
+- helper functions for status and weighted scoring.
 
-## Core Principle 6: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+## Design principles mapped to implementation
 
-## Core Principle 7: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+### 1. Canonical keys come first
+Each biomarker has a stable machine key like `apob`, `ldl`, `hba1c`, or `vitamin_d`.
 
-## Core Principle 8: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+Why it matters:
+- database schemas need stable identifiers,
+- app screens should not depend on display strings,
+- prompts and backend logic need the same naming surface.
 
-## Core Principle 9: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+Implementation:
+- `BiomarkerDefinition.key`
+- `biomarkerRegistry`
+- `getBiomarkerDefinition()`
 
-## Core Principle 10: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+### 2. Display name and machine identity stay separate
+Human-readable labels are stored separately from the key.
 
-## Core Principle 11: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+Why it matters:
+- UI text can evolve without breaking code,
+- localization stays possible later,
+- contracts remain stable.
 
-## Core Principle 12: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+Implementation:
+- `BiomarkerDefinition.displayName`
 
-## Core Principle 13: Principle Title
-- **Implementation Location**: `packages/domain/biomarkers.ts` - Line XX
-- **Detailed Explanation**: 
-  Explanation about this principle.
-- **Code Example**:
-  ```typescript
-  // Example code snippet demonstrating the principle
-  const example = function() { /*...*/ };
-  ```
-- **Why It Matters**: 
-  Significance of this principle.
-- **References**: 
-  - Source 1
-  - Source 2
+### 3. Category is explicit
+The model encodes whether a marker is `core`, `supporting`, or `contextual`.
 
----
+Why it matters:
+- Phase 0 scope stays narrow,
+- contextual markers like DAO stay bounded,
+- roadmap decisions can filter by category instead of ad-hoc lists.
 
-This document serves as a comprehensive guide to understanding the core principles and their real-world applications in the codebase. If there are any updates or additional information required, please ensure that this document is maintained accordingly.
+Implementation:
+- `BiomarkerCategory`
+- `BiomarkerDefinition.category`
+
+### 4. Evidence posture is part of the model
+Each biomarker carries a lightweight evidence label: `primary`, `secondary`, or `experimental`.
+
+Why it matters:
+- recommendation logic should not treat all markers equally,
+- low-confidence surfaces stay visibly bounded,
+- the repo preserves epistemic honesty early.
+
+Implementation:
+- `EvidenceLevel`
+- `BiomarkerDefinition.evidenceLevel`
+
+### 5. Units are defined in the registry
+Every biomarker now has a canonical unit in the domain layer.
+
+Why it matters:
+- data ingestion and normalization need a clear target unit,
+- UI rendering should not invent units screen-by-screen,
+- Supabase schema design gets easier when units are explicit.
+
+Implementation:
+- `BiomarkerDefinition.unit`
+
+### 6. Reference ranges are modeled, not implied
+The registry defines reference interpretation as `upper_bound`, `lower_bound`, or `range`.
+
+Why it matters:
+- status calculation becomes predictable,
+- future normalization can stay consistent,
+- the scoring chain can reuse the same structure.
+
+Implementation:
+- `ReferenceRangeKind`
+- `ReferenceRange`
+- `BiomarkerDefinition.referenceRange`
+- `calculateCanonicalStatus()`
+
+### 7. Scoring is separated from raw biomarker storage
+The file includes helper functions for weighted scoring and total priority aggregation.
+
+Why it matters:
+- raw lab values stay separate from derived interpretation,
+- backend and UI can share the same scoring logic,
+- recommendation work has a stable base contract.
+
+Implementation:
+- `mapPriorityScore()`
+- `calculateWeightedScore()`
+- `aggregateTotalPriorityScore()`
+- `determinePrimaryFocus()`
+
+### 8. The model is wellness-oriented, not diagnostic
+This registry is designed for prioritization and pattern detection, not medical diagnosis.
+
+Why it matters:
+- it matches the intended-use boundary,
+- it reduces accidental medical overclaiming,
+- it keeps early product language defensible.
+
+Implementation:
+- bounded descriptions in each biomarker definition,
+- no diagnosis language in status helpers,
+- optional/contextual treatment for interpretation-sensitive markers.
+
+## Current MVP biomarker set
+
+### Core
+- ApoB
+- LDL
+- Triglycerides
+- Lp(a)
+- HbA1c
+- Glucose
+- CRP
+
+### Supporting
+- Vitamin D
+- Ferritin
+- B12
+- Magnesium
+
+### Contextual
+- DAO
+
+## What is still intentionally missing
+
+This file is now a usable baseline, but several things are still deliberately unfinished:
+- unit conversion rules,
+- sex or age-specific ranges,
+- validation schemas,
+- trend aggregation across time,
+- recommendation contracts,
+- provenance and evidence citation structures.
+
+Those should come next, but they no longer block the repo from being a coherent starting point.
+
+## Recommended next step
+
+Draft the **Supabase schema** directly against this registry.
+
+Suggested first tables:
+- `biomarker_definitions`
+- `lab_results`
+- `lab_result_entries`
+- `derived_insights`
+- `recommendations`

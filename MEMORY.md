@@ -6,6 +6,44 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ---
 
+## Session Update — 2026-04-12 (~18:00 CEST)
+
+### Was passiert ist
+
+Diese Session war ein **Repo-Cleanup und Domain-Baseline-Fix** für den Product-Startpunkt.
+
+Erledigt:
+
+1. **`packages/domain/biomarkers.ts` von Placeholder auf brauchbare Baseline gehoben**
+   - kanonische Biomarker-Keys eingeführt
+   - Kategorien (`core`, `supporting`, `contextual`) ergänzt
+   - Evidence-Level ergänzt
+   - einfache Referenzbereichs-Struktur ergänzt
+   - Helper für Status, Weighted Scoring und Primary Focus ergänzt
+
+2. **`docs/architecture/biomarker-model.md` ent-placeholdered**
+   - generisches 13-Principles-Template entfernt
+   - ehrliche Architektur-Doku für das kanonische Biomarker-Modell geschrieben
+   - Designprinzipien direkt an Code-Struktur gemappt
+
+3. **Repo-Doku an den neuen Stand angepasst**
+   - `README.md`: Biomarker canonical schema jetzt als drafted markiert
+   - `docs/roadmap/phase-0.md`: nächster Schritt auf Supabase-Schema verschoben
+   - `packages/domain/README.md`: Status von Placeholder auf echte Baseline aktualisiert
+
+### Ergebnis
+
+Der Repo-Stand ist jetzt ein deutlich saubererer Ausgangspunkt für Product-Owner-/Agent-Arbeit:
+- weniger Fake-Progress,
+- weniger Platzhalter,
+- klarerer Übergang von Domain zu Supabase-Schema.
+
+### Nächster sinnvoller Schritt
+
+**Supabase schema draft** direkt gegen `packages/domain/biomarkers.ts` bauen.
+
+---
+
 ## Session Update — 2026-04-10 (~03:00–05:15 CEST)
 
 ### Was passiert ist

@@ -59,12 +59,17 @@ One-L1fe/
 - [x] Agent operating guide established
 - [x] Intended-use and compliance baseline documented
 - [x] Architecture skeleton defined
-- [ ] Biomarker canonical schema drafted
+- [x] Biomarker canonical schema drafted
 - [ ] Supabase schema drafted
 - [ ] React Native scaffold prepared
 - [ ] Auth flow defined
 - [ ] Recommendation pipeline and evidence model defined
 - [ ] Data governance details specified
+
+## Current Build State
+
+The canonical biomarker registry now exists in `packages/domain/biomarkers.ts` and is documented in `docs/architecture/biomarker-model.md`.
+The next clean implementation step is the Supabase schema draft.
 
 ## Working Constraint
 

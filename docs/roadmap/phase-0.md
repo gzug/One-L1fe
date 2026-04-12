@@ -12,7 +12,7 @@ Status: done
 Directories and baseline docs now exist.
 
 ### 2. Canonical biomarker model
-Status: next
+Status: drafted
 
 Define for each MVP biomarker:
 - canonical key,
@@ -24,7 +24,7 @@ Define for each MVP biomarker:
 - whether it is core, supporting, or contextual.
 
 ### 3. Supabase schema draft
-Status: pending
+Status: next
 
 Likely first tables:
 - profiles,
@@ -73,4 +73,5 @@ Target outcome:
 
 ## My Recommended Next Step
 
-Create `packages/domain` contents first, specifically the canonical biomarker registry. That will make the next Supabase and app work much cleaner.
+Draft the Supabase schema directly against the canonical biomarker registry in `packages/domain/biomarkers.ts`.
+That will keep the database shape aligned with the domain layer before app scaffolding begins.
