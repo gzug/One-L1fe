@@ -16,8 +16,8 @@ Create `apps/mobile/.env` (never commit):
 ```
 EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL=https://<project-ref>.supabase.co
 EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY=<your-anon-key>
-# Optional - defaults to the canonical hosted URL:
-# EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH=/functions/v1/save-minimum-slice-interpretation
+# Optional: override the default function path slug
+# EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH=save-minimum-slice-interpretation
 ```
 
 Get `SUPABASE_URL` and `SUPABASE_ANON_KEY` from: Supabase Dashboard -> Project -> Settings -> API.
@@ -41,6 +41,15 @@ Then open in iOS Simulator, Android Emulator, or Expo Go.
 5. Tap **Submit**.
 6. Expected: `Status: success`, `Interpretation run: <uuid>` shown in the Submission summary.
 7. Verify in Supabase Dashboard -> Table Editor -> `lab_results` that a row exists under the correct `profile_id`.
+
+## Quick failure smoke checks
+
+Run these once before calling the seam proven:
+
+1. Wrong password -> Login screen shows an error, no crash.
+2. Missing env vars -> app fails fast with a clear config error.
+3. Signed-out launch -> Login screen is shown instead of the form.
+4. Hosted function error -> submission summary shows an error instead of hanging silently.
 
 ## Auth flow
 
