@@ -2,19 +2,19 @@
 
 ## Verdict
 
-The One L1fe repo now has a real authenticated Supabase edge-function path for the minimum-slice repository seam, while keeping the shared domain and persistence logic reusable underneath.
+The One L1fe repo now has a real authenticated Supabase edge-function path plus a shared, tested request-contract parser for that minimum-slice backend seam.
 
 ## Current state
 
 - Branch: `main`
 - Working tree at session start: clean
 - Source of truth repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function`
+- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract`
 - Verified recently: `npm run typecheck`, `npm run test:domain`
 
 ## Current next step
 
-Add local invocation coverage and then decide whether the next backend step is a thin app-facing client wrapper, richer function-level validation, or broader runtime support beyond the current minimum-slice path.
+The next backend step should be auth-backed local invocation coverage or a thin app-facing client wrapper that calls the now-shared function contract cleanly.
 
 ## Startup rule
 

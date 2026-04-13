@@ -32,6 +32,8 @@ Important: this file stores project memory, not personal health records. Do not 
   - `packages/domain/supabaseRepository.ts`
 - An authenticated Supabase edge-function entrypoint now exists at:
   - `supabase/functions/save-minimum-slice-interpretation/index.ts`
+- Its request parsing and validation now live in a shared TypeScript contract at:
+  - `packages/domain/minimumSliceFunctionContract.ts`
 - Idempotent re-run coverage exists for repeated repository saves against the same external ids.
 - Recent verification passed:
   - `npm run typecheck`
@@ -39,7 +41,7 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ## Current next step
 
-Add local invocation coverage for the edge function, then decide whether to build a thin app-facing client wrapper or extend runtime support beyond the current minimum-slice path.
+Add auth-backed local invocation coverage for the edge function, or build a thin app-facing client wrapper on top of the shared function contract.
 
 ## Startup rule
 

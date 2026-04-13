@@ -38,6 +38,8 @@ That means this package is no longer just a placeholder. It now provides:
 - Supabase payload assertions in `supabasePayload.assertions.ts`,
 - a repository seam in `supabaseRepository.ts`,
 - repository re-run assertions in `supabaseRepository.assertions.ts`,
+- a shared function request contract in `minimumSliceFunctionContract.ts`,
+- function request contract assertions in `minimumSliceFunctionContract.assertions.ts`,
 - and executable TypeScript build/test entrypoints via the repo root scripts.
 
 ## Important constraint
