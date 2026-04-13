@@ -9,8 +9,8 @@ let _client: SupabaseClient | undefined;
 export function getMobileSupabaseClient(): SupabaseClient {
   if (_client !== undefined) return _client;
 
-  const url = process.env['EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL'];
-  const anonKey = process.env['EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY'];
+    const url = process.env.EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL;
+    const anonKey = process.env.EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY;
 
   if (!url || !anonKey) {
     throw new Error(
