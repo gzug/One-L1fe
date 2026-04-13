@@ -105,7 +105,7 @@ Run:
 - `npm run check:repo-hygiene`
 
 This is intentionally small.
-It is a first guard against obvious auth secret material and unsafe tracked text patterns, not a complete privacy scanner.
+It is a first guard against obvious auth secret material and suspicious tracked artifact files, not a complete privacy scanner.
 
 ## Related canonical docs
 

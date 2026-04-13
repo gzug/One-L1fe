@@ -9,4 +9,14 @@ if git grep -nE 'Authorization: Bearer [A-Za-z0-9._-]{16,}|access[_-]?token[[:sp
   exit 1
 fi
 
+suspicious_artifacts="$(find docs memory apps -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.pdf' \) ! -path '*/node_modules/*' -print)"
+
+if [ -n "$suspicious_artifacts" ]; then
+  echo "Repo hygiene check failed: suspicious tracked artifact files found in docs/, memory/, or apps/."
+  echo "$suspicious_artifacts"
+  echo
+  echo "Use synthetic, reviewed assets only, or keep sensitive artifacts out of the repo."
+  exit 1
+fi
+
 echo "Repo hygiene check passed."

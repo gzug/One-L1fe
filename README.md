@@ -20,10 +20,11 @@ Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
 ## Start here
 
-Use one startup model on purpose:
+This file is for broad human orientation.
+For meaningful repo work, use `CHECKPOINT.md` as the primary startup file.
 
-1. For meaningful repo work, start with [CHECKPOINT.md](./CHECKPOINT.md)
-2. Read [README.md](./README.md) first only when you need broad repo orientation
+1. Start with [CHECKPOINT.md](./CHECKPOINT.md)
+2. Read [README.md](./README.md) only when you need broad repo orientation
 3. Read [MEMORY.md](./MEMORY.md) only for durable truth
 4. Read [docs/README.md](./docs/README.md) only when you need deeper docs navigation
 
