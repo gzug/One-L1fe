@@ -6,3 +6,4 @@
 
 export * from './metricRegistry';
 export * from './syncContract';
+export * from './syncClient';
