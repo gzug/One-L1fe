@@ -18,11 +18,9 @@ Verified on GitHub as of 2026-04-13:
 - branch protection on `main` exists
 - force pushes to `main` are blocked
 - required check `validate` is configured
+- admins are also subject to branch protection
 - `SUPABASE_ACCESS_TOKEN` exists
 - `SUPABASE_PROJECT_REF` exists
-
-Important caveat:
-- bypass paths still matter in practice, so repo wording should not overclaim stricter enforcement than GitHub is actually applying
 
 ## Recommended now
 

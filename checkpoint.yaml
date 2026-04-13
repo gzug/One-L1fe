@@ -9,7 +9,6 @@ next_best_steps:
   - choose the next thin mobile seam after the first hosted path is confirmed
 active_blockers:
   - mobile auth still uses environment placeholders instead of a real app session source
-  - CI wording and GitHub bypass behavior need to stay aligned with actual enforcement
 startup_truth:
   - CHECKPOINT.md
   - README.md only for broad orientation

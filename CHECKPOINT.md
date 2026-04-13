@@ -21,7 +21,6 @@ The hosted minimum-slice backend seam is live and the thin Expo mobile seam now 
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
   - mobile auth still uses environment placeholders instead of a real app session source
-  - CI enforcement wording needs to stay aligned with actual GitHub behavior and bypass settings
 - Key confirmed facts:
   - hosted migrations match repo
   - RLS and policies are live
@@ -35,11 +34,10 @@ The hosted minimum-slice backend seam is live and the thin Expo mobile seam now 
 The next best steps are, in order:
 1. wire a real app auth session into `apps/mobile/minimumSliceScreenController.ts` and validate one authenticated Expo submission against the hosted endpoint,
 2. decide whether the next thin app seam is a dedicated hook extraction or a second screen around the same controller,
-3. tighten CI wording and behavior so repo truth matches actual GitHub enforcement and bypass rules,
-4. activate `supabase db lint` as the next CI check,
-5. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
-6. add drift detection CI only after boot/reset is stable,
-7. merge or close PR #1 cleanly.
+3. activate `supabase db lint` as the next CI check,
+4. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
+5. add drift detection CI only after boot/reset is stable,
+6. merge or close PR #1 cleanly.
 
 ## Startup rule
 
