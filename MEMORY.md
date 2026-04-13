@@ -32,7 +32,7 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
 - Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
 - For the first real mobile app seam, use Expo scaffolding first and avoid `expo-router` until there is a concrete navigation need.
-- The first Expo scaffold now exists under `apps/mobile/` and still uses environment placeholders for auth until a real app session source is wired.
+- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session (`mobileSupabaseAuth.ts` via `auth.getSession()`). Environment placeholders for auth have been removed. Next step: first real authenticated Expo 
 
 ## Durable repo operations posture
 
