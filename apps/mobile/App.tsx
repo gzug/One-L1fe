@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -13,6 +13,8 @@ import {
 import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import { getOneL1feSupabaseUrl, ONE_L1FE_SUPABASE_PROJECT_REF } from './minimumSliceHostedConfig.ts';
+import { createMobileSupabaseAuthSessionProvider, getMobileSupabaseClient } from './mobileSupabaseAuth.ts';
+import LoginScreen from './LoginScreen.tsx';
 
 const FIELD_ORDER = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
@@ -34,23 +36,7 @@ function readEnv(name: string): string | undefined {
 }
 
 const controller = createMinimumSliceScreenController({
-  authSessionProvider: {
-    async getSession() {
-      const accessToken = readEnv('EXPO_PUBLIC_ONE_L1FE_ACCESS_TOKEN');
-      const profileId = readEnv('EXPO_PUBLIC_ONE_L1FE_PROFILE_ID');
-
-      if (accessToken === undefined || profileId === undefined) {
-        throw new Error(
-          'Set EXPO_PUBLIC_ONE_L1FE_ACCESS_TOKEN and EXPO_PUBLIC_ONE_L1FE_PROFILE_ID before submitting to the hosted function.',
-        );
-      }
-
-      return {
-        user: { id: profileId },
-        accessToken,
-      };
-    },
-  },
+  authSessionProvider: createMobileSupabaseAuthSessionProvider(),
   supabaseUrl: readEnv('EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL') ?? getOneL1feSupabaseUrl(ONE_L1FE_SUPABASE_PROJECT_REF),
   functionPath: readEnv('EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH'),
 });
@@ -60,10 +46,33 @@ function renderTopDrivers(state: MinimumSliceScreenModel): string {
   return topDrivers !== undefined && topDrivers.length > 0 ? topDrivers.join(', ') : 'none';
 }
 
+type AuthState = 'loading' | 'signed-out' | 'signed-in';
+
 export default function App(): React.JSX.Element {
+  const [authState, setAuthState] = useState<AuthState>('loading');
   const [screenState, setScreenState] = useState<MinimumSliceScreenModel>(() => controller.reset());
   const [localError, setLocalError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const client = getMobileSupabaseClient();
+
+    client.auth.getSession().then(({ data }) => {
+      setAuthState(data.session !== null ? 'signed-in' : 'signed-out');
+    });
+
+    const { data: listener } = client.auth.onAuthStateChange((_event, session) => {
+      setAuthState(session !== null ? 'signed-in' : 'signed-out');
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignedIn = useCallback(() => {
+    setAuthState('signed-in');
+  }, []);
 
   const helperText = useMemo(() => {
     return [
@@ -98,6 +107,20 @@ export default function App(): React.JSX.Element {
   function handleChange(field: FieldKey, value: string): void {
     const nextState = controller.patchDraft({ [field]: value });
     setScreenState(nextState);
+  }
+
+  if (authState === 'loading') {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.centered}>
+          <ActivityIndicator color="#4263eb" size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (authState === 'signed-out') {
+    return <LoginScreen onSignedIn={handleSignedIn} />;
   }
 
   return (
@@ -153,6 +176,11 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f4f7fb',
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   container: {
     padding: 20,
