@@ -4,24 +4,21 @@
 
 - Repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
 - The nested repo is the product source of truth.
-- The workspace `MEMORY.md` provides the latest checkpoint bridge for fresh OpenClaw sessions.
+- The workspace `MEMORY.md` is only the routing bridge.
 
-## Read first
+## Fresh-session rule
 
-1. `AGENTS.md`
-2. `GLOSSARY.md`
-3. `MEMORY.md`
-4. `README.md`
+Start with `CHECKPOINT.md`.
+Do not auto-read repo `MEMORY.md`, `GLOSSARY.md`, or `README.md` unless the task actually needs them.
 
-## Current high-value docs
+## Read-on-demand
 
-- `docs/planning/V1-backlog.md`
-- `docs/planning/V1-minimum-slice.md`
-- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md`
-- `docs/architecture/evidence-registry-and-rule-governance-v1.md`
-- `docs/architecture/v1-rule-matrix.md`
-- `docs/architecture/priority-score-v1.md`
-- `docs/notion/notion-vs-backend-calculation-boundary.md`
+- `docs/compliance/intended-use.md` for health-adjacent copy, recommendation wording, or compliance boundaries
+- `docs/architecture/evidence-registry-and-rule-governance-v1.md` for provenance / evidence logic work
+- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` for planning the next implementation seam
+- `MEMORY.md` for deeper history only
+- `GLOSSARY.md` when terms are unclear
+- `README.md` for broad orientation only
 
 ## Current operating direction
 
@@ -33,5 +30,5 @@
 
 ## Current next focus
 
-- Convert policy posture into implementation-ready rule inventory and decision tables.
-- Keep docs, backlog, and checkpoint state aligned after each meaningful change.
+- Wire the persistence adapter into a real Supabase repository or edge-function path.
+- Then add idempotent re-run coverage.

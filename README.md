@@ -103,12 +103,14 @@ A first shared domain implementation bridge now exists for:
 - a minimum-slice Priority Score evaluator,
 - deterministic domain fixtures,
 - executable TypeScript assertions that currently pass,
-- and typed persistence-contract mapping for backend storage.
+- typed persistence-contract mapping for backend storage,
+- evidence-registry seed and upsert generation,
+- and a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order.
 
 The next clean implementation step is:
-1. tighten recommendation and provenance fields around source anchors,
-2. wire the persistence payload into real backend storage models,
-3. extend scenario coverage beyond the current minimum-slice and contract assertions.
+1. wire the new persistence adapter into a real Supabase function or repository layer,
+2. add richer scenario coverage around idempotent rewrites and partial-update behavior,
+3. extend runtime support beyond the current minimum-slice and contract assertions.
 
 ## Working Constraint
 
