@@ -2,19 +2,19 @@
 
 ## Verdict
 
-The One L1fe repo now has a real authenticated Supabase edge-function path plus a shared, tested request-contract parser for that minimum-slice backend seam.
+The One L1fe repo now has a real authenticated Supabase edge-function path, a shared tested request-contract parser, and a practical local smoke-test helper for the minimum-slice backend seam.
 
 ## Current state
 
 - Branch: `main`
 - Working tree at session start: clean
 - Source of truth repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract`
-- Verified recently: `npm run typecheck`, `npm run test:domain`
+- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract -> local smoke-test helper`
+- Verified recently: `npm run typecheck`, `npm run test:domain`, `bash -n scripts/smoke-test-save-minimum-slice-function.sh`
 
 ## Current next step
 
-The next backend step should be auth-backed local invocation coverage or a thin app-facing client wrapper that calls the now-shared function contract cleanly.
+The next backend step should be either a thin app-facing client wrapper for the shared function contract or a deeper end-to-end local run once Supabase is up with a real anon key in place.
 
 ## Startup rule
 

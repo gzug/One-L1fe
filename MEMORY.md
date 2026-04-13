@@ -34,6 +34,8 @@ Important: this file stores project memory, not personal health records. Do not 
   - `supabase/functions/save-minimum-slice-interpretation/index.ts`
 - Its request parsing and validation now live in a shared TypeScript contract at:
   - `packages/domain/minimumSliceFunctionContract.ts`
+- A local auth-backed smoke-test helper now exists at:
+  - `scripts/smoke-test-save-minimum-slice-function.sh`
 - Idempotent re-run coverage exists for repeated repository saves against the same external ids.
 - Recent verification passed:
   - `npm run typecheck`
@@ -41,7 +43,7 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ## Current next step
 
-Add auth-backed local invocation coverage for the edge function, or build a thin app-facing client wrapper on top of the shared function contract.
+Run the new local function smoke test once Supabase is up with a real anon key, or build a thin app-facing client wrapper on top of the shared function contract.
 
 ## Startup rule
 

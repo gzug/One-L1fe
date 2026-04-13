@@ -54,7 +54,17 @@ Example:
 supabase functions serve save-minimum-slice-interpretation --no-verify-jwt
 ```
 
-Then POST the example payload to the local function URL during early wiring, or switch back to normal JWT verification once auth-backed local invocation is in place.
+Auth-backed smoke test helper:
+
+```bash
+SUPABASE_ANON_KEY=... npm run smoke:function:minimum-slice
+```
+
+The smoke-test script:
+- signs up a local test user,
+- creates the matching `profiles` row through the REST API under that user token,
+- calls the function with the example payload,
+- and fails if the function does not return persistence ids.
 
 ## Notes
 

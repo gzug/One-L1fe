@@ -110,9 +110,9 @@ A first shared domain implementation bridge now exists for:
 - and an authenticated Supabase edge-function entrypoint for that shared repository path.
 
 The next clean implementation step is:
-1. add local invocation coverage around the new edge-function path,
-2. extend runtime support beyond the current minimum-slice and contract assertions,
-3. add higher-level backend integration coverage once the live entrypoint is exercised end to end.
+1. run the new local smoke-test path against a live local Supabase instance,
+2. build a thin app-facing client wrapper for the shared function contract,
+3. extend runtime support beyond the current minimum-slice and contract assertions.
 
 ## Working Constraint
 
