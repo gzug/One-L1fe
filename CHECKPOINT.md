@@ -2,31 +2,39 @@
 
 ## Verdict
 
-The One L1fe repo now has a real authenticated Supabase edge-function path in-repo and in hosted Supabase, a confirmed clean hosted database baseline, a shared tested request-contract parser, a practical and repeatable local and hosted smoke-test path for the minimum-slice backend seam, a first real GitHub/repo-hygiene foundation around that code, and the start of a real thin app-side submission model for the minimum-slice flow.
+The One L1fe hosted backend path is fully operational. The minimum-slice edge function is deployed, authenticated, and confirmed end-to-end with a 200 smoke call that wrote all rows. The database is clean, hardened, and drift-free. The seam from mobile UI to hosted Supabase endpoint is open and ready to use.
 
 ## Current state
 
 - Branch: `main`
-- Working tree currently: in progress, with the backend seam green and the mobile controller seam underway
+- Working tree: clean as of session closeout 2026-04-13
 - Source of truth repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- Latest completed product seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract -> local smoke-test helper -> thin app-facing function client wrapper -> HTTP transport adapter -> mobile form-to-panel adapter -> mobile submission-state wrapper -> result summary helper -> stricter timestamp and transport validation -> broader negative-path assertions -> compact submission-state summary helper -> cross-runtime-safe shared imports -> repeatable authenticated local smoke pass -> hosted hardening confirmation -> thin app-side minimum-slice screen model -> hosted config and auth-session controller seam`
-- Latest completed repo-ops seam: `.github templates -> CODEOWNERS -> CI -> contributing rules -> docs navigation -> Supabase backend operating model -> local Supabase replay workflow scaffold`
-- Latest repo fix completed in-session: `supabase/config.toml` seed path now matches `supabase/seed/*.sql`, the obsolete `supabase/migrations/.gitkeep` warning source is gone, local replay seeds from the intended file path cleanly, and the edge-function boot path now works with explicit `.ts` shared-domain imports
-- Hosted confirmation reported: security advisor clean, 5 migrations applied in order, hardening migration live, no drift detectable from the advisor layer, PR #1 safe to merge
-- Hosted confirmation reported after follow-up: all tables have RLS enabled with the expected policies, hosted migration history exactly matches repo, `save-minimum-slice-interpretation` is deployed, and one authenticated hosted smoke call returned 200 with full writes succeeding end to end
-- Current repo-side deployment fix completed: shared domain files are vendored into `supabase/functions/save-minimum-slice-interpretation/_lib/domain` at deploy time so the Supabase function bundle stays self-contained without forking the domain source of truth
-- Hard blockers outside the repo: GitHub Action secrets and branch protection are still not verified live from this environment because GitHub CLI is not authenticated here
-- Verified recently: `npm run typecheck`, `npm run test:domain`, `bash -n scripts/smoke-test-save-minimum-slice-function.sh`, `supabase start`, `supabase db reset`, `supabase stop --no-backup`, `npm run smoke:function:minimum-slice`
+- Latest completed product seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract -> local smoke-test helper -> thin app-facing function client wrapper -> HTTP transport adapter -> mobile form-to-panel adapter -> mobile submission-state wrapper -> result summary helper -> stricter timestamp and transport validation -> broader negative-path assertions -> compact submission-state summary helper -> cross-runtime-safe shared imports -> repeatable authenticated local smoke pass -> hosted hardening confirmation -> thin app-side minimum-slice screen model -> hosted config and auth-session controller seam -> hosted function deployed and smoke-verified end-to-end`
+- Latest completed repo-ops seam: `.github templates -> CODEOWNERS -> CI -> contributing rules -> docs navigation -> Supabase backend operating model -> local Supabase replay workflow scaffold -> deploy script + vendoring strategy confirmed`
+- Hosted confirmations as of 2026-04-13:
+  - Security advisor: clean (0 findings) ✅
+  - Migration history: 5 migrations applied in order, matches repo exactly ✅
+  - RLS: all user-owned tables hardened, overlapping policies consolidated, `(select auth.uid())` in use ✅
+  - Backend hardening migration: live ✅
+  - Drift: none detectable ✅
+  - Edge function `save-minimum-slice-interpretation`: deployed (version 2, ACTIVE), JWT enforcement on ✅
+  - Hosted smoke call: HTTP 200, 6 interpreted entries, 6 recommendations, coverageState complete ✅
+- Deploy strategy confirmed: domain files vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`; `_lib/` is gitignored; source of truth stays in `packages/domain/`
+- Unverified (requires GitHub CLI auth or dashboard manual check):
+  - GitHub Actions secrets (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`) — not confirmed live
+  - Branch protection on `main` — not confirmed live
+  - Required status check `validate` — not confirmed live
 
 ## Current next step
 
 The next best steps are, in order:
-1. complete the first real mobile screen or hook around `apps/mobile/minimumSliceScreenModel.ts` and point it at the hosted endpoint,
-2. wire a real app auth session source into `apps/mobile/minimumSliceScreenController.ts`,
-3. finish GitHub-side enforcement for the new workflow, especially secrets and branch protection,
-4. activate the next Supabase CI checks once secrets exist,
-5. if a direct hosted CLI path becomes available here, run one authenticated lint and drift-baseline pass to independently verify the hosted result,
-6. then keep product work moving on the next app seam rather than more backend invention.
+1. Wire a real app auth session into `apps/mobile/minimumSliceScreenController.ts` and point it at the hosted endpoint (`https://lbqgjourpsodqglputkj.supabase.co/functions/v1/save-minimum-slice-interpretation`)
+2. Build the first real mobile screen or hook around `apps/mobile/minimumSliceScreenModel.ts`
+3. Confirm GitHub Actions secrets exist (`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`) — manual dashboard step
+4. Confirm branch protection and required check `validate` is live on `main` — manual dashboard step
+5. Activate `supabase db lint` as the first CI check once secrets are confirmed
+6. Add boot/reset CI check (`supabase start` + `supabase db reset`) after lint is stable
+7. Add drift detection CI check last, after boot/reset is stable across 2-3 cycles
 
 ## Startup rule
 
@@ -40,6 +48,7 @@ Only read deeper docs when the task actually touches them.
 - `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` only when planning the next implementation seam.
 - `GLOSSARY.md` only when abbreviations or term meanings are unclear.
 - `README.md` only for broad repo orientation.
+- `supabase/README.md` for Supabase workflow, CI commands, secrets, and deploy procedure.
 
 ## Guardrails
 
