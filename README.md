@@ -105,12 +105,13 @@ A first shared domain implementation bridge now exists for:
 - executable TypeScript assertions that currently pass,
 - typed persistence-contract mapping for backend storage,
 - evidence-registry seed and upsert generation,
-- and a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order.
+- a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order,
+- and a shared repository seam that turns minimum-slice input into deterministic persistence writes with idempotent re-run coverage.
 
 The next clean implementation step is:
-1. wire the new persistence adapter into a real Supabase function or repository layer,
-2. add richer scenario coverage around idempotent rewrites and partial-update behavior,
-3. extend runtime support beyond the current minimum-slice and contract assertions.
+1. expose the shared repository seam through a real Supabase function or live server-side client path,
+2. extend runtime support beyond the current minimum-slice and contract assertions,
+3. add higher-level backend integration coverage once the live entrypoint exists.
 
 ## Working Constraint
 

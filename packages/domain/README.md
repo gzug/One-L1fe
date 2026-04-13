@@ -36,6 +36,8 @@ That means this package is no longer just a placeholder. It now provides:
 - Supabase-shape mapping in `supabasePayload.ts`,
 - contract assertions in `contracts.assertions.ts`,
 - Supabase payload assertions in `supabasePayload.assertions.ts`,
+- a repository seam in `supabaseRepository.ts`,
+- repository re-run assertions in `supabaseRepository.assertions.ts`,
 - and executable TypeScript build/test entrypoints via the repo root scripts.
 
 ## Important constraint
@@ -49,4 +51,5 @@ Keep recommendation language bounded and keep diagnosis/treatment logic out of t
 - recommendation contracts shared across app and backend boundaries,
 - evidence metadata contracts,
 - import/export types shared between mobile and backend,
-- and richer scenario coverage beyond the current minimum-slice assertions.
+- richer scenario coverage beyond the current minimum-slice assertions,
+- and a live backend entrypoint that calls the shared repository seam.

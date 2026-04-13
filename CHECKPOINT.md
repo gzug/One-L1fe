@@ -2,19 +2,19 @@
 
 ## Verdict
 
-The One L1fe repo is past pure planning and now has a working domain-to-persistence bridge for the V1 minimum slice.
+The One L1fe repo now has a working minimum-slice domain-to-repository persistence seam, with idempotent re-run coverage around the Supabase write path.
 
 ## Current state
 
 - Branch: `main`
 - Working tree at session start: clean
 - Source of truth repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence`
+- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository`
 - Verified recently: `npm run typecheck`, `npm run test:domain`
 
 ## Current next step
 
-Wire the new persistence adapter into a real Supabase repository or edge-function path, then add idempotent re-run coverage.
+Choose the next backend execution seam: either expose the repository path through a real Supabase edge function or add a live server-side Supabase client integration that calls the repository directly.
 
 ## Startup rule
 

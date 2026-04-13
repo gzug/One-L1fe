@@ -24,18 +24,20 @@ Important: this file stores project memory, not personal health records. Do not 
 
 - The repo already has the V1 minimum-slice domain evaluator.
 - The repo already has evidence-registry structures and Supabase seed/upsert generation.
-- The repo now also has the persistence bridge:
+- The repo now also has the minimum-slice persistence path end to end inside the shared TypeScript layer:
   - `packages/domain/minimumSlice.ts`
   - `packages/domain/contracts.ts`
   - `packages/domain/supabasePayload.ts`
   - `packages/domain/supabasePersistence.ts`
+  - `packages/domain/supabaseRepository.ts`
+- Idempotent re-run coverage now exists for repeated repository saves against the same external ids.
 - Recent verification passed:
   - `npm run typecheck`
   - `npm run test:domain`
 
 ## Current next step
 
-Wire the new persistence adapter into a real Supabase repository or edge-function path, then add idempotent re-run coverage.
+Expose the repository seam through a real Supabase edge function or a live server-side Supabase client integration.
 
 ## Startup rule
 
