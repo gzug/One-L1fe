@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: GitHub Actions secrets setup
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: planning
+---
+
 # GitHub Actions secrets setup
 
 ## For future Supabase CI steps
@@ -31,7 +41,11 @@ Treat `SUPABASE_SERVICE_ROLE_KEY` like a root credential. Avoid introducing it u
 
 ## After setup
 
-After adding the two secrets:
-1. rerun or push a backend-related workflow
-2. confirm `Lint linked Supabase project` passes
-3. then keep replay validation active for a few runs before adding automated drift detection
+Current state:
+- `SUPABASE_ACCESS_TOKEN` is present
+- `SUPABASE_PROJECT_REF` is present
+
+Next checks:
+1. confirm `Lint linked Supabase project` passes in normal CI usage
+2. keep replay validation active for a few runs
+3. then add automated drift detection only after lint and replay are stable

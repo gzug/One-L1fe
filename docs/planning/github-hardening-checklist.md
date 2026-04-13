@@ -1,6 +1,28 @@
+---
+status: current
+canonical_for: GitHub hardening checklist
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: planning
+---
+
 # GitHub hardening checklist
 
 This file tracks GitHub-side settings that should exist even in a solo-founder repo.
+
+## Current status
+
+Verified on GitHub as of 2026-04-13:
+- branch protection on `main` exists
+- force pushes to `main` are blocked
+- required check `validate` is configured
+- `SUPABASE_ACCESS_TOKEN` exists
+- `SUPABASE_PROJECT_REF` exists
+
+Important caveat:
+- bypass paths still matter in practice, so repo wording should not overclaim stricter enforcement than GitHub is actually applying
 
 ## Recommended now
 
@@ -28,4 +50,5 @@ This file tracks GitHub-side settings that should exist even in a solo-founder r
 
 ## Current blocker
 
-These settings must be applied in GitHub itself. They were not verified or changed from this session because the active GitHub CLI path is not authenticated.
+The next real hardening step is not more documentation.
+It is tightening the actual GitHub enforcement behavior so bypass paths and required checks behave exactly as intended in normal daily work.
