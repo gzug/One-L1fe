@@ -33,6 +33,7 @@ Important: this file stores project memory, not personal health records. Do not 
 - Treat local Supabase replay plus authenticated smoke-test success as the required backend baseline before claiming the edge-function seam works.
 - Treat hosted Supabase security-advisor clean status plus ordered migration confirmation as sufficient evidence that the hardening baseline is live, even if GitHub-side enforcement still needs separate verification.
 - Do not treat a local-only Supabase function as a hosted-ready backend seam. Hosted deployment and one authenticated hosted smoke call are required before claiming the mobile path is production-ready.
+- The minimum-slice hosted backend seam is green only when all are true: hosted migrations match repo, RLS/policies are live, the function is deployed, and an authenticated hosted smoke call returns 200 with writes succeeding.
 
 ## Startup rule
 

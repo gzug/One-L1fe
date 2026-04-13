@@ -28,7 +28,17 @@ The first thin app-side model now lives at:
 - `apps/mobile/minimumSliceScreenModel.ts`
 - `apps/mobile/minimumSliceScreenModel.example.ts`
 
+The next thin adapter around real hosted wiring now lives at:
+- `apps/mobile/minimumSliceHostedConfig.ts`
+- `apps/mobile/minimumSliceScreenController.ts`
+- `apps/mobile/minimumSliceScreenController.example.ts`
+
 These files keep the app seam narrow: draft state in the app layer, request shaping and transport in the shared domain layer, and compact submission summaries ready for UI rendering.
+
+The controller layer is the intended bridge to a real app screen or hook:
+- it asks one auth-session provider for the current user id and access token,
+- points at the hosted Supabase project by default,
+- and keeps submission wiring out of random UI files.
 
 ## Recommended first app seam
 
