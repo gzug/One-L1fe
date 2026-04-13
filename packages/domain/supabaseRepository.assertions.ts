@@ -1,11 +1,11 @@
-import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1';
-import { MinimumSlicePanelInput } from './minimumSlice';
+import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1.ts';
+import { MinimumSlicePanelInput } from './minimumSlice.ts';
 import {
   SupabasePersistenceClient,
   SupabaseSelectBuilder,
   SupabaseTableClient,
-} from './supabasePersistence';
-import { saveMinimumSliceInterpretation } from './supabaseRepository';
+} from './supabasePersistence.ts';
+import { saveMinimumSliceInterpretation } from './supabaseRepository.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {

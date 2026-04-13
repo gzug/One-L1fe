@@ -1,5 +1,5 @@
-import { evidenceSources, ruleEvidenceLinks } from './evidenceRegistry';
-import { buildEvidenceRegistryUpsertSql, toEvidenceRegistrySeedBundle } from './evidenceSupabaseSeed';
+import { evidenceSources, ruleEvidenceLinks } from './evidenceRegistry.ts';
+import { buildEvidenceRegistryUpsertSql, toEvidenceRegistrySeedBundle } from './evidenceSupabaseSeed.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {

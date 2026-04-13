@@ -1,7 +1,7 @@
-import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1';
-import { evaluateMinimumSlice } from './minimumSlice';
-import { toInterpretationPersistencePayload } from './contracts';
-import { toSupabasePersistenceBundle } from './supabasePayload';
+import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1.ts';
+import { evaluateMinimumSlice } from './minimumSlice.ts';
+import { toInterpretationPersistencePayload } from './contracts.ts';
+import { toSupabasePersistenceBundle } from './supabasePayload.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {

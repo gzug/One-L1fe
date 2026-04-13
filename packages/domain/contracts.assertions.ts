@@ -1,6 +1,6 @@
-import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1';
-import { evaluateMinimumSlice } from './minimumSlice';
-import { DOMAIN_ENGINE_MODE, PRIORITY_SCORE_VERSION, toInterpretationPersistencePayload } from './contracts';
+import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1.ts';
+import { evaluateMinimumSlice } from './minimumSlice.ts';
+import { DOMAIN_ENGINE_MODE, PRIORITY_SCORE_VERSION, toInterpretationPersistencePayload } from './contracts.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {

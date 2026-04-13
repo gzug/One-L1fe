@@ -40,6 +40,17 @@ That means this package is no longer just a placeholder. It now provides:
 - repository re-run assertions in `supabaseRepository.assertions.ts`,
 - a shared function request contract in `minimumSliceFunctionContract.ts`,
 - function request contract assertions in `minimumSliceFunctionContract.assertions.ts`,
+- a thin app-facing function client wrapper in `minimumSliceAppClient.ts`,
+- a small HTTP transport adapter in `minimumSliceAppHttpClient.ts`,
+- a mobile form-to-panel adapter in `minimumSliceMobileForm.ts`,
+- a minimal mobile-oriented submission wrapper in `minimumSliceMobileIntegration.ts`,
+- a compact submission-state summary helper in `minimumSliceMobileIntegration.ts`,
+- a compact result-summary helper in `minimumSliceResultSummary.ts`,
+- app-client assertions in `minimumSliceAppClient.assertions.ts`,
+- HTTP-client assertions in `minimumSliceAppHttpClient.assertions.ts`,
+- mobile-form assertions in `minimumSliceMobileForm.assertions.ts`,
+- mobile-integration assertions in `minimumSliceMobileIntegration.assertions.ts`,
+- result-summary assertions in `minimumSliceResultSummary.assertions.ts`,
 - and executable TypeScript build/test entrypoints via the repo root scripts.
 
 ## Important constraint

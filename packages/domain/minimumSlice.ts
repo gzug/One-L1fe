@@ -1,6 +1,6 @@
-import { CanonicalStatus, mapPriorityScore } from './biomarkers';
-import { getRuleProvenance, ProductEvidenceClass, RuleOrigin } from './provenance';
-import { evaluateByThreshold } from './thresholds';
+import { CanonicalStatus, mapPriorityScore } from './biomarkers.ts';
+import { getRuleProvenance, ProductEvidenceClass, RuleOrigin } from './provenance.ts';
+import { evaluateByThreshold } from './thresholds.ts';
 import {
   BiomarkerKey,
   FreshnessState,
@@ -14,7 +14,7 @@ import {
   determineLipidHierarchyDecision,
   getBiomarkerOrThrow,
   statusSeverityMap,
-} from './v1';
+} from './v1.ts';
 
 export type RecommendationType =
   | 'inform'

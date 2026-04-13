@@ -20,6 +20,17 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep ApoB primary and LDL fallback/secondary.
 - Keep weak/contextual markers out of the hard core score unless clearly justified.
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
+- Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
+
+## Durable repo operations posture
+
+- `README.md` is the project entry point.
+- `CHECKPOINT.md` is the current execution state and next-step source of truth.
+- `MEMORY.md` stores only durable assumptions and decisions.
+- `main` should stay the stable branch, with short-lived branches for focused changes.
+- Keep lightweight GitHub hygiene in place: templates, CODEOWNERS, and CI for typecheck plus domain tests.
+- Do not let generated docs or AI-assisted code drift away from the actual implemented path.
+- Treat local Supabase replay plus authenticated smoke-test success as the required backend baseline before claiming the edge-function seam works.
 
 ## Startup rule
 

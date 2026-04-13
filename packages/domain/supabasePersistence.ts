@@ -3,7 +3,7 @@ import {
   SupabaseInterpretationRunInsert,
   SupabasePersistenceBundle,
   SupabaseRecommendationInsert,
-} from './supabasePayload';
+} from './supabasePayload.ts';
 
 export interface SupabaseWriteError {
   message: string;

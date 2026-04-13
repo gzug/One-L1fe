@@ -1,4 +1,4 @@
-import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice';
+import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
 
 export const fixturePrimaryLipidWithBoundedModifiers: MinimumSlicePanelInput = {
   profileId: 'profile_demo_1',

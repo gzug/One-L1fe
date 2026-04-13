@@ -1,5 +1,5 @@
-import { CanonicalStatus } from './biomarkers';
-import { fixtureExpectations, runFixtureSet } from './fixtures.v1';
+import { CanonicalStatus } from './biomarkers.ts';
+import { fixtureExpectations, runFixtureSet } from './fixtures.v1.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {

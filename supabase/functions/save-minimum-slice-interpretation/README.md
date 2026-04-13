@@ -45,14 +45,7 @@ Example payload:
 
 Typical local flow:
 1. start Supabase locally,
-2. serve the function,
-3. invoke it with an authenticated bearer token so RLS and `auth.uid()` resolve normally.
-
-Example:
-
-```bash
-supabase functions serve save-minimum-slice-interpretation --no-verify-jwt
-```
+2. invoke the function with an authenticated bearer token so RLS and `auth.uid()` resolve normally.
 
 Auth-backed smoke test helper:
 
@@ -62,6 +55,7 @@ SUPABASE_ANON_KEY=... npm run smoke:function:minimum-slice
 
 The smoke-test script:
 - signs up a local test user,
+- falls back to password sign-in on repeat runs when the user already exists,
 - creates the matching `profiles` row through the REST API under that user token,
 - calls the function with the example payload,
 - and fails if the function does not return persistence ids.

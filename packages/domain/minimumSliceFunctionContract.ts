@@ -1,4 +1,4 @@
-import { BiomarkerKey } from './v1';
+import { BiomarkerKey } from './v1.ts';
 
 export interface MinimumSliceFunctionRequestEntry {
   marker: BiomarkerKey;
@@ -85,6 +85,18 @@ function parseOptionalIsoString(value: unknown, field: string): string | undefin
   return iso;
 }
 
+function parseOptionalNullableIsoString(value: unknown, field: string): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  return parseOptionalIsoString(value, field);
+}
+
 function parseEntry(value: unknown, index: number): MinimumSliceFunctionRequestEntry {
   if (!isRecord(value)) {
     throw new Error(`panel.entries[${index}] must be an object.`);
@@ -118,7 +130,7 @@ function parseEntry(value: unknown, index: number): MinimumSliceFunctionRequestE
   }
 
   if (value.collectedAt !== undefined) {
-    const collectedAt = parseOptionalString(value.collectedAt, `panel.entries[${index}].collectedAt`);
+    const collectedAt = parseOptionalNullableIsoString(value.collectedAt, `panel.entries[${index}].collectedAt`);
 
     if (collectedAt !== undefined) {
       output.collectedAt = collectedAt;
@@ -160,7 +172,7 @@ export function parseMinimumSliceFunctionRequestBody(value: unknown): MinimumSli
   const body: MinimumSliceFunctionRequestBody = {
     panel: {
       panelId: requireString(value.panel.panelId, 'panel.panelId'),
-      collectedAt: requireString(value.panel.collectedAt, 'panel.collectedAt'),
+      collectedAt: parseOptionalIsoString(value.panel.collectedAt, 'panel.collectedAt') ?? requireString(value.panel.collectedAt, 'panel.collectedAt'),
       entries: value.panel.entries.map((entry, index) => parseEntry(entry, index)),
     },
   };
