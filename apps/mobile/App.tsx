@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, View } from 'react-native';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
@@ -9,6 +9,7 @@ import {
 import { createMobileSupabaseAuthSessionProvider } from './mobileSupabaseAuth.ts';
 import LoginScreen from './LoginScreen.tsx';
 import MinimumSliceScreen from './MinimumSliceScreen.tsx';
+import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
 
 const controller = createMinimumSliceScreenController({
@@ -20,7 +21,7 @@ const controller = createMinimumSliceScreenController({
 });
 
 export default function App(): React.JSX.Element {
-  const { authState } = useAuthSession();
+  const { authState, error, user, signOut } = useAuthSession();
 
   // onSignedIn is kept for LoginScreen prop contract; auth state managed by useAuthSession
   const handleSignedIn = React.useCallback(() => {}, []);
@@ -31,14 +32,19 @@ export default function App(): React.JSX.Element {
     );
   }
 
-  if (authState === 'signed-out') {
-    return <LoginScreen onSignedIn={handleSignedIn} />;
+  if (authState === 'signed-out' || authState === 'config-error') {
+    return <LoginScreen onSignedIn={handleSignedIn} initialError={error} />;
   }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="auto" />
-      <MinimumSliceScreen controller={controller} />
+      <View style={styles.appShell}>
+        {user !== undefined ? (
+          <SessionBar email={user.email} userId={user.id} onSignOut={signOut} />
+        ) : null}
+        <MinimumSliceScreen controller={controller} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -52,5 +58,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  appShell: {
+    flex: 1,
   },
 });

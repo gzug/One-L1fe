@@ -47,18 +47,22 @@ Then open in iOS Simulator, Android Emulator, or Expo Go.
 Run these once before calling the seam proven:
 
 1. Wrong password -> Login screen shows an error, no crash.
-2. Missing env vars -> app fails fast with a clear config error.
+2. Missing env vars -> Login screen stays visible and shows a clear config error instead of crashing.
 3. Signed-out launch -> Login screen is shown instead of the form.
-4. Hosted function error -> submission summary shows an error instead of hanging silently.
+4. Sign out from the signed-in screen -> app returns cleanly to Login without stale form access.
+5. Hosted function error -> submission summary shows an error instead of hanging silently.
 
 ## Auth flow
 
 ```
 App starts
   +-- getMobileSupabaseClient().auth.getSession()
-       +-- session exists  -> show MinimumSlice form screen
+       +-- session exists  -> show SessionBar + MinimumSlice form screen
        +-- no session      -> show LoginScreen
-            +-- signInWithPassword() success -> show form screen
+            +-- signInWithPassword() success -> show signed-in screen
+
+Signed-in screen
+  +-- SessionBar -> signOut() -> return to LoginScreen
 
 Form screen: Submit button
   +-- controller.submit()
@@ -71,8 +75,9 @@ Form screen: Submit button
 
 | File | Role |
 |---|---|
-| `App.tsx` | Root component, auth state machine, form screen |
+| `App.tsx` | Root component, auth state machine, signed-in shell |
 | `LoginScreen.tsx` | Email/password sign-in UI |
+| `SessionBar.tsx` | Signed-in session identity + sign-out action |
 | `mobileSupabaseAuth.ts` | Supabase client singleton + `MinimumSliceAuthSessionProvider` adapter |
 | `minimumSliceScreenController.ts` | Screen controller (auth-provider-agnostic) |
 | `minimumSliceScreenModel.ts` | Screen model, submit logic |
