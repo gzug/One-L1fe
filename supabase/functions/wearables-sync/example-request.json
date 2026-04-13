@@ -1,0 +1,48 @@
+{
+  "wearable_source_id": "<uuid-of-wearable-source-row>",
+  "platform": "apple_health",
+  "sync_mode": "manual",
+  "started_at": "2026-04-14T00:00:00.000Z",
+  "source_cursor": null,
+  "observations": [
+    {
+      "metric_key": "steps_total",
+      "source_record_id": "hk-steps-20260413",
+      "raw_type": "HKQuantityTypeIdentifierStepCount",
+      "observed_at": "2026-04-13T00:00:00.000+02:00",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 9842,
+      "value_text": null,
+      "value_json": null,
+      "unit": "count",
+      "measurement_method": null
+    },
+    {
+      "metric_key": "hrv",
+      "source_record_id": "hk-hrv-20260413-overnight",
+      "raw_type": "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+      "observed_at": "2026-04-13T06:30:00.000+02:00",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 48.2,
+      "value_text": null,
+      "value_json": null,
+      "unit": "ms",
+      "measurement_method": "sdnn"
+    },
+    {
+      "metric_key": "sleep_session",
+      "source_record_id": "hk-sleep-20260412-night",
+      "raw_type": "HKCategoryTypeIdentifierSleepAnalysis",
+      "observed_at": "2026-04-12T23:15:00.000+02:00",
+      "observation_end_at": "2026-04-13T07:05:00.000+02:00",
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": null,
+      "value_text": null,
+      "value_json": { "source_name": "Apple Watch", "sleep_state": "asleep" },
+      "unit": null,
+      "measurement_method": null
+    }
+  ]
+}
