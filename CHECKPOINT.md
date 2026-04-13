@@ -35,6 +35,8 @@ Mobile auth blocker resolved, backend hardening migration landed on `main`, and 
   - `App.tsx`: auth state machine (`loading -> signed-out -> signed-in`), listens to `onAuthStateChange`
   - placeholder env vars (`EXPO_PUBLIC_ONE_L1FE_ACCESS_TOKEN`, `EXPO_PUBLIC_ONE_L1FE_PROFILE_ID`) removed
   - `apps/mobile/.env.example` now matches the real auth seam (`SUPABASE_URL` + `SUPABASE_ANON_KEY`)
+  -   - `mobileSupabaseAuth.ts` and `App.tsx`: Expo env dot-notation fix applied (PR #14, #15) — `readEnv` helper removed, `process.env.VAR_NAME` used directly
+      -   - Supabase test user created: `test@one-l1fe.dev` (UID: `3aa48a6f-0f7b-47d3-9875-7353064dd359`) — ready for first Expo smoke submit
 - Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
