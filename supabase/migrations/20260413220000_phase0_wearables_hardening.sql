@@ -118,16 +118,17 @@ CREATE INDEX IF NOT EXISTS idx_context_notes_tags
 -- FIX 4 — evidence_class: taxonomy single-source-of-truth anchor
 --
 -- Problem: wearable-metric-keys-v1.md used "product_compatible" which does not
--- exist in the enum. Doc/SQL drift of this kind silently breaks import code
--- and seed data that reads documentation as reference.
--- Solution: COMMENT declares this type as the canonical reference.
+-- exist in the column CHECK constraint. Doc/SQL drift of this kind silently
+-- breaks import code and seed data that reads documentation as reference.
+-- Solution: COMMENT declares the wearable_metric_definitions.evidence_class
+-- column as the canonical reference.
 -- The doc must be updated to replace "product_compatible" → "product_derived".
 -- -----------------------------------------------------------------------------
 
-COMMENT ON TYPE evidence_class IS
+COMMENT ON COLUMN public.wearable_metric_definitions.evidence_class IS
   'Canonical taxonomy for wearable data provenance.
-   SINGLE SOURCE OF TRUTH: this type definition.
-   All documentation, seed data, and application code MUST match this enum exactly.
+   SINGLE SOURCE OF TRUTH: this column CHECK constraint.
+   All documentation, seed data, and application code MUST match this taxonomy exactly.
 
    Values:
    - device_observed    : raw sensor reading directly from hardware
@@ -136,5 +137,5 @@ COMMENT ON TYPE evidence_class IS
    - self_report        : user-entered data
    - product_derived    : calculated by One-L1fe from raw observations
 
-   IMPORTANT: "product_compatible" is NOT a valid value — use "product_derived".
-   See: docs/architecture/wearable-metric-keys-v1.md (update required).';
+   IMPORTANT: "product_compatible" is NOT a valid value, use "product_derived".
+   See: docs/architecture/wearable-metric-keys-v1.md.';
