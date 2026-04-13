@@ -29,9 +29,13 @@ jobs:
         with:
           version: latest
 
+      - name: Link Supabase project
+        if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_PROJECT_REF != ''
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
       - name: Lint linked Supabase project
         if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_PROJECT_REF != ''
-        run: supabase db lint --project-ref "$SUPABASE_PROJECT_REF"
+        run: supabase db lint --linked --fail-on error
 
       - name: Start local Supabase
         run: supabase start
