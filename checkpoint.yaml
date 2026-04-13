@@ -1,6 +1,6 @@
 status: current
 last_verified: 2026-04-13
-repo: gzug/One-L1fe-repo
+repo: gzug/One-L1fe
 branch: main
 current_seam: expo mobile seam over shared minimum-slice controller and hosted Supabase function
 next_best_steps:
@@ -8,9 +8,9 @@ next_best_steps:
   - validate one authenticated Expo submission against the hosted endpoint
   - choose the next thin mobile seam after the first hosted path is confirmed
 active_blockers:
-  - GitHub secrets and branch protection are not verified live from this environment
   - mobile auth still uses environment placeholders instead of a real app session source
+  - CI wording and GitHub bypass behavior need to stay aligned with actual enforcement
 startup_truth:
   - CHECKPOINT.md
-  - MEMORY.md
-  - docs/README.md
+  - README.md only for broad orientation
+  - MEMORY.md only for durable truth

@@ -15,6 +15,8 @@ Operations guide for agents working in the **One L1fe** product repo.
 ## Session start
 
 Before meaningful repo work, start with `CHECKPOINT.md`.
+Use `README.md` first only when broad repo orientation is needed.
+Use `MEMORY.md` only for durable truth, not as a startup default.
 
 Read deeper files only on demand:
 - `GLOSSARY.md` when terms or abbreviations are unclear

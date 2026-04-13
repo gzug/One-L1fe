@@ -10,7 +10,8 @@
     "generate:evidence-sql": "npm run build:domain && node scripts/generate-evidence-registry-sql.js",
     "smoke:function:minimum-slice": "bash scripts/smoke-test-save-minimum-slice-function.sh",
     "prepare:function:minimum-slice": "bash scripts/prepare-supabase-function-domain.sh",
-    "deploy:function:minimum-slice": "bash scripts/deploy-save-minimum-slice-function.sh"
+    "deploy:function:minimum-slice": "bash scripts/deploy-save-minimum-slice-function.sh",
+    "check:repo-hygiene": "bash scripts/check-repo-hygiene.sh"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

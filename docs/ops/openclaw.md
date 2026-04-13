@@ -17,11 +17,12 @@ Do not ask OpenClaw memory features to compensate for unclear or drifting projec
 
 ## Startup order
 
-For fresh sessions:
-1. `README.md`
-2. `CHECKPOINT.md`
+For meaningful repo work:
+1. `CHECKPOINT.md`
+2. `README.md` only when broad repo orientation is needed
 3. only the most relevant deeper file for the task
 
+Use `MEMORY.md` only for durable truth or old decisions.
 Do not read broad parts of `docs/` by default.
 Use the read-on-demand map in `CHECKPOINT.md`.
 

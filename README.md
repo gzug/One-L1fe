@@ -20,11 +20,12 @@ Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
 ## Start here
 
-If you need the current truth quickly, read in this order:
+Use one startup model on purpose:
 
-1. [CHECKPOINT.md](./CHECKPOINT.md)
-2. [MEMORY.md](./MEMORY.md)
-3. [docs/README.md](./docs/README.md)
+1. For meaningful repo work, start with [CHECKPOINT.md](./CHECKPOINT.md)
+2. Read [README.md](./README.md) first only when you need broad repo orientation
+3. Read [MEMORY.md](./MEMORY.md) only for durable truth
+4. Read [docs/README.md](./docs/README.md) only when you need deeper docs navigation
 
 ## Repo structure
 
@@ -59,13 +60,15 @@ One-L1fe/
 
 Use each file layer for one job:
 
-- [README.md](./README.md) = project entry point
-- [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step
+- [README.md](./README.md) = broad project entry point and orientation
+- [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
 - [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions
+- [`memory/`](./memory/) = short-term working notes and handoff continuity
+- [`docs/ops/`](./docs/ops/) = OpenClaw and session workflow guidance
 - [`docs/architecture/`](./docs/architecture/) = technical decisions that should stay true over time
 - [`docs/planning/`](./docs/planning/) = backlog and next work
 - [`docs/research/`](./docs/research/) = evidence gathering and unresolved questions
-- [`docs/compliance/`](./docs/compliance/) = intended-use and boundary docs
+- [`docs/compliance/`](./docs/compliance/) = intended-use, data-handling, and boundary docs
 
 ## Local development
 

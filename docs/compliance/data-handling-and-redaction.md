@@ -99,6 +99,14 @@ Imported sample datasets must be documented as synthetic before they enter the r
 If there is doubt about whether an artifact is safe, do not commit it.
 Replace it with a synthetic equivalent or escalate for review.
 
+## Lightweight enforcement
+
+Run:
+- `npm run check:repo-hygiene`
+
+This is intentionally small.
+It is a first guard against obvious auth secret material and unsafe tracked text patterns, not a complete privacy scanner.
+
 ## Related canonical docs
 
 - `docs/compliance/intended-use.md` for product boundary and recommendation limits

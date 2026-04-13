@@ -99,10 +99,9 @@ These are documented but not current build drivers:
 - advanced compliance packaging,
 - multi-user or enterprise concerns.
 
-## Recommended Next Step
+## Execution note
 
-Historical note: the canonical biomarker and shared domain direction is already underway in the current repo state.
+This document describes the intended high-level architecture.
+It is not the current execution plan.
 
 For the real current next step, use `CHECKPOINT.md` as the active source of truth.
-
-Reason: this overview still describes the intended high-level architecture, but it should not be read as the current execution plan.

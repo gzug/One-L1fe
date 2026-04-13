@@ -12,46 +12,39 @@ scope: repo
 
 ## Verdict
 
-The One L1fe hosted backend path is fully operational and enforced. The minimum-slice edge function is deployed, authenticated, and confirmed end-to-end with a 200 smoke call that wrote all rows. The database is clean, hardened, and drift-free. GitHub CI enforcement is active, nothing merges to `main` without passing `validate`. On top of that, the repo now has a thin Expo mobile scaffold for the minimum-slice seam and a first explicit memory and OpenClaw operations layer for safer session continuity.
+The hosted minimum-slice backend seam is live and the thin Expo mobile seam now exists, but the mobile path still needs real app auth wiring. The repo also now has an explicit short-term memory layer and OpenClaw operations guidance, so session continuity is stronger than before.
 
 ## Current state
 
 - Branch: `main`
-- Working tree: in progress, with the hosted backend seam green, GitHub enforcement live, the thin Expo mobile seam scaffolded, and real app auth wiring still using environment placeholders rather than a real app session source
-- Source of truth repo: `gzug/One-L1fe-repo`
-- Latest completed product seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function -> shared function contract -> local smoke-test helper -> thin app-facing function client wrapper -> HTTP transport adapter -> mobile form-to-panel adapter -> mobile submission-state wrapper -> result summary helper -> stricter timestamp and transport validation -> broader negative-path assertions -> compact submission-state summary helper -> cross-runtime-safe shared imports -> repeatable authenticated local smoke pass -> hosted hardening confirmation -> thin app-side minimum-slice screen model -> hosted config and auth-session controller seam -> hosted function deployed and smoke-verified end-to-end -> Expo app scaffold with one narrow minimum-slice screen`
-- Latest completed repo-ops seam: `.github templates -> CODEOWNERS -> CI -> contributing rules -> docs navigation -> Supabase backend operating model -> local Supabase replay workflow scaffold -> deploy script + vendoring strategy confirmed -> GitHub secrets live -> branch protection enforced -> OpenClaw ops guide -> short-term memory layer -> data-handling policy -> lightweight metadata groundwork`
-- Hosted confirmations as of 2026-04-13:
-  - Security advisor: clean (0 findings) ✅
-  - Migration history: 5 migrations applied in order, matches repo exactly ✅
-  - RLS: all user-owned tables hardened, overlapping policies consolidated, `(select auth.uid())` in use ✅
-  - Backend hardening migration: live ✅
-  - Drift: none detectable ✅
-  - Edge function `save-minimum-slice-interpretation`: deployed (version 2, ACTIVE), JWT enforcement on ✅
-  - Hosted smoke call: HTTP 200, 6 interpreted entries, 6 recommendations, coverageState complete ✅
-- GitHub enforcement as of 2026-04-13:
-  - `SUPABASE_ACCESS_TOKEN`: live ✅
-  - `SUPABASE_PROJECT_REF`: live (`lbqgjourpsodqglputkj`) ✅
-  - Branch protection on `main`: active ✅
-  - Required check `validate` (typecheck + domain tests): enforced before every merge ✅
-  - Force pushes to `main`: blocked ✅
-- Deploy strategy confirmed: domain files vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`; `_lib/` is gitignored; source of truth stays in `packages/domain/`
-- Open: PR #1 (backend hardening), migration is already live in production; merge or close cleanly, do not re-apply
+- Active seam: hosted minimum-slice backend live, thin Expo mobile seam scaffolded, real mobile auth still pending
+- Source of truth repo: `gzug/One-L1fe`
+- Current blockers:
+  - mobile auth still uses environment placeholders instead of a real app session source
+  - CI enforcement wording needs to stay aligned with actual GitHub behavior and bypass settings
+- Key confirmed facts:
+  - hosted migrations match repo
+  - RLS and policies are live
+  - `save-minimum-slice-interpretation` is deployed with JWT enforcement
+  - one authenticated hosted smoke call returned HTTP 200 with writes succeeding end to end
+  - the repo now includes `memory/`, `docs/ops/`, a data-handling policy, and lightweight metadata files
+- Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
 
 The next best steps are, in order:
 1. wire a real app auth session into `apps/mobile/minimumSliceScreenController.ts` and validate one authenticated Expo submission against the hosted endpoint,
 2. decide whether the next thin app seam is a dedicated hook extraction or a second screen around the same controller,
-3. activate `supabase db lint` as the next CI check, since secrets and branch protection are now confirmed live,
-4. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
-5. add drift detection CI only after boot/reset is stable,
-6. merge or close PR #1 cleanly,
-7. then keep product work moving on the next app seam rather than more backend invention.
+3. tighten CI wording and behavior so repo truth matches actual GitHub enforcement and bypass rules,
+4. activate `supabase db lint` as the next CI check,
+5. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
+6. add drift detection CI only after boot/reset is stable,
+7. merge or close PR #1 cleanly.
 
 ## Startup rule
 
-For fresh sessions, start here.
+For meaningful repo work, start with `CHECKPOINT.md`.
+Read `README.md` first only when a person or agent needs broad repo orientation.
 Only read deeper docs when the task actually touches them.
 
 ## Read-on-demand map
