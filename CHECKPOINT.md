@@ -27,6 +27,7 @@ Mobile auth blocker resolved, backend hardening migration landed on `main`, and 
   - `save-minimum-slice-interpretation` is deployed with JWT enforcement
   - one authenticated hosted smoke call returned HTTP 200 with writes succeeding end to end
   - backend hardening migration `20260413093000_phase0_backend_hardening.sql` is now on `main`
+  -   - PR #1 (phase0 backend hardening) merged to `main` — 2026-04-13
   - Supabase CI now runs linked-project lint plus local `supabase start` and `supabase db reset`
   - the repo now includes `memory/`, `docs/ops/`, a data-handling policy, and lightweight metadata files
   - `mobileSupabaseAuth.ts` added: thin Supabase client adapter using `auth.getSession()`
