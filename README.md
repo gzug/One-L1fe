@@ -106,12 +106,13 @@ A first shared domain implementation bridge now exists for:
 - typed persistence-contract mapping for backend storage,
 - evidence-registry seed and upsert generation,
 - a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order,
-- and a shared repository seam that turns minimum-slice input into deterministic persistence writes with idempotent re-run coverage.
+- a shared repository seam that turns minimum-slice input into deterministic persistence writes with idempotent re-run coverage,
+- and an authenticated Supabase edge-function entrypoint for that shared repository path.
 
 The next clean implementation step is:
-1. expose the shared repository seam through a real Supabase function or live server-side client path,
+1. add local invocation coverage around the new edge-function path,
 2. extend runtime support beyond the current minimum-slice and contract assertions,
-3. add higher-level backend integration coverage once the live entrypoint exists.
+3. add higher-level backend integration coverage once the live entrypoint is exercised end to end.
 
 ## Working Constraint
 

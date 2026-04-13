@@ -30,14 +30,16 @@ Important: this file stores project memory, not personal health records. Do not 
   - `packages/domain/supabasePayload.ts`
   - `packages/domain/supabasePersistence.ts`
   - `packages/domain/supabaseRepository.ts`
-- Idempotent re-run coverage now exists for repeated repository saves against the same external ids.
+- An authenticated Supabase edge-function entrypoint now exists at:
+  - `supabase/functions/save-minimum-slice-interpretation/index.ts`
+- Idempotent re-run coverage exists for repeated repository saves against the same external ids.
 - Recent verification passed:
   - `npm run typecheck`
   - `npm run test:domain`
 
 ## Current next step
 
-Expose the repository seam through a real Supabase edge function or a live server-side Supabase client integration.
+Add local invocation coverage for the edge function, then decide whether to build a thin app-facing client wrapper or extend runtime support beyond the current minimum-slice path.
 
 ## Startup rule
 

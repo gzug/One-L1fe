@@ -27,4 +27,5 @@ Current baseline includes:
 - `derived_insights`,
 - `recommendations`,
 - starter RLS policies,
-- seed data for the MVP biomarker registry.
+- seed data for the MVP biomarker registry,
+- and an authenticated edge-function entrypoint at `functions/save-minimum-slice-interpretation/` for minimum-slice interpretation persistence.

@@ -2,19 +2,19 @@
 
 ## Verdict
 
-The One L1fe repo now has a working minimum-slice domain-to-repository persistence seam, with idempotent re-run coverage around the Supabase write path.
+The One L1fe repo now has a real authenticated Supabase edge-function path for the minimum-slice repository seam, while keeping the shared domain and persistence logic reusable underneath.
 
 ## Current state
 
 - Branch: `main`
 - Working tree at session start: clean
 - Source of truth repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository`
+- Latest completed seam: `minimumSlice -> contracts -> supabasePayload -> supabasePersistence -> supabaseRepository -> supabase edge function`
 - Verified recently: `npm run typecheck`, `npm run test:domain`
 
 ## Current next step
 
-Choose the next backend execution seam: either expose the repository path through a real Supabase edge function or add a live server-side Supabase client integration that calls the repository directly.
+Add local invocation coverage and then decide whether the next backend step is a thin app-facing client wrapper, richer function-level validation, or broader runtime support beyond the current minimum-slice path.
 
 ## Startup rule
 
