@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: repo
@@ -12,12 +12,12 @@ scope: repo
 
 ## Verdict
 
-Mobile auth scaffolding is now in a cleaner shape, backend hardening is already on `main`, and the main remaining product blocker is unchanged: the first real authenticated Expo submit against the hosted edge function still has not been verified live.
+Backend security hardening is now meaningfully deeper: wearables-sync is live end-to-end, and cross-profile FK ownership gaps have been closed with CHECK constraints and RLS policies across all security-critical tables. The outstanding product blocker is still the first real authenticated Expo submit against the hosted edge function — but the backend is now structurally safer than before.
 
 ## Current state
 
 - Branch: `main`
-- Active seam: hosted minimum-slice backend live, Expo mobile seam with real Supabase auth wired
+- Active seam: hosted minimum-slice backend live, Expo mobile seam with real Supabase auth wired, wearables-sync import path verified
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
   - first real authenticated Expo submit against hosted endpoint not yet verified live
@@ -41,16 +41,19 @@ Mobile auth scaffolding is now in a cleaner shape, backend hardening is already 
   - `App.tsx` is now a ~55-line pure auth-gate shell consuming `useAuthSession`, `LoginScreen.tsx`, and `MinimumSliceScreen.tsx`, merged in PR #20 on 2026-04-13
   - missing mobile Supabase env no longer hard-crashes the auth seam; the login surface stays visible with a clear config error
   - the signed-in mobile shell now includes a thin session bar with user identity and explicit sign-out, making signed-out transition testing a first-class path
+  - **wearables-sync** (PR #23, merge commit `95e1fb6`, 2026-04-14): `wearables-sync` edge function is deployed with JWT enforcement; local smoke test with real JWT, profile, `wearable_source`, and `example-request.json` returned HTTP 200 with `status: success`; `COMMENT ON TYPE evidence_class` blocker was found and fixed (commit `0bf9be3`) before merge — `evidence_class` is a column-check taxonomy, not a TYPE
+  - **FK-Ownership migration** (2026-04-14): CHECK constraints and RLS policies added to prevent cross-profile FK references on `interpretation_runs`, `lab_result_entries`, `derived_insights`, `recommendations`, `interpreted_entries`; all exposed FKs were listed and verified against the domain model; Supabase Security Advisories re-checked after migration — no known unresolved ownership gaps on the above tables
+  - **Global / non-profile-scoped tables by design**: pure taxonomy and lookup tables (e.g. reference ranges, evidence class definitions) are intentionally not profile-scoped and carry no RLS ownership policies; this is an explicit architectural choice, not a gap
 - Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
 
 The next best steps are, in order:
-1. **Run first live authenticated Expo submit**: set `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY` in `.env`, start the app, sign in with a real user, submit the minimum-slice form, verify HTTP 200 plus DB write under the correct `profileId`,
-2. smoke-test the remaining main auth failure modes once in Expo: wrong credentials and hosted function error,
-3. verify the explicit sign-out path once in Expo and confirm the app returns cleanly to Login without stale signed-in access,
-4. only then choose the next thin app seam, likely a second signed-in screen around the same controller surface,
-4. add schema drift detection CI only after the current lint plus replay path has stayed stable across a couple of clean cycles.
+1. **Wire Daily-Summary job to the new wearables-sync import seam**: the Daily-Summary job must consume the verified wearables import path, not a synthetic or legacy path — update job trigger/config, confirm it reads from normalized wearable events, update docs
+2. **Run first live authenticated Expo submit**: set `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY` in `.env`, start the app, sign in with a real user, submit the minimum-slice form, verify HTTP 200 plus DB write under the correct `profileId`
+3. smoke-test the remaining main auth failure modes once in Expo: wrong credentials and hosted function error
+4. verify the explicit sign-out path once in Expo and confirm the app returns cleanly to Login without stale signed-in access
+5. add schema drift detection CI only after the current lint plus replay path has stayed stable across a couple of clean cycles
 
 ## Startup rule
 
@@ -64,7 +67,7 @@ Only read deeper docs when the task actually touches them.
 - `docs/architecture/evidence-registry-and-rule-governance-v1.md` only for provenance / evidence logic work.
 - `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` only when planning the next implementation seam.
 - `GLOSSARY.md` only when abbreviations or term meanings are unclear.
-- `README.md` only for broad repo orientation.
+- `README.md` for broad repo orientation.
 - `supabase/README.md` for Supabase workflow, CI commands, secrets, and deploy procedure.
 
 ## Guardrails
