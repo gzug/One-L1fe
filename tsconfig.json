@@ -15,5 +15,9 @@
   },
   "include": [
     "packages/domain/**/*.ts"
+  ],
+  "exclude": [
+    "dist",
+    "scripts"
   ]
 }

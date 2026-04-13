@@ -6,7 +6,8 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build:domain": "tsc -p tsconfig.json",
-    "test:domain": "npm run build:domain && node dist/packages/domain/runMinimumSliceAssertions.js"
+    "test:domain": "npm run build:domain && node dist/packages/domain/runMinimumSliceAssertions.js",
+    "generate:evidence-sql": "npm run build:domain && node scripts/generate-evidence-registry-sql.js"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
