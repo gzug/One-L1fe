@@ -6,6 +6,138 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ---
 
+## Session Update — 2026-04-12 (~23:40 CEST)
+
+### What happened
+
+This session converted the current V1 policy posture into implementation-ready runtime documentation.
+
+Completed:
+
+1. **Added a machine-facing rule inventory**
+   - `docs/architecture/v1-implementation-rule-inventory.md`
+   - turns the V1 rule set into explicit runtime rows with:
+     - required inputs,
+     - blocking gates,
+     - score behavior,
+     - recommendation allowances,
+     - and provenance minimums.
+
+2. **Added deterministic V1 decision tables**
+   - `docs/architecture/v1-decision-tables.md`
+   - defines the first control-flow order for:
+     - universal interpretability gating,
+     - ApoB-primary / LDL-fallback logic,
+     - HbA1c format handling,
+     - glucose context handling,
+     - Lp(a) bounded modifier behavior,
+     - hs-CRP assay gating,
+     - ferritin context gating,
+     - coverage summaries,
+     - and recommendation eligibility.
+
+3. **Synced handoff docs to the new implementation seam**
+   - `README.md`
+   - `docs/roadmap/v1-checkpoint-and-next-agent-brief.md`
+
+4. **Added the first shared runtime bridge in the domain package**
+   - `packages/domain/v1.ts`
+   - introduces:
+     - marker runtime config,
+     - interpretability and freshness assessment,
+     - score-role metadata,
+     - recommendation eligibility classes,
+     - and explicit ApoB-primary / LDL-fallback decision support.
+
+5. **Added the first minimum-slice implementation pass**
+   - `packages/domain/thresholds.ts`
+   - `packages/domain/minimumSlice.ts`
+   - `packages/domain/fixtures.v1.ts`
+   - this pass adds:
+     - explicit threshold paths for ApoB, LDL, HbA1c, glucose, Lp(a), CRP, and Vitamin D,
+     - a bounded minimum-slice evaluator with coverage, score, and recommendation output,
+     - and deterministic fixtures for primary, fallback, and negative-path behavior.
+
+6. **Added the next bridge toward testing and backend storage**
+   - `packages/domain/minimumSlice.assertions.ts`
+   - `docs/architecture/v1-backend-interpretation-contract.md`
+   - this adds:
+     - assertion-ready checks around the new fixtures,
+     - and a first backend-facing contract for interpretation runs, interpreted entries, and structured recommendations.
+
+7. **Added repo-native TypeScript tooling and verified the domain pass**
+   - `package.json`
+   - `tsconfig.json`
+   - `packages/domain/runMinimumSliceAssertions.ts`
+   - `.gitignore`
+   - completed successfully:
+     - `npm install`
+     - `npm run typecheck`
+     - `npm run test:domain`
+
+8. **Added typed persistence-contract mapping and assertions**
+   - `packages/domain/contracts.ts`
+   - `packages/domain/contracts.assertions.ts`
+   - this adds:
+     - a typed interpretation-run / entry / recommendation persistence payload,
+     - stable id generation for derived artifacts,
+     - and assertion coverage for the backend-facing mapping seam.
+
+9. **Added provisional provenance wiring for active recommendation outputs**
+   - `packages/domain/provenance.ts`
+   - evaluator recommendations now attach:
+     - `anchorSourceId`
+     - `ruleOrigin`
+     - `productEvidenceClass`
+   - persistence payloads and assertions now carry that provenance through the backend contract seam.
+
+10. **Added the first practical Notion private-workspace blueprint**
+   - `docs/notion/future-role-of-notion.md`
+   - `docs/notion/compact-private-notion-workspace-v1.md`
+   - `docs/notion/private-notion-v1-change-log.md`
+   - this adds:
+     - a clear explanation of what Notion should do now, later, and finally,
+     - a compact dashboard-first Notion workspace model for private use,
+     - and a visible change-log format so differences from the old MVP stay explainable.
+
+11. **Turned the Notion blueprint into a practical build sheet**
+   - `docs/notion/private-notion-v1-build-spec.md`
+   - this adds:
+     - page titles,
+     - database titles,
+     - property lists,
+     - view recommendations,
+     - dashboard block structure,
+     - and a checklist for direct Notion setup.
+
+12. **Extended the Supabase layer for interpretation persistence**
+   - `supabase/migrations/20260413013000_phase0_interpretation_runs.sql`
+   - `docs/architecture/supabase-schema.md`
+   - this adds:
+     - `interpretation_runs`,
+     - `interpreted_entries`,
+     - richer recommendation provenance/storage fields,
+     - indexes, triggers, and RLS for the new interpretation artifacts.
+
+13. **Added a direct domain-to-Supabase payload bridge**
+   - `packages/domain/supabasePayload.ts`
+   - `packages/domain/supabasePayload.assertions.ts`
+   - this adds:
+     - snake_case mapping from the domain persistence payload into Supabase insert shapes,
+     - support for linking interpreted entries back to raw lab rows,
+     - and assertion coverage for the new storage bridge.
+
+### Result
+
+The repo now has a clearer bridge from policy prose into deterministic implementation behavior.
+The next coding pass should no longer need to infer branch order from multiple documents, it no longer has to encode ApoB / LDL hierarchy from scratch, the first end-to-end minimum-slice evaluation path exists in the domain layer, the backend contract seam is explicit, provisional provenance now survives into stored recommendation payloads, the private Notion track has both a target structure and a practical build sheet, the database layer has a matching interpretation-persistence path, and the current domain payload can now be translated directly into Supabase-ready insert bundles.
+
+### Next sensible step
+
+Add seed/sync support for the evidence registry and then wire actual insert/update operations against Supabase using the new payload bridge.
+
+---
+
 ## Session Update — 2026-04-12 (~20:00–21:15 CEST)
 
 ### What happened

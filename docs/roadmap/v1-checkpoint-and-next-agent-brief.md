@@ -20,6 +20,8 @@ This includes:
 - a bounded recommendation contract,
 - a first rule matrix,
 - explicit handling for coverage, freshness, units, and assay requirements,
+- an implementation-ready rule inventory,
+- decision tables for deterministic V1 control flow,
 - and a more honest framing of the score as a **Priority Score**, not a medical risk score.
 
 ## What was improved compared with the old Notion MVP
@@ -83,9 +85,14 @@ This makes the MVP:
 - `docs/architecture/priority-score-v1.md`
 - `docs/architecture/data-freshness-and-coverage-policy-v1.md`
 - `docs/architecture/weekly-self-report-anchors-v1.md`
+- `docs/architecture/v1-implementation-rule-inventory.md`
+- `docs/architecture/v1-decision-tables.md`
 
 ### Notion / data model
 - `docs/notion/final-first-automation-structure.md`
+- `docs/notion/compact-private-notion-workspace-v1.md`
+- `docs/notion/future-role-of-notion.md`
+- `docs/notion/private-notion-v1-change-log.md`
 - `docs/notion/v1-database-property-spec.md`
 - `docs/notion/old-to-v1-migration-map.md`
 - `docs/notion/notion-vs-backend-calculation-boundary.md`
@@ -116,53 +123,49 @@ Location:
 ## What the next agent should do
 
 ### Primary mission
-Use the new research outputs to strengthen, refine, or selectively revise the current V1 planning baseline.
+Tighten and extend the first shared runtime implementation artifacts so they become testable and storage-ready.
 
 ### Required approach
 The next agent should:
 1. read the current V1 planning files first,
-2. read the newly added targeted research outputs,
-3. compare the new research outputs against the current V1 decisions,
-4. identify which current V1 rules become:
-   - stronger,
-   - unchanged,
-   - weaker,
-   - or in need of revision,
-5. update the English repo documentation accordingly,
-6. preserve the core architectural direction unless strong evidence justifies a change.
+2. use the implementation inventory and decision tables as the coding source of truth,
+3. project rule metadata into shared runtime config or domain files,
+4. implement interpretability gates before marker-specific status logic,
+5. implement ApoB-primary and LDL-fallback behavior exactly once in shared logic,
+6. preserve the bounded recommendation and Priority Score posture.
 
 ## Specific tasks for the next round
 
-1. **Research reconciliation**
-   - compare the 12 new targeted research outputs against:
-     - marker classes,
-     - rule hardness,
-     - unit/assay policy,
-     - score eligibility,
-     - recommendation boundaries.
+1. **Project the rule inventory into code-facing structures**
+   - add or extend a shared registry for:
+     - marker role,
+     - score role,
+     - unit policy,
+     - assay requirements,
+     - recommendation eligibility,
+     - provenance fields.
 
-2. **Tighten rule quality**
-   - upgrade rules that are now better supported,
-   - downgrade rules that remain heuristic,
-   - remove or soften anything that still overclaims.
+2. **Extend the minimum-slice evaluator**
+   - keep interpretability gates authoritative,
+   - keep ApoB-primary / LDL-fallback encoded only once,
+   - and extend provenance plus recommendation serialization where needed.
 
-3. **Strengthen evidence mapping**
-   - convert important rule areas into clearer evidence-to-rule linkage.
+3. **Expand assertion coverage around the fixtures**
+   - the repo now has executable TypeScript assertions,
+   - next expand them for:
+     - recommendation structure validation,
+     - provenance expectations,
+     - additional negative paths,
+     - and edge-case freshness behavior.
 
-4. **Refine V1 marker policy**
-   - especially for:
-     - Lp(a),
-     - hs-CRP / CRP,
-     - ferritin,
-     - vitamin D,
-     - weekly self-report anchors,
-     - priority score framing.
+4. **Prepare backend-facing contracts**
+   - align evaluator output with:
+     - interpretation payload shape,
+     - recommendation storage fields,
+     - and audit/provenance capture.
 
-5. **Document all meaningful changes in plain English**
-   - every revision should state:
-     - what changed,
-     - why it changed,
-     - and how it improves the MVP.
+5. **Keep generic reference-only scoring from becoming the hidden production path**
+   - explicit threshold-policy and minimum-slice logic should now remain the preferred runtime path.
 
 ## Guardrails for the next agent
 
@@ -180,7 +183,8 @@ The next agent should:
 ## Definition of success for the next round
 
 The next round is successful if:
-- the current V1 model becomes more evidence-tight,
-- weak areas are explicitly marked or corrected,
-- the repo stays internally coherent,
-- and the system becomes more credible without becoming overcomplicated.
+- assertion coverage grows beyond the current smoke-pass fixture set,
+- ApoB-primary and LDL-fallback behavior stay encoded without duplication,
+- bounded modifiers stay bounded,
+- backend-facing payload contracts are clearer,
+- and the repo stays internally coherent.

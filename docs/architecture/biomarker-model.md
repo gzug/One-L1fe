@@ -20,6 +20,13 @@ The file now defines:
 - the MVP biomarker registry,
 - helper functions for status and weighted scoring.
 
+A first runtime bridge now also exists in `packages/domain/v1.ts`.
+It adds:
+- V1 marker runtime config,
+- interpretability and freshness helpers,
+- score-role metadata,
+- and explicit ApoB-primary / LDL-fallback decision support.
+
 ## Design principles mapped to implementation
 
 ### 1. Canonical keys come first
@@ -156,11 +163,10 @@ Those should come next, but they no longer block the repo from being a coherent 
 
 ## Recommended next step
 
-Draft the **Supabase schema** directly against this registry.
+Build the first shared interpretation path directly against the domain layer.
 
-Suggested first tables:
-- `biomarker_definitions`
-- `lab_results`
-- `lab_result_entries`
-- `derived_insights`
-- `recommendations`
+Suggested first implementation targets:
+- explicit threshold policy files for ApoB, LDL, HbA1c, and glucose
+- minimum-slice interpretation payload types
+- deterministic fixtures for ApoB / LDL fallback and hs-CRP assay blocking
+- recommendation contract types shared by backend and app

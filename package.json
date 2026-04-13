@@ -1,0 +1,14 @@
+{
+  "name": "one-l1fe",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build:domain": "tsc -p tsconfig.json",
+    "test:domain": "npm run build:domain && node dist/packages/domain/runMinimumSliceAssertions.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

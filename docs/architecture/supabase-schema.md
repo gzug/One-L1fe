@@ -58,13 +58,32 @@ Purpose:
 - separate raw health data from generated interpretation,
 - keep insight artifacts explicit and auditable.
 
+### `interpretation_runs`
+A stored execution of the interpretation engine against a specific panel snapshot.
+
+Purpose:
+- persist rule version, score version, and engine mode,
+- preserve coverage state separately from severity,
+- store score metadata and input snapshot,
+- and create an auditable bridge between raw rows and derived outputs.
+
+### `interpreted_entries`
+The per-marker evaluated rows produced by one interpretation run.
+
+Purpose:
+- store interpretability state,
+- preserve blocking reasons and freshness state,
+- keep score eligibility and contribution explicit,
+- and tie rule ids to each evaluated marker row.
+
 ### `recommendations`
-Bounded wellness-oriented suggestions tied to a profile and optionally to an insight.
+Bounded wellness-oriented suggestions tied to a profile and optionally to an insight or interpretation run.
 
 Purpose:
 - encode the intended-use contract directly in storage,
 - require evidence, confidence, and scope fields,
-- leave room for clinician handoff markers.
+- carry provenance fields like rule id and anchor source,
+- and leave room for clinician handoff markers.
 
 ## Privacy and ownership
 
@@ -79,16 +98,25 @@ Not included yet:
 - file imports,
 - attachment storage,
 - trend materializations,
-- evidence citation tables,
+- full evidence citation tables,
 - clinician-sharing workflows,
 - diagnosis logic,
 - treatment planning.
 
 That is deliberate. The schema is trying to be a stable Phase 0 base, not an overbuilt health platform.
 
+## Current phase update
+
+A second migration now extends the baseline with:
+- `interpretation_runs`,
+- `interpreted_entries`,
+- and richer recommendation provenance fields.
+
+This brings the database closer to the current domain evaluator and persistence payload shape.
+
 ## Recommended next implementation step
 
-Build a second migration for:
+Build the next layer for:
 - database functions or views for trend summaries,
-- recommendation contracts,
-- optional seed or sync tooling that projects the TypeScript biomarker registry into the database automatically.
+- sync tooling that projects the TypeScript biomarker registry and evidence registry into the database automatically,
+- and storage wiring from the current domain evaluator into these new interpretation tables.

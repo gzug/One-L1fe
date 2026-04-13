@@ -57,7 +57,14 @@ One-L1fe/
 - [docs/architecture/data-freshness-and-coverage-policy-v1.md](./docs/architecture/data-freshness-and-coverage-policy-v1.md)
 - [docs/architecture/weekly-self-report-anchors-v1.md](./docs/architecture/weekly-self-report-anchors-v1.md)
 - [docs/architecture/evidence-registry-and-rule-governance-v1.md](./docs/architecture/evidence-registry-and-rule-governance-v1.md)
+- [docs/architecture/v1-implementation-rule-inventory.md](./docs/architecture/v1-implementation-rule-inventory.md)
+- [docs/architecture/v1-decision-tables.md](./docs/architecture/v1-decision-tables.md)
+- [docs/architecture/v1-backend-interpretation-contract.md](./docs/architecture/v1-backend-interpretation-contract.md)
 - [docs/notion/final-first-automation-structure.md](./docs/notion/final-first-automation-structure.md)
+- [docs/notion/compact-private-notion-workspace-v1.md](./docs/notion/compact-private-notion-workspace-v1.md)
+- [docs/notion/future-role-of-notion.md](./docs/notion/future-role-of-notion.md)
+- [docs/notion/private-notion-v1-change-log.md](./docs/notion/private-notion-v1-change-log.md)
+- [docs/notion/private-notion-v1-build-spec.md](./docs/notion/private-notion-v1-build-spec.md)
 - [docs/notion/v1-database-property-spec.md](./docs/notion/v1-database-property-spec.md)
 - [docs/notion/old-to-v1-migration-map.md](./docs/notion/old-to-v1-migration-map.md)
 - [docs/notion/notion-vs-backend-calculation-boundary.md](./docs/notion/notion-vs-backend-calculation-boundary.md)
@@ -88,11 +95,20 @@ The canonical biomarker registry now exists in `packages/domain/biomarkers.ts` a
 The Supabase Phase 0 baseline is drafted.
 The first serious V1 interpretation and Notion-automation architecture is now also documented across the architecture, notion, and research docs.
 A targeted research reconciliation pass has now tightened the V1 baseline further, especially around Lp(a), hs-CRP, ferritin, vitamin D, and evidence governance.
+The repo now also includes an implementation-ready rule inventory and decision tables so the next coding pass can encode deterministic V1 behavior instead of re-deriving policy from prose.
+A first shared domain implementation bridge now exists for:
+- interpretability and freshness gating,
+- ApoB-primary / LDL-fallback logic,
+- explicit threshold evaluation for ApoB, LDL, HbA1c, glucose, Lp(a), CRP, and Vitamin D,
+- a minimum-slice Priority Score evaluator,
+- deterministic domain fixtures,
+- executable TypeScript assertions that currently pass,
+- and typed persistence-contract mapping for backend storage.
 
 The next clean implementation step is:
-1. keep the new rule and data-shape decisions stable,
-2. build the React Native scaffold,
-3. implement one narrow end-to-end flow against the shared domain and database baseline.
+1. tighten recommendation and provenance fields around source anchors,
+2. wire the persistence payload into real backend storage models,
+3. extend scenario coverage beyond the current minimum-slice and contract assertions.
 
 ## Working Constraint
 
