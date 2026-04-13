@@ -1,7 +1,7 @@
-import { toInterpretationPersistencePayload } from './contracts';
-import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice';
-import { persistInterpretationBundle, PersistInterpretationResult, SupabasePersistenceClient } from './supabasePersistence';
-import { toSupabasePersistenceBundle } from './supabasePayload';
+import { toInterpretationPersistencePayload } from './contracts.ts';
+import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
+import { persistInterpretationBundle, PersistInterpretationResult, SupabasePersistenceClient } from './supabasePersistence.ts';
+import { toSupabasePersistenceBundle } from './supabasePayload.ts';
 
 export interface SaveMinimumSliceInterpretationParams {
   now?: Date;

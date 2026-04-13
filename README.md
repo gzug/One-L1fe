@@ -1,17 +1,34 @@
+---
+status: current
+canonical_for: project entry point
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # One L1fe
 
-One L1fe is a private-first personal health intelligence project focused on evidence-based self-tracking and pattern detection, with a long-term goal of building a useful Digital Avatar from longitudinal data.
+One L1fe is a private-first personal health intelligence project focused on evidence-based self-tracking and bounded interpretation, with a long-term goal of building a useful Digital Avatar from longitudinal data.
 
-## Repo Overview
+## Current status
 
-This project lives in a single active repository: `One-L1fe`.
+The repo already contains a documented product boundary, a shared domain layer, the first authenticated Supabase edge-function seam for the minimum slice, a thin app-facing client wrapper around the shared function contract, a small HTTP transport adapter, a mobile form-to-panel adapter, a minimal mobile submission wrapper, a compact result-summary helper ready for integration, and a verified local replay plus authenticated smoke-test path.
 
-| Workspace | Role | Notes |
-| --- | --- | --- |
-| `One-L1fe` | Product repo | Product docs, compliance baseline, app implementation, schemas, and user-facing logic. |
-| `One-L1fe-Ops` | Future option — not active | Reserved for agent ops, runbooks, and automation infrastructure if/when the project scales. |
+Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
-## Architecture Skeleton
+## Start here
+
+This file is for broad human orientation.
+For meaningful repo work, use `CHECKPOINT.md` as the primary startup file.
+
+1. Start with [CHECKPOINT.md](./CHECKPOINT.md)
+2. Read [README.md](./README.md) only when you need broad repo orientation
+3. Read [MEMORY.md](./MEMORY.md) only for durable truth
+4. Read [docs/README.md](./docs/README.md) only when you need deeper docs navigation
+
+## Repo structure
 
 ```text
 One-L1fe/
@@ -24,29 +41,80 @@ One-L1fe/
 │   ├── functions/             # Server-side functions and AI-facing endpoints
 │   └── seed/                  # Seed and local dev data helpers
 ├── docs/
-│   ├── architecture/          # System shape and repo structure docs
-│   ├── compliance/            # Parked boundary docs, not a Phase 0 blocker
-│   └── roadmap/               # Build order and project phases
+│   ├── architecture/          # System shape and technical decisions
+│   ├── planning/              # Backlog and next-step execution docs
+│   ├── research/              # Evidence gathering and unresolved questions
+│   ├── compliance/            # Intended-use and boundary-sensitive material
+│   ├── ops/                   # OpenClaw and repo operating guidance
+│   ├── notion/                # Notion-specific design and migration notes
+│   ├── roadmap/               # Phased progress and checkpoints
+│   └── archive/               # Superseded docs kept for context
+├── memory/                    # Short-term working memory and daily notes
+├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
 ├── MEMORY.md
 ├── GLOSSARY.md
-└── AGENTS.md
+├── AGENTS.md
+└── CONTRIBUTING.md
 ```
 
-## Tech Stack
+## Source of truth
 
-| Layer | Choice | Notes |
-| --- | --- | --- |
-| Mobile App | React Native | Primary application client. |
-| Backend | Supabase | Database, auth, storage, and backend services. |
-| AI Layer | OpenRouter | Accessed server-side, not directly from the mobile client. |
-| Agent Runtime | OpenClaw 2026.4.9 | Local development and operational agent workflows. |
-| Source Control | GitHub | Remote hosting and collaboration. |
+Use each file layer for one job:
 
-## Core Project Docs
+- [README.md](./README.md) = broad project entry point and orientation
+- [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
+- [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions
+- [`memory/`](./memory/) = short-term working notes and handoff continuity
+- [`docs/ops/`](./docs/ops/) = OpenClaw and session workflow guidance
+- [`docs/architecture/`](./docs/architecture/) = technical decisions that should stay true over time
+- [`docs/planning/`](./docs/planning/) = backlog and next work
+- [`docs/research/`](./docs/research/) = evidence gathering and unresolved questions
+- [`docs/compliance/`](./docs/compliance/) = intended-use, data-handling, and boundary docs
 
+## Local development
+
+### Prerequisites
+- Node.js 24
+- npm
+- Supabase CLI for local backend work
+
+### Install
+
+```bash
+npm ci
+```
+
+### Useful commands
+
+```bash
+npm run typecheck
+npm run test:domain
+npm run generate:evidence-sql
+npm run smoke:function:minimum-slice
+SUPABASE_ACCESS_TOKEN=... SUPABASE_PROJECT_REF=... scripts/check-supabase-hosted-baseline.sh
+```
+
+## Working workflow
+
+This repo uses a lightweight solo-founder workflow:
+
+- keep `main` stable
+- prefer short-lived branches for focused changes
+- let CI validate typecheck and domain tests
+- update the real source-of-truth file when behavior or rules change
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
+
+## Core project docs
+
+### Orientation
+- [CHECKPOINT.md](./CHECKPOINT.md)
 - [MEMORY.md](./MEMORY.md)
 - [GLOSSARY.md](./GLOSSARY.md)
 - [AGENTS.md](./AGENTS.md)
+- [docs/README.md](./docs/README.md)
+
+### Architecture
 - [docs/architecture/overview.md](./docs/architecture/overview.md)
 - [docs/architecture/repo-structure.md](./docs/architecture/repo-structure.md)
 - [docs/architecture/supabase-schema.md](./docs/architecture/supabase-schema.md)
@@ -60,63 +128,25 @@ One-L1fe/
 - [docs/architecture/v1-implementation-rule-inventory.md](./docs/architecture/v1-implementation-rule-inventory.md)
 - [docs/architecture/v1-decision-tables.md](./docs/architecture/v1-decision-tables.md)
 - [docs/architecture/v1-backend-interpretation-contract.md](./docs/architecture/v1-backend-interpretation-contract.md)
-- [docs/notion/final-first-automation-structure.md](./docs/notion/final-first-automation-structure.md)
-- [docs/notion/compact-private-notion-workspace-v1.md](./docs/notion/compact-private-notion-workspace-v1.md)
-- [docs/notion/future-role-of-notion.md](./docs/notion/future-role-of-notion.md)
-- [docs/notion/private-notion-v1-change-log.md](./docs/notion/private-notion-v1-change-log.md)
-- [docs/notion/private-notion-v1-build-spec.md](./docs/notion/private-notion-v1-build-spec.md)
-- [docs/notion/v1-database-property-spec.md](./docs/notion/v1-database-property-spec.md)
-- [docs/notion/old-to-v1-migration-map.md](./docs/notion/old-to-v1-migration-map.md)
-- [docs/notion/notion-vs-backend-calculation-boundary.md](./docs/notion/notion-vs-backend-calculation-boundary.md)
-- [docs/notion/v1-implementation-sequence.md](./docs/notion/v1-implementation-sequence.md)
+
+### Planning and roadmap
+- [docs/planning/V1-backlog.md](./docs/planning/V1-backlog.md)
+- [docs/planning/V1-minimum-slice.md](./docs/planning/V1-minimum-slice.md)
+- [docs/planning/github-hardening-checklist.md](./docs/planning/github-hardening-checklist.md)
+- [docs/planning/mobile-minimum-slice-first-seam.md](./docs/planning/mobile-minimum-slice-first-seam.md)
+- [docs/archive/roadmap/phase-0.md](./docs/archive/roadmap/phase-0.md) (historical)
+- [docs/roadmap/v1-checkpoint-and-next-agent-brief.md](./docs/roadmap/v1-checkpoint-and-next-agent-brief.md)
+
+### Research and boundary docs
 - [docs/research/v1-research-gaps-and-targeted-followups.md](./docs/research/v1-research-gaps-and-targeted-followups.md)
 - [docs/research/v1-targeted-research-reconciliation-2026-04-12.md](./docs/research/v1-targeted-research-reconciliation-2026-04-12.md)
-- [docs/roadmap/phase-0.md](./docs/roadmap/phase-0.md)
-- [docs/roadmap/v1-checkpoint-and-next-agent-brief.md](./docs/roadmap/v1-checkpoint-and-next-agent-brief.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
+- [docs/compliance/data-handling-and-redaction.md](./docs/compliance/data-handling-and-redaction.md)
+- [docs/ops/openclaw.md](./docs/ops/openclaw.md)
+- [docs/ops/session-workflow.md](./docs/ops/session-workflow.md)
 
-## Phase 0 Status Checklist
+## Working constraints
 
-- [x] Core repo memory established
-- [x] Project glossary established
-- [x] Agent operating guide established
-- [x] Intended-use and compliance baseline documented
-- [x] Architecture skeleton defined
-- [x] Biomarker canonical schema drafted
-- [x] Supabase schema drafted
-- [ ] React Native scaffold prepared
-- [ ] Auth flow defined
-- [x] Recommendation pipeline and evidence model drafted
-- [x] Data governance and interpretation guardrails drafted
-
-## Current Build State
-
-The canonical biomarker registry now exists in `packages/domain/biomarkers.ts` and is documented in `docs/architecture/biomarker-model.md`.
-The Supabase Phase 0 baseline is drafted.
-The first serious V1 interpretation and Notion-automation architecture is now also documented across the architecture, notion, and research docs.
-A targeted research reconciliation pass has now tightened the V1 baseline further, especially around Lp(a), hs-CRP, ferritin, vitamin D, and evidence governance.
-The repo now also includes an implementation-ready rule inventory and decision tables so the next coding pass can encode deterministic V1 behavior instead of re-deriving policy from prose.
-A first shared domain implementation bridge now exists for:
-- interpretability and freshness gating,
-- ApoB-primary / LDL-fallback logic,
-- explicit threshold evaluation for ApoB, LDL, HbA1c, glucose, Lp(a), CRP, and Vitamin D,
-- a minimum-slice Priority Score evaluator,
-- deterministic domain fixtures,
-- executable TypeScript assertions that currently pass,
-- typed persistence-contract mapping for backend storage,
-- evidence-registry seed and upsert generation,
-- a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order,
-- a shared repository seam that turns minimum-slice input into deterministic persistence writes with idempotent re-run coverage,
-- and an authenticated Supabase edge-function entrypoint for that shared repository path.
-
-The next clean implementation step is:
-1. run the new local smoke-test path against a live local Supabase instance,
-2. build a thin app-facing client wrapper for the shared function contract,
-3. extend runtime support beyond the current minimum-slice and contract assertions.
-
-## Working Constraint
-
-- Treat compliance and business topics as **parked but not deleted** during the private MVP phase.
-- Do not describe the product as a generic "wellness" product if that term has been intentionally retired.
-- Do not let them block core product shaping right now.
-- Do not put real personal health data into this repo anyway.
+- Treat compliance and business topics as parked, not deleted, during the private MVP phase.
+- Do not describe the product as a generic consumer wellness product.
+- Do not put real personal health data into this repo.

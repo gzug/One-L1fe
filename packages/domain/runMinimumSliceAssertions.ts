@@ -1,20 +1,30 @@
-import { runContractAssertions } from './contracts.assertions';
-import { runEvidenceRegistrySeedAssertions } from './evidenceSupabaseSeed.assertions';
-import { runMinimumSliceAssertions } from './minimumSlice.assertions';
-import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctionContract.assertions';
-import { runSupabasePayloadAssertions } from './supabasePayload.assertions';
-import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions';
-import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions';
+import { runContractAssertions } from './contracts.assertions.ts';
+import { runEvidenceRegistrySeedAssertions } from './evidenceSupabaseSeed.assertions.ts';
+import { runMinimumSliceAppClientAssertions } from './minimumSliceAppClient.assertions.ts';
+import { runMinimumSliceAppHttpClientAssertions } from './minimumSliceAppHttpClient.assertions.ts';
+import { runMinimumSliceMobileFormAssertions } from './minimumSliceMobileForm.assertions.ts';
+import { runMinimumSliceMobileIntegrationAssertions } from './minimumSliceMobileIntegration.assertions.ts';
+import { runMinimumSliceResultSummaryAssertions } from './minimumSliceResultSummary.assertions.ts';
+import { runMinimumSliceAssertions } from './minimumSlice.assertions.ts';
+import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctionContract.assertions.ts';
+import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
+import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions.ts';
+import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions.ts';
 
 async function main(): Promise<void> {
   runMinimumSliceAssertions();
   runMinimumSliceFunctionContractAssertions();
+  await runMinimumSliceAppClientAssertions();
+  await runMinimumSliceAppHttpClientAssertions();
+  runMinimumSliceMobileFormAssertions();
+  await runMinimumSliceMobileIntegrationAssertions();
+  runMinimumSliceResultSummaryAssertions();
   runContractAssertions();
   runSupabasePayloadAssertions();
   runEvidenceRegistrySeedAssertions();
   await runSupabasePersistenceAssertions();
   await runSupabaseRepositoryAssertions();
-  console.log('minimum-slice, function contract, contract, Supabase payload, evidence seed, persistence, and repository assertions passed');
+  console.log('minimum-slice, function contract, app client, app http client, mobile form, mobile integration, result summary, contract, Supabase payload, evidence seed, persistence, and repository assertions passed');
 }
 
 void main().catch((error: unknown) => {

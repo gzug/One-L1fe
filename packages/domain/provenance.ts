@@ -1,4 +1,4 @@
-import { getRuleEvidenceLink, ProductEvidenceClass, RuleOrigin } from './evidenceRegistry';
+import { getRuleEvidenceLink, ProductEvidenceClass, RuleOrigin } from './evidenceRegistry.ts';
 
 export type { ProductEvidenceClass, RuleOrigin };
 

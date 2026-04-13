@@ -1,4 +1,4 @@
-import { EvidenceSource, evidenceSources, RuleEvidenceLink, ruleEvidenceLinks } from './evidenceRegistry';
+import { EvidenceSource, evidenceSources, RuleEvidenceLink, ruleEvidenceLinks } from './evidenceRegistry.ts';
 
 export interface EvidenceSourceSeedRow {
   source_id: string;

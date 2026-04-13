@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: intended use and recommendation boundary
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: compliance
+---
+
 # Intended Use
 
 ## What One L1fe Is

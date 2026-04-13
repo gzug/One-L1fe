@@ -1,7 +1,7 @@
-import { CanonicalStatus } from './biomarkers';
-import { BiomarkerKey, FreshnessState, InterpretabilityState, LipidHierarchyDecision } from './v1';
-import { MinimumSliceEvaluation, Recommendation } from './minimumSlice';
-import { ProductEvidenceClass, RuleOrigin } from './provenance';
+import { CanonicalStatus } from './biomarkers.ts';
+import { BiomarkerKey, FreshnessState, InterpretabilityState, LipidHierarchyDecision } from './v1.ts';
+import { MinimumSliceEvaluation, Recommendation } from './minimumSlice.ts';
+import { ProductEvidenceClass, RuleOrigin } from './provenance.ts';
 
 export const PRIORITY_SCORE_VERSION = 'priority-score-v1-minimum-slice';
 export const DOMAIN_ENGINE_NAME = 'one-l1fe-domain';

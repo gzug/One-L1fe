@@ -1,0 +1,7 @@
+# Default owner for this solo-founder repo
+* @gzug
+
+# High-sensitivity areas
+/docs/compliance/ @gzug
+/supabase/ @gzug
+/packages/domain/ @gzug

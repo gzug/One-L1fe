@@ -24,6 +24,12 @@ This includes:
 - decision tables for deterministic V1 control flow,
 - and a more honest framing of the score as a **Priority Score**, not a medical risk score.
 
+The repo also now has a verified local backend and app-facing minimum-slice baseline:
+- local Supabase replay from scratch works,
+- the authenticated minimum-slice edge-function smoke path works,
+- shared domain imports are cross-runtime safe for Node and Supabase Edge,
+- and the first app-facing seam now includes a mobile form-to-panel adapter, submission-state wrapper, and compact summary path.
+
 ## What was improved compared with the old Notion MVP
 
 ### Old situation
@@ -92,9 +98,9 @@ This makes the MVP:
 - `docs/notion/final-first-automation-structure.md`
 - `docs/notion/compact-private-notion-workspace-v1.md`
 - `docs/notion/future-role-of-notion.md`
-- `docs/notion/private-notion-v1-change-log.md`
+- `docs/archive/notion/private-notion-v1-change-log.md` (historical)
 - `docs/notion/v1-database-property-spec.md`
-- `docs/notion/old-to-v1-migration-map.md`
+- `docs/archive/notion/old-to-v1-migration-map.md` (historical)
 - `docs/notion/notion-vs-backend-calculation-boundary.md`
 - `docs/notion/v1-implementation-sequence.md`
 
@@ -136,36 +142,24 @@ The next agent should:
 
 ## Specific tasks for the next round
 
-1. **Project the rule inventory into code-facing structures**
-   - add or extend a shared registry for:
-     - marker role,
-     - score role,
-     - unit policy,
-     - assay requirements,
-     - recommendation eligibility,
-     - provenance fields.
+1. **Use the new shared mobile seam in a real app screen or hook**
+   - start from:
+     - `packages/domain/minimumSliceMobileForm.ts`
+     - `packages/domain/minimumSliceMobileIntegration.ts`
+     - `packages/domain/minimumSliceResultSummary.ts`
+     - `docs/planning/mobile-minimum-slice-first-seam.md`
+     - `apps/mobile/minimum-slice-example.md`
 
-2. **Extend the minimum-slice evaluator**
-   - keep interpretability gates authoritative,
-   - keep ApoB-primary / LDL-fallback encoded only once,
-   - and extend provenance plus recommendation serialization where needed.
+2. **Keep app code thin**
+   - do not rebuild request shaping, transport wiring, or backend result parsing in UI files.
 
-3. **Expand assertion coverage around the fixtures**
-   - the repo now has executable TypeScript assertions,
-   - next expand them for:
-     - recommendation structure validation,
-     - provenance expectations,
-     - additional negative paths,
-     - and edge-case freshness behavior.
+3. **Finish GitHub-side enforcement once credentials exist**
+   - add secrets,
+   - confirm branch protection,
+   - and run the hosted baseline helper.
 
-4. **Prepare backend-facing contracts**
-   - align evaluator output with:
-     - interpretation payload shape,
-     - recommendation storage fields,
-     - and audit/provenance capture.
-
-5. **Keep generic reference-only scoring from becoming the hidden production path**
-   - explicit threshold-policy and minimum-slice logic should now remain the preferred runtime path.
+4. **Only then resume deeper rule expansion**
+   - preserve the current bounded minimum-slice posture and avoid broadening logic before the first real app seam exists.
 
 ## Guardrails for the next agent
 
@@ -183,8 +177,7 @@ The next agent should:
 ## Definition of success for the next round
 
 The next round is successful if:
-- assertion coverage grows beyond the current smoke-pass fixture set,
-- ApoB-primary and LDL-fallback behavior stay encoded without duplication,
-- bounded modifiers stay bounded,
-- backend-facing payload contracts are clearer,
+- one real app screen or hook uses the shared mobile seam end to end,
+- backend replay and smoke validation remain green,
+- hosted Supabase checks are ready to run once credentials exist,
 - and the repo stays internally coherent.

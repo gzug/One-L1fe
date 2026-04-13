@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: durable project assumptions
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # MEMORY.md
 
 Project long-term operating memory for **One L1fe (OL)**.
@@ -10,7 +20,7 @@ Important: this file stores project memory, not personal health records. Do not 
 
 - One L1fe is not a diagnostic or treatment system.
 - It should be framed as a health data, biomarker, and interpretation product, not as a "wellness" product.
-- Recommendations must stay bounded, uncertainty-aware, and within the intended-use boundary.
+- Recommendations must stay bounded, uncertainty-aware, and within the intended-use boundary defined canonically in `docs/compliance/intended-use.md`.
 - Severity, coverage, freshness, and recommendation eligibility must stay distinct.
 
 ## Durable architecture posture
@@ -20,36 +30,30 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep ApoB primary and LDL fallback/secondary.
 - Keep weak/contextual markers out of the hard core score unless clearly justified.
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
+- Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
+- For the first real mobile app seam, use Expo scaffolding first and avoid `expo-router` until there is a concrete navigation need.
+- The first Expo scaffold now exists under `apps/mobile/` and still uses environment placeholders for auth until a real app session source is wired.
 
-## Current implementation checkpoint
+## Durable repo operations posture
 
-- The repo already has the V1 minimum-slice domain evaluator.
-- The repo already has evidence-registry structures and Supabase seed/upsert generation.
-- The repo now also has the minimum-slice persistence path end to end inside the shared TypeScript layer:
-  - `packages/domain/minimumSlice.ts`
-  - `packages/domain/contracts.ts`
-  - `packages/domain/supabasePayload.ts`
-  - `packages/domain/supabasePersistence.ts`
-  - `packages/domain/supabaseRepository.ts`
-- An authenticated Supabase edge-function entrypoint now exists at:
-  - `supabase/functions/save-minimum-slice-interpretation/index.ts`
-- Its request parsing and validation now live in a shared TypeScript contract at:
-  - `packages/domain/minimumSliceFunctionContract.ts`
-- A local auth-backed smoke-test helper now exists at:
-  - `scripts/smoke-test-save-minimum-slice-function.sh`
-- Idempotent re-run coverage exists for repeated repository saves against the same external ids.
-- Recent verification passed:
-  - `npm run typecheck`
-  - `npm run test:domain`
-
-## Current next step
-
-Run the new local function smoke test once Supabase is up with a real anon key, or build a thin app-facing client wrapper on top of the shared function contract.
+- `README.md` is the project entry point.
+- `CHECKPOINT.md` is the current execution state and next-step source of truth.
+- `MEMORY.md` stores only durable assumptions and decisions.
+- `memory/` stores short-term working notes and daily continuity, not durable truth.
+- `main` should stay the stable branch, with short-lived branches for focused changes.
+- Keep lightweight GitHub hygiene in place: templates, CODEOWNERS, and CI for typecheck plus domain tests.
+- Do not let generated docs or AI-assisted code drift away from the actual implemented path.
+- Treat local Supabase replay plus authenticated smoke-test success as the required backend baseline before claiming the edge-function seam works.
+- Treat hosted Supabase security-advisor clean status plus ordered migration confirmation as sufficient evidence that the hardening baseline is live, even if GitHub-side enforcement still needs separate verification.
+- Do not treat a local-only Supabase function as a hosted-ready backend seam. Hosted deployment and one authenticated hosted smoke call are required before claiming the mobile path is production-ready.
+- The minimum-slice hosted backend seam is green only when all are true: hosted migrations match repo, RLS/policies are live, the function is deployed, and an authenticated hosted smoke call returns 200 with writes succeeding.
+- Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy for fixtures, screenshots, logs, smoke tests, and copied examples.
+- Use `docs/ops/openclaw.md` as the canonical OpenClaw operating guide for startup order, promotion rules, and short-term memory usage.
 
 ## Startup rule
 
-This file should stay compact.
-Use `CHECKPOINT.md` for fresh-session startup.
+This file stores durable project memory only.
+Use `CHECKPOINT.md` for fresh-session startup and current execution state.
 Store detailed chronological history under `docs/roadmap/checkpoints/`, not here.
 
 ## History archive

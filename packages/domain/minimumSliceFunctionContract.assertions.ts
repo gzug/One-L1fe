@@ -1,4 +1,4 @@
-import { parseMinimumSliceFunctionRequestBody, parseOptionalDateFromIso } from './minimumSliceFunctionContract';
+import { parseMinimumSliceFunctionRequestBody, parseOptionalDateFromIso } from './minimumSliceFunctionContract.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {
@@ -55,12 +55,20 @@ export function runMinimumSliceFunctionContractAssertions(): void {
     'panel.entries must be a non-empty array.',
   );
   assertThrows(
+    () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: 'not-a-date', entries: [{ marker: 'apob' }] } }),
+    'panel.collectedAt must be a valid ISO timestamp.',
+  );
+  assertThrows(
     () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', value: '118' }] } }),
     'panel.entries[0].value must be a number or null.',
   );
   assertThrows(
     () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', fastingContext: 'yes' }] } }),
     'panel.entries[0].fastingContext must be a boolean or null.',
+  );
+  assertThrows(
+    () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', collectedAt: 'bad-date' }] } }),
+    'panel.entries[0].collectedAt must be a valid ISO timestamp.',
   );
   assertThrows(
     () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob' }] }, execution: { now: 'not-a-date' } }),

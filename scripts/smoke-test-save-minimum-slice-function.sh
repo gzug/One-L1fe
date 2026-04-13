@@ -25,6 +25,7 @@ workdir="$(mktemp -d)"
 trap 'rm -rf "$workdir"' EXIT
 
 signup_response_path="$workdir/signup.json"
+signin_response_path="$workdir/signin.json"
 profile_response_path="$workdir/profile.json"
 invoke_response_path="$workdir/invoke.json"
 
@@ -35,8 +36,20 @@ curl --silent --show-error \
   -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}" \
   > "$signup_response_path"
 
-access_token="$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); const token=data.access_token || data.session?.access_token; if(!token){console.error('Signup/signin response did not include an access token.'); process.exit(1);} process.stdout.write(token);" "$signup_response_path")"
-user_id="$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); const userId=data.user?.id || data.session?.user?.id; if(!userId){console.error('Signup/signin response did not include a user id.'); process.exit(1);} process.stdout.write(userId);" "$signup_response_path")"
+if node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); const token=data.access_token || data.session?.access_token; process.exit(token ? 0 : 1);" "$signup_response_path"; then
+  auth_response_path="$signup_response_path"
+else
+  curl --silent --show-error \
+    -X POST "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+    -H "apikey: $SUPABASE_ANON_KEY" \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}" \
+    > "$signin_response_path"
+  auth_response_path="$signin_response_path"
+fi
+
+access_token="$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); const token=data.access_token || data.session?.access_token; if(!token){console.error('Auth response did not include an access token.'); console.error(JSON.stringify(data, null, 2)); process.exit(1);} process.stdout.write(token);" "$auth_response_path")"
+user_id="$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync(process.argv[1],'utf8')); const userId=data.user?.id || data.session?.user?.id; if(!userId){console.error('Auth response did not include a user id.'); console.error(JSON.stringify(data, null, 2)); process.exit(1);} process.stdout.write(userId);" "$auth_response_path")"
 
 curl --silent --show-error \
   -X POST "$SUPABASE_URL/rest/v1/profiles" \

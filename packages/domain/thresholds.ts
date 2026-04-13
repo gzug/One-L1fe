@@ -1,5 +1,5 @@
-import { CanonicalStatus } from './biomarkers';
-import { BiomarkerKey } from './v1';
+import { CanonicalStatus } from './biomarkers.ts';
+import { BiomarkerKey } from './v1.ts';
 
 export interface ThresholdEvaluation {
   canonicalStatus: CanonicalStatus;

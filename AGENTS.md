@@ -1,15 +1,26 @@
+---
+status: current
+canonical_for: agent working rules
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # AGENTS.md
 
 Operations guide for agents working in the **One L1fe** product repo.
 
-## Session-Start-Pflicht
+## Session start
 
-Before doing meaningful repo work, every fresh session should start with:
-1. `CHECKPOINT.md`
+Before meaningful repo work, start with `CHECKPOINT.md`.
+Use `README.md` first only when broad repo orientation is needed.
+Use `MEMORY.md` only for durable truth, not as a startup default.
 
-Read the following only on demand:
+Read deeper files only on demand:
 - `GLOSSARY.md` when terms or abbreviations are unclear
-- `MEMORY.md` for deeper historical context or old decisions
+- `MEMORY.md` for durable history or old decisions
 - `docs/compliance/intended-use.md` when the task touches compliance, recommendation wording, biomarker interpretation, or user-facing health language
 
 ## Working Principles

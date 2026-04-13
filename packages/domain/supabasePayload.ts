@@ -1,4 +1,4 @@
-import { InterpretationPersistencePayload } from './contracts';
+import { InterpretationPersistencePayload } from './contracts.ts';
 
 export interface SupabaseInterpretationRunInsert {
   external_run_id: string;

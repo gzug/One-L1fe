@@ -1,4 +1,4 @@
-import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers';
+import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
 
 export type BiomarkerKey = BiomarkerDefinition['key'];
 
