@@ -3,8 +3,9 @@
 ## Source of truth
 
 - Repo: `/Users/ufo/.openclaw/workspace/gzug/One-L1fe-repo`
-- The nested repo is the product source of truth.
-- The workspace `MEMORY.md` is only the routing bridge.
+- `CHECKPOINT.md` is the single startup source of truth.
+- The workspace `MEMORY.md` is only a tiny bridge.
+- Repo `MEMORY.md` is optional deep history, not startup context.
 
 ## Fresh-session rule
 
@@ -30,5 +31,5 @@ Do not auto-read repo `MEMORY.md`, `GLOSSARY.md`, or `README.md` unless the task
 
 ## Current next focus
 
-- Wire the persistence adapter into a real Supabase repository or edge-function path.
-- Then add idempotent re-run coverage.
+- Do not duplicate this here.
+- Read `CHECKPOINT.md` for the actual current next step.

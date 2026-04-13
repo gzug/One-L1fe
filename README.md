@@ -117,5 +117,6 @@ The next clean implementation step is:
 ## Working Constraint
 
 - Treat compliance and business topics as **parked but not deleted** during the private MVP phase.
+- Do not describe the product as a generic "wellness" product if that term has been intentionally retired.
 - Do not let them block core product shaping right now.
 - Do not put real personal health data into this repo anyway.

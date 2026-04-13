@@ -8,7 +8,8 @@ Important: this file stores project memory, not personal health records. Do not 
 
 ## Durable product boundary
 
-- One L1fe is a wellness and self-tracking product, not a diagnostic or treatment system.
+- One L1fe is not a diagnostic or treatment system.
+- It should be framed as a health data, biomarker, and interpretation product, not as a "wellness" product.
 - Recommendations must stay bounded, uncertainty-aware, and within the intended-use boundary.
 - Severity, coverage, freshness, and recommendation eligibility must stay distinct.
 

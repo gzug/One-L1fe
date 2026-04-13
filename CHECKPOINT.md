@@ -31,7 +31,7 @@ Only read deeper docs when the task actually touches them.
 
 ## Guardrails
 
-- Keep wellness boundary explicit.
+- Keep the product boundary explicit.
 - Keep ApoB primary and LDL fallback/secondary.
 - Keep severity separate from coverage.
 - Keep Notion out of hidden runtime logic.

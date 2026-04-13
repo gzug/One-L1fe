@@ -74,7 +74,7 @@ Action:
 - slow down,
 - expose assumptions,
 - cite evidence when possible,
-- keep the wellness boundary explicit,
+- keep the product and intended-use boundary explicit,
 - ask for review when uncertainty is material.
 
 #### Red
@@ -94,7 +94,7 @@ Action: stop, escalate to a human, and do not continue that path autonomously.
 - Never automatically commit, push, or publish raw personal health data.
 - No ClawHub assets, skills, or automations without explicit vetting and approval.
 - Keep **Sandbox ON** by default.
-- Do not present wellness output as diagnosis, treatment, or medical advice.
+- Do not present product output as diagnosis, treatment, or medical advice.
 - Do not fabricate evidence, confidence, or data provenance.
 - Do not smooth over contradictions. Call them out directly.
 

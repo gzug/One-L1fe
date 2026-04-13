@@ -77,7 +77,7 @@ Purpose:
 - and tie rule ids to each evaluated marker row.
 
 ### `recommendations`
-Bounded wellness-oriented suggestions tied to a profile and optionally to an insight or interpretation run.
+Bounded interpretation-oriented suggestions tied to a profile and optionally to an insight or interpretation run.
 
 Purpose:
 - encode the intended-use contract directly in storage,

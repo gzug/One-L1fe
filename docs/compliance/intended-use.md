@@ -2,13 +2,13 @@
 
 ## What One L1fe Is
 
-One L1fe is a **wellness and self-tracking product**.
+One L1fe is a **health data, biomarker, and interpretation product**.
 
 Its intended role is to help users:
 - log and review biomarkers and related context,
 - observe patterns across time,
 - reflect on habits, routines, and trends,
-- receive bounded, evidence-aware wellness guidance.
+- receive bounded, evidence-aware interpretation guidance.
 
 The product may support:
 - self-observation,
@@ -75,7 +75,7 @@ The system should stop short and hand off to a human or clinician-oriented path 
 
 ## Product Language Rules
 
-- Prefer wellness, tracking, reflection, and pattern language.
+- Prefer health tracking, biomarker interpretation, reflection, and pattern language.
 - Avoid diagnostic certainty.
 - Avoid disease-labeling unless clearly framed as user-provided or externally sourced information.
 - Make uncertainty visible rather than smoothing it over.

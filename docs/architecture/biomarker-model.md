@@ -116,7 +116,7 @@ Implementation:
 - `aggregateTotalPriorityScore()`
 - `determinePrimaryFocus()`
 
-### 8. The model is wellness-oriented, not diagnostic
+### 8. The model is interpretation-oriented, not diagnostic
 This registry is designed for prioritization and pattern detection, not medical diagnosis.
 
 Why it matters:

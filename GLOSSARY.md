@@ -8,7 +8,7 @@ Project glossary for One L1fe (OL). Keep this file current whenever new recurrin
 | OL | One L1fe | Product | Personal health-tracking product and the primary product repo. |
 | PC | Paperclip AI | External Tool | Referenced AI tool or team context. Confirm the exact operational role before integrating it into workflows. |
 | GH | GitHub | Platform | Source control, collaboration, and remote hosting. |
-| DA | Digital Avatar | Product Concept | Long-term personalized representation built from wellness data, habits, and biomarker patterns. |
+| DA | Digital Avatar | Product Concept | Long-term personalized representation built from health data, habits, and biomarker patterns. |
 | BM | Biomarker | Health Data | Measurable laboratory or physiological marker used for tracking, correlation, and trend analysis. |
 | DSGVO | Datenschutz-Grundverordnung (GDPR) | Compliance | EU data-protection framework, especially relevant for special-category health data under Art. 9. |
 | MCP | Model Context Protocol | Architecture | Protocol for connecting models to tools, data sources, and structured context. |
