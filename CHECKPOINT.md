@@ -37,6 +37,8 @@ Mobile auth blocker resolved, backend hardening migration landed on `main`, and 
   - `apps/mobile/.env.example` now matches the real auth seam (`SUPABASE_URL` + `SUPABASE_ANON_KEY`)
   -   - `mobileSupabaseAuth.ts` and `App.tsx`: Expo env dot-notation fix applied (PR #14, #15) — `readEnv` helper removed, `process.env.VAR_NAME` used directly
       -   - Supabase test user created: `test@one-l1fe.dev` (UID: `3aa48a6f-0f7b-47d3-9875-7353064dd359`) — ready for first Expo smoke submit
+          -   - `useAuthSession.ts` added: thin React hook wrapping Supabase auth state (`loading -> signed-out -> signed-in`), reusable across screens — PR #17 merged 2026-04-13
+    - `App.tsx` refactored to consume `useAuthSession`; auth `useState`/`useEffect` removed from component body
 - Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
