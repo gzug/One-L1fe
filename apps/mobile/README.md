@@ -1,63 +1,71 @@
 # apps/mobile
 
-React Native application for One L1fe.
+Thin Expo app for the One L1fe minimum-slice mobile seam.
 
-## Intended early scope
+## What this is
 
-- authentication shell
-- biomarker overview
-- trend visualization
-- manual entry
-- recommendation display
+- A minimal React Native / Expo screen that renders the minimum-slice lab form.
+- Uses the shared domain controller (`minimumSliceScreenController.ts`) and model.
+- Submits authenticated requests to the hosted Supabase edge function.
+- Auth is handled by Supabase (`@supabase/supabase-js`) - real app session, not env placeholders.
 
-## Working rule
+## Required env vars
 
-Keep domain logic out of random UI files. If a rule affects meaning, units, validation, or recommendation structure, it should live in `packages/domain`.
+Create `apps/mobile/.env` (never commit):
 
-## Current status
+```
+EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL=https://<project-ref>.supabase.co
+EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY=<your-anon-key>
+# Optional - defaults to the canonical hosted URL:
+# EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH=/functions/v1/save-minimum-slice-interpretation
+```
 
-A first real Expo scaffold now exists, intentionally without `expo-router`. The app seam is still thin and should keep using the shared minimum-slice helpers in `packages/domain/`:
+Get `SUPABASE_URL` and `SUPABASE_ANON_KEY` from: Supabase Dashboard -> Project -> Settings -> API.
 
-1. `minimumSliceMobileForm.ts` to map simple app form values into the shared minimum-slice panel input
-2. `minimumSliceAppClient.ts` to build the shared function contract
-3. `minimumSliceAppHttpClient.ts` to call the Supabase edge function over HTTP
-4. `minimumSliceMobileIntegration.ts` for a minimal submission-state wrapper plus compact submission-state summary suitable for app usage
-5. `minimumSliceResultSummary.ts` for compact UI-facing summaries of the returned backend result
+## How to run
 
-The first thin app-side model now lives at:
-- `apps/mobile/minimumSliceScreenModel.ts`
-- `apps/mobile/minimumSliceScreenModel.example.ts`
+```bash
+cd apps/mobile
+npm install
+npx expo start
+```
 
-The next thin adapter around real hosted wiring now lives at:
-- `apps/mobile/minimumSliceHostedConfig.ts`
-- `apps/mobile/minimumSliceScreenController.ts`
-- `apps/mobile/minimumSliceScreenController.example.ts`
+Then open in iOS Simulator, Android Emulator, or Expo Go.
 
-These files keep the app seam narrow: draft state in the app layer, request shaping and transport in the shared domain layer, and compact submission summaries ready for UI rendering.
+## How to test a real authenticated submit
 
-The controller layer is the intended bridge to the Expo screen or a future hook:
-- it asks one auth-session provider for the current user id and access token,
-- points at the hosted Supabase project by default,
-- and keeps submission wiring out of random UI files.
+1. Ensure `.env` has real `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY`.
+2. Start the app: `npx expo start`.
+3. The app opens on the Login screen. Sign in with a real Supabase Auth user.
+4. Fill in the minimum-slice form (or use the pre-filled demo draft).
+5. Tap **Submit**.
+6. Expected: `Status: success`, `Interpretation run: <uuid>` shown in the Submission summary.
+7. Verify in Supabase Dashboard -> Table Editor -> `lab_results` that a row exists under the correct `profile_id`.
 
-The first runnable Expo scaffold now lives at:
-- `apps/mobile/App.tsx`
-- `apps/mobile/app.json`
-- `apps/mobile/package.json`
-- `apps/mobile/.env.example`
+## Auth flow
 
-It renders one narrow form, submits through the existing controller seam, and shows the shared submission summary.
+```
+App starts
+  +-- getMobileSupabaseClient().auth.getSession()
+       +-- session exists  -> show MinimumSlice form screen
+       +-- no session      -> show LoginScreen
+            +-- signInWithPassword() success -> show form screen
 
-## Recommended first app seam
+Form screen: Submit button
+  +-- controller.submit()
+       +-- createMobileSupabaseAuthSessionProvider().getSession()
+            +-- passes { user.id, access_token } to minimumSliceScreenController
+                 +-- POST /functions/v1/save-minimum-slice-interpretation
+```
 
-Execution brief:
-- `docs/planning/mobile-minimum-slice-first-seam.md`
-- `apps/mobile/minimum-slice-example.md`
+## File map
 
-Implement one narrow flow only:
-- collect a minimum-slice panel payload
-- submit it through the shared mobile integration helper
-- show success or error state
-- display returned persistence ids or a minimal summary via the shared result-summary helper
-
-Do not rebuild request shaping or backend transport logic directly inside the app layer.
+| File | Role |
+|---|---|
+| `App.tsx` | Root component, auth state machine, form screen |
+| `LoginScreen.tsx` | Email/password sign-in UI |
+| `mobileSupabaseAuth.ts` | Supabase client singleton + `MinimumSliceAuthSessionProvider` adapter |
+| `minimumSliceScreenController.ts` | Screen controller (auth-provider-agnostic) |
+| `minimumSliceScreenModel.ts` | Screen model, submit logic |
+| `minimumSliceHostedConfig.ts` | Hosted endpoint config |
+| `.env.example` | Env var template |

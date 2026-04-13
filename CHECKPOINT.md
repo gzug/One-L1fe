@@ -12,28 +12,32 @@ scope: repo
 
 ## Verdict
 
-The hosted minimum-slice backend seam is live and the thin Expo mobile seam now exists, but the mobile path still needs real app auth wiring. The repo also now has an explicit short-term memory layer and OpenClaw operations guidance, so session continuity is stronger than before.
+Mobile auth blocker resolved. The Expo app now uses a real Supabase session (email/password sign-in via `mobileSupabaseAuth.ts`). The seam is: LoginScreen -> Supabase Auth -> `createMobileSupabaseAuthSessionProvider` -> `minimumSliceScreenController` -> hosted edge function.
 
 ## Current state
 
 - Branch: `main`
-- Active seam: hosted minimum-slice backend live, thin Expo mobile seam scaffolded, real mobile auth still pending
+- Active seam: hosted minimum-slice backend live, Expo mobile seam with real Supabase auth wired
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
-  - mobile auth still uses environment placeholders instead of a real app session source
+  - first real authenticated Expo submit against hosted endpoint not yet verified live
 - Key confirmed facts:
   - hosted migrations match repo
   - RLS and policies are live
   - `save-minimum-slice-interpretation` is deployed with JWT enforcement
   - one authenticated hosted smoke call returned HTTP 200 with writes succeeding end to end
   - the repo now includes `memory/`, `docs/ops/`, a data-handling policy, and lightweight metadata files
+  - `mobileSupabaseAuth.ts` added: thin Supabase client adapter using `auth.getSession()`
+  - `LoginScreen.tsx` added: minimal email/password UI, delegates to Supabase client
+  - `App.tsx`: auth state machine (`loading -> signed-out -> signed-in`), listens to `onAuthStateChange`
+  - placeholder env vars (`EXPO_PUBLIC_ONE_L1FE_ACCESS_TOKEN`, `EXPO_PUBLIC_ONE_L1FE_PROFILE_ID`) removed
 - Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
 
 The next best steps are, in order:
-1. wire a real app auth session into `apps/mobile/minimumSliceScreenController.ts` and validate one authenticated Expo submission against the hosted endpoint,
-2. decide whether the next thin app seam is a dedicated hook extraction or a second screen around the same controller,
+1. **Run first live authenticated Expo submit**: set `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY` in `.env`, start the app, sign in with a real user, submit the minimum-slice form, verify HTTP 200 + DB write under the correct `profileId`,
+2. decide whether the next thin app seam is a dedicated hook extraction (`useAuthSession`) or a second screen around the same controller,
 3. activate `supabase db lint` as the next CI check,
 4. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
 5. add drift detection CI only after boot/reset is stable,
