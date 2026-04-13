@@ -12,7 +12,7 @@ scope: repo
 
 ## Verdict
 
-Mobile auth blocker resolved. The Expo app now uses a real Supabase session (email/password sign-in via `mobileSupabaseAuth.ts`). The seam is: LoginScreen -> Supabase Auth -> `createMobileSupabaseAuthSessionProvider` -> `minimumSliceScreenController` -> hosted edge function.
+Mobile auth blocker resolved, backend hardening migration landed on `main`, and Supabase validation now includes linked-project lint plus local replay. The main remaining product blocker is still the first real authenticated Expo submit against the hosted edge function.
 
 ## Current state
 
@@ -26,22 +26,23 @@ Mobile auth blocker resolved. The Expo app now uses a real Supabase session (ema
   - RLS and policies are live
   - `save-minimum-slice-interpretation` is deployed with JWT enforcement
   - one authenticated hosted smoke call returned HTTP 200 with writes succeeding end to end
+  - backend hardening migration `20260413093000_phase0_backend_hardening.sql` is now on `main`
+  - Supabase CI now runs linked-project lint plus local `supabase start` and `supabase db reset`
   - the repo now includes `memory/`, `docs/ops/`, a data-handling policy, and lightweight metadata files
   - `mobileSupabaseAuth.ts` added: thin Supabase client adapter using `auth.getSession()`
   - `LoginScreen.tsx` added: minimal email/password UI, delegates to Supabase client
   - `App.tsx`: auth state machine (`loading -> signed-out -> signed-in`), listens to `onAuthStateChange`
   - placeholder env vars (`EXPO_PUBLIC_ONE_L1FE_ACCESS_TOKEN`, `EXPO_PUBLIC_ONE_L1FE_PROFILE_ID`) removed
+  - `apps/mobile/.env.example` now matches the real auth seam (`SUPABASE_URL` + `SUPABASE_ANON_KEY`)
 - Deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`, while source of truth stays in `packages/domain/`
 
 ## Current next step
 
 The next best steps are, in order:
-1. **Run first live authenticated Expo submit**: set `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY` in `.env`, start the app, sign in with a real user, submit the minimum-slice form, verify HTTP 200 + DB write under the correct `profileId`,
-2. decide whether the next thin app seam is a dedicated hook extraction (`useAuthSession`) or a second screen around the same controller,
-3. activate `supabase db lint` as the next CI check,
-4. add boot/reset CI validation (`supabase start` + `supabase db reset`) after lint is stable,
-5. add drift detection CI only after boot/reset is stable,
-6. merge or close PR #1 cleanly.
+1. **Run first live authenticated Expo submit**: set `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` and `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY` in `.env`, start the app, sign in with a real user, submit the minimum-slice form, verify HTTP 200 plus DB write under the correct `profileId`,
+2. smoke-test the main auth failure modes once in Expo: wrong credentials, missing env, signed-out launch, hosted function error,
+3. decide whether the next thin app seam is a dedicated hook extraction (`useAuthSession`) or a second screen around the same controller,
+4. add schema drift detection CI only after the current lint plus replay path has stayed stable across a couple of clean cycles.
 
 ## Startup rule
 
