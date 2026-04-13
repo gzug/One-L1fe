@@ -30,15 +30,11 @@ const FIELD_ORDER = [
 
 type FieldKey = (typeof FIELD_ORDER)[number]['key'];
 
-function readEnv(name: string): string | undefined {
-  const value = process.env[name];
-  return value && value.trim().length > 0 ? value.trim() : undefined;
-}
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
-  supabaseUrl: readEnv('EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL') ?? getOneL1feSupabaseUrl(ONE_L1FE_SUPABASE_PROJECT_REF),
-  functionPath: readEnv('EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH'),
+    supabaseUrl: process.env.EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL ?? getOneL1feSupabaseUrl(ONE_L1FE_SUPABASE_PROJECT_REF),
+    functionPath: process.env.EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH,
 });
 
 function renderTopDrivers(state: MinimumSliceScreenModel): string {
