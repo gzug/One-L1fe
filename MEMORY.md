@@ -21,35 +21,10 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep weak/contextual markers out of the hard core score unless clearly justified.
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
 
-## Current implementation checkpoint
-
-- The repo already has the V1 minimum-slice domain evaluator.
-- The repo already has evidence-registry structures and Supabase seed/upsert generation.
-- The repo now also has the minimum-slice persistence path end to end inside the shared TypeScript layer:
-  - `packages/domain/minimumSlice.ts`
-  - `packages/domain/contracts.ts`
-  - `packages/domain/supabasePayload.ts`
-  - `packages/domain/supabasePersistence.ts`
-  - `packages/domain/supabaseRepository.ts`
-- An authenticated Supabase edge-function entrypoint now exists at:
-  - `supabase/functions/save-minimum-slice-interpretation/index.ts`
-- Its request parsing and validation now live in a shared TypeScript contract at:
-  - `packages/domain/minimumSliceFunctionContract.ts`
-- A local auth-backed smoke-test helper now exists at:
-  - `scripts/smoke-test-save-minimum-slice-function.sh`
-- Idempotent re-run coverage exists for repeated repository saves against the same external ids.
-- Recent verification passed:
-  - `npm run typecheck`
-  - `npm run test:domain`
-
-## Current next step
-
-Run the new local function smoke test once Supabase is up with a real anon key, or build a thin app-facing client wrapper on top of the shared function contract.
-
 ## Startup rule
 
-This file should stay compact.
-Use `CHECKPOINT.md` for fresh-session startup.
+This file stores durable project memory only.
+Use `CHECKPOINT.md` for fresh-session startup and current execution state.
 Store detailed chronological history under `docs/roadmap/checkpoints/`, not here.
 
 ## History archive

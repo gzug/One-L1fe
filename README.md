@@ -44,6 +44,7 @@ One-L1fe/
 
 ## Core Project Docs
 
+- [CHECKPOINT.md](./CHECKPOINT.md) for current execution state and next step
 - [MEMORY.md](./MEMORY.md)
 - [GLOSSARY.md](./GLOSSARY.md)
 - [AGENTS.md](./AGENTS.md)
@@ -75,48 +76,13 @@ One-L1fe/
 - [docs/roadmap/v1-checkpoint-and-next-agent-brief.md](./docs/roadmap/v1-checkpoint-and-next-agent-brief.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
 
-## Phase 0 Status Checklist
+## Current execution state
 
-- [x] Core repo memory established
-- [x] Project glossary established
-- [x] Agent operating guide established
-- [x] Intended-use and compliance baseline documented
-- [x] Architecture skeleton defined
-- [x] Biomarker canonical schema drafted
-- [x] Supabase schema drafted
-- [ ] React Native scaffold prepared
-- [ ] Auth flow defined
-- [x] Recommendation pipeline and evidence model drafted
-- [x] Data governance and interpretation guardrails drafted
+For the live checkpoint, current next step, and recent verification, use [CHECKPOINT.md](./CHECKPOINT.md).
 
-## Current Build State
+## Working constraints
 
-The canonical biomarker registry now exists in `packages/domain/biomarkers.ts` and is documented in `docs/architecture/biomarker-model.md`.
-The Supabase Phase 0 baseline is drafted.
-The first serious V1 interpretation and Notion-automation architecture is now also documented across the architecture, notion, and research docs.
-A targeted research reconciliation pass has now tightened the V1 baseline further, especially around Lp(a), hs-CRP, ferritin, vitamin D, and evidence governance.
-The repo now also includes an implementation-ready rule inventory and decision tables so the next coding pass can encode deterministic V1 behavior instead of re-deriving policy from prose.
-A first shared domain implementation bridge now exists for:
-- interpretability and freshness gating,
-- ApoB-primary / LDL-fallback logic,
-- explicit threshold evaluation for ApoB, LDL, HbA1c, glucose, Lp(a), CRP, and Vitamin D,
-- a minimum-slice Priority Score evaluator,
-- deterministic domain fixtures,
-- executable TypeScript assertions that currently pass,
-- typed persistence-contract mapping for backend storage,
-- evidence-registry seed and upsert generation,
-- a Supabase write adapter that upserts interpretation runs, interpreted entries, and recommendations in deterministic order,
-- a shared repository seam that turns minimum-slice input into deterministic persistence writes with idempotent re-run coverage,
-- and an authenticated Supabase edge-function entrypoint for that shared repository path.
-
-The next clean implementation step is:
-1. run the new local smoke-test path against a live local Supabase instance,
-2. build a thin app-facing client wrapper for the shared function contract,
-3. extend runtime support beyond the current minimum-slice and contract assertions.
-
-## Working Constraint
-
-- Treat compliance and business topics as **parked but not deleted** during the private MVP phase.
-- Do not describe the product as a generic "wellness" product if that term has been intentionally retired.
-- Do not let them block core product shaping right now.
-- Do not put real personal health data into this repo anyway.
+- Treat compliance and business topics as parked, not deleted, during the private MVP phase.
+- Do not describe the product as a generic consumer wellness product.
+- Do not let parked topics block core product shaping.
+- Do not put real personal health data into this repo.
