@@ -13,6 +13,6 @@
     "deploy:function:minimum-slice": "bash scripts/deploy-save-minimum-slice-function.sh"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }
