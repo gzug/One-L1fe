@@ -38,6 +38,24 @@ Authenticated Supabase edge function that:
 }
 ```
 
+## Local exercise
+
+Example payload:
+- `supabase/functions/save-minimum-slice-interpretation/example-request.json`
+
+Typical local flow:
+1. start Supabase locally,
+2. serve the function,
+3. invoke it with an authenticated bearer token so RLS and `auth.uid()` resolve normally.
+
+Example:
+
+```bash
+supabase functions serve save-minimum-slice-interpretation --no-verify-jwt
+```
+
+Then POST the example payload to the local function URL during early wiring, or switch back to normal JWT verification once auth-backed local invocation is in place.
+
 ## Notes
 
 - The function ignores any caller-supplied profile id and uses the authenticated user id.

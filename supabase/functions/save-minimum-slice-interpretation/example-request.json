@@ -1,0 +1,19 @@
+{
+  "panel": {
+    "panelId": "panel_demo_1",
+    "collectedAt": "2026-04-10T08:00:00.000Z",
+    "source": "fixture",
+    "entries": [
+      { "marker": "apob", "value": 118, "unit": "mg/dL" },
+      { "marker": "ldl", "value": 152, "unit": "mg/dL" },
+      { "marker": "hba1c", "value": 5.8, "unit": "%" },
+      { "marker": "glucose", "value": 104, "unit": "mg/dL", "fastingContext": true },
+      { "marker": "lpa", "value": 62, "unit": "mg/dL" },
+      { "marker": "crp", "value": 2.4, "unit": "mg/L" }
+    ]
+  },
+  "execution": {
+    "now": "2026-04-13T02:50:00.000Z",
+    "createdAt": "2026-04-13T02:50:00.000Z"
+  }
+}
