@@ -105,6 +105,12 @@ Not included yet:
 
 That is deliberate. The schema is trying to be a stable Phase 0 base, not an overbuilt health platform.
 
+A separate wearables and context expansion lane is now drafted in:
+- `docs/architecture/wearables-and-context-schema-draft.md`
+- `docs/architecture/wearable-metric-keys-v1.md`
+
+That next lane should stay separate from the lab schema rather than stretching `lab_results` into a generic health-events table.
+
 ## Current phase update
 
 A second migration now extends the baseline with:

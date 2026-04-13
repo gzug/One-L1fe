@@ -14,13 +14,21 @@ import { getMobileSupabaseClient } from './mobileSupabaseAuth.ts';
 
 interface LoginScreenProps {
   onSignedIn: () => void;
+  initialError?: string;
 }
 
-export default function LoginScreen({ onSignedIn }: LoginScreenProps): React.JSX.Element {
+export default function LoginScreen({
+  onSignedIn,
+  initialError,
+}: LoginScreenProps): React.JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>();
+  const [error, setError] = useState<string | undefined>(initialError);
+
+  React.useEffect(() => {
+    setError(initialError);
+  }, [initialError]);
 
   async function handleSignIn(): Promise<void> {
     if (email.trim().length === 0 || password.length === 0) {

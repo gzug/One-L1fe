@@ -32,8 +32,9 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
 - Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
 - For the first real mobile app seam, use Expo scaffolding first and avoid `expo-router` until there is a concrete navigation need.
-- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session (`mobileSupabaseAuth.ts` via `auth.getSession()`). Environment placeholders for auth have been removed. Next step: first real authenticated Expo
-- - `MinimumSliceScreen.tsx` extracted as a standalone component (form UI, handlers, styles). `App.tsx` is now a 55-line pure auth-gate shell (loading → signed-out → signed-in). Mobile component architecture: `App.tsx` → `LoginScreen.tsx` | `MinimumSliceScreen.tsx`. Controller is wired once in `App.tsx` and prop-injected.
+- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session through `mobileSupabaseAuth.ts` (`auth.getSession()`), with real Expo env keys for Supabase URL and anon key instead of auth placeholders.
+- Keep the mobile auth/session architecture thin and explicit: `useAuthSession.ts` owns auth-state subscription, `LoginScreen.tsx` owns sign-in UI, `MinimumSliceScreen.tsx` owns the signed-in minimum-slice form, and `App.tsx` stays a small auth-gate shell that wires those pieces together.
+- For wearables, keep daily summaries explicit about source scope (`single_source` vs `merged`) and timezone semantics, and keep context notes minimally structured with tags instead of free text only.
 
 ## Durable repo operations posture
 

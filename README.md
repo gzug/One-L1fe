@@ -128,12 +128,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
 - [docs/architecture/v1-implementation-rule-inventory.md](./docs/architecture/v1-implementation-rule-inventory.md)
 - [docs/architecture/v1-decision-tables.md](./docs/architecture/v1-decision-tables.md)
 - [docs/architecture/v1-backend-interpretation-contract.md](./docs/architecture/v1-backend-interpretation-contract.md)
+- [docs/architecture/wearables-and-context-schema-draft.md](./docs/architecture/wearables-and-context-schema-draft.md)
+- [docs/architecture/wearable-metric-keys-v1.md](./docs/architecture/wearable-metric-keys-v1.md)
 
 ### Planning and roadmap
 - [docs/planning/V1-backlog.md](./docs/planning/V1-backlog.md)
 - [docs/planning/V1-minimum-slice.md](./docs/planning/V1-minimum-slice.md)
 - [docs/planning/github-hardening-checklist.md](./docs/planning/github-hardening-checklist.md)
 - [docs/planning/mobile-minimum-slice-first-seam.md](./docs/planning/mobile-minimum-slice-first-seam.md)
+- [docs/planning/wearables-hard-facts-and-automation.md](./docs/planning/wearables-hard-facts-and-automation.md)
 - [docs/archive/roadmap/phase-0.md](./docs/archive/roadmap/phase-0.md) (historical)
 - [docs/roadmap/v1-checkpoint-and-next-agent-brief.md](./docs/roadmap/v1-checkpoint-and-next-agent-brief.md)
 
