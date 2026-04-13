@@ -2,7 +2,7 @@
 status: current
 canonical_for: initial wearable metric taxonomy
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: architecture
@@ -71,6 +71,11 @@ These may still be stored later, but should be flagged as vendor-derived or vend
 | `temperature_deviation` | Temperature deviation | recovery | numeric | delta_c | day | vendor_derived | variable |
 | `distance_total` | Distance total | activity | numeric | m | day | device_observed | high |
 | `active_energy_burned` | Active energy burned | activity | numeric | kcal | day | vendor_derived | low |
+
+> **Taxonomy note:** The canonical `evidence_class` values are defined in the `evidence_class` SQL enum.
+> Single source of truth: `supabase/migrations/20260413214000_phase0_wearables_context.sql`.
+> Valid values: `device_observed | vendor_derived | vendor_black_box | self_report | product_derived`.
+> `product_compatible` is NOT a valid value — use `product_derived`.
 
 ## Modeling notes
 
