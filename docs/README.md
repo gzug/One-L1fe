@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: docs folder orientation
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: docs
+---
+
 # Docs guide
 
 This folder is intentionally split by purpose so not every document competes for attention.
@@ -8,6 +18,7 @@ This folder is intentionally split by purpose so not every document competes for
 - `planning/` = backlog, next steps, and execution sequencing, including the first mobile minimum-slice implementation brief
 - `research/` = evidence gathering, open questions, and reconciliation work
 - `compliance/` = intended-use and boundary-sensitive material
+- `ops/` = OpenClaw and repo operations guidance, including human session workflow
 - `notion/` = Notion-specific design and migration notes
 - `roadmap/` = phased progress and checkpoints
 - `archive/` = superseded or retired docs when they should be kept for context

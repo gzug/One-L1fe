@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: first mobile minimum-slice seam
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: planning
+---
+
 # Mobile minimum-slice first seam
 
 ## Verdict
@@ -22,6 +32,12 @@ Use these files as the only app-facing path for this seam:
 - `packages/domain/minimumSliceResultSummary.ts`
 
 Do not reshape request bodies or interpret backend payloads directly in app UI code.
+
+## Implementation posture
+
+- Start with Expo for the first scaffold.
+- Do not add `expo-router` in this seam unless a concrete navigation need appears.
+- Keep the implementation thin and centered on the existing model/controller seam.
 
 ## Suggested first implementation shape
 

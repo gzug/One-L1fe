@@ -1,3 +1,13 @@
+---
+status: reference
+canonical_for: high-level system shape
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: architecture
+---
+
 # Architecture Overview
 
 ## Verdict
@@ -91,6 +101,8 @@ These are documented but not current build drivers:
 
 ## Recommended Next Step
 
-Define the **canonical biomarker data model** next.
+Historical note: the canonical biomarker and shared domain direction is already underway in the current repo state.
 
-Reason: without a clean domain model, both the Supabase schema and the mobile app structure will get messy fast.
+For the real current next step, use `CHECKPOINT.md` as the active source of truth.
+
+Reason: this overview still describes the intended high-level architecture, but it should not be read as the current execution plan.

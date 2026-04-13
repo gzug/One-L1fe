@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: contribution workflow
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # Contributing
 
 This repo is currently run with a solo-founder workflow. The goal is speed with guardrails, not process theatre.
@@ -21,10 +31,12 @@ Use the repo layers on purpose:
 - `README.md` = project entry point
 - `CHECKPOINT.md` = current state and next step
 - `MEMORY.md` = durable project assumptions and decisions
+- `memory/` = short-term working notes and daily continuity
 - `docs/architecture/` = technical decisions that should stay true over time
 - `docs/planning/` = next work and backlog
 - `docs/research/` = evidence gathering and unresolved questions
-- `docs/compliance/` = intended-use and boundary docs
+- `docs/compliance/` = intended-use, data-handling, and boundary docs
+- `docs/ops/` = OpenClaw and session workflow guidance
 
 If a durable rule changes, update the source-of-truth file in the same workstream.
 

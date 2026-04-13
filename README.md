@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: project entry point
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # One L1fe
 
 One L1fe is a private-first personal health intelligence project focused on evidence-based self-tracking and bounded interpretation, with a long-term goal of building a useful Digital Avatar from longitudinal data.
@@ -33,9 +43,11 @@ One-L1fe/
 │   ├── planning/              # Backlog and next-step execution docs
 │   ├── research/              # Evidence gathering and unresolved questions
 │   ├── compliance/            # Intended-use and boundary-sensitive material
+│   ├── ops/                   # OpenClaw and repo operating guidance
 │   ├── notion/                # Notion-specific design and migration notes
 │   ├── roadmap/               # Phased progress and checkpoints
 │   └── archive/               # Superseded docs kept for context
+├── memory/                    # Short-term working memory and daily notes
 ├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
 ├── MEMORY.md
 ├── GLOSSARY.md
@@ -125,6 +137,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
 - [docs/research/v1-research-gaps-and-targeted-followups.md](./docs/research/v1-research-gaps-and-targeted-followups.md)
 - [docs/research/v1-targeted-research-reconciliation-2026-04-12.md](./docs/research/v1-targeted-research-reconciliation-2026-04-12.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
+- [docs/compliance/data-handling-and-redaction.md](./docs/compliance/data-handling-and-redaction.md)
+- [docs/ops/openclaw.md](./docs/ops/openclaw.md)
+- [docs/ops/session-workflow.md](./docs/ops/session-workflow.md)
 
 ## Working constraints
 

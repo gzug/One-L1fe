@@ -16,7 +16,7 @@ Keep domain logic out of random UI files. If a rule affects meaning, units, vali
 
 ## Current status
 
-Architecture scaffold only. The next mobile integration path should use the shared minimum-slice helpers in `packages/domain/`:
+A first real Expo scaffold now exists, intentionally without `expo-router`. The app seam is still thin and should keep using the shared minimum-slice helpers in `packages/domain/`:
 
 1. `minimumSliceMobileForm.ts` to map simple app form values into the shared minimum-slice panel input
 2. `minimumSliceAppClient.ts` to build the shared function contract
@@ -35,10 +35,18 @@ The next thin adapter around real hosted wiring now lives at:
 
 These files keep the app seam narrow: draft state in the app layer, request shaping and transport in the shared domain layer, and compact submission summaries ready for UI rendering.
 
-The controller layer is the intended bridge to a real app screen or hook:
+The controller layer is the intended bridge to the Expo screen or a future hook:
 - it asks one auth-session provider for the current user id and access token,
 - points at the hosted Supabase project by default,
 - and keeps submission wiring out of random UI files.
+
+The first runnable Expo scaffold now lives at:
+- `apps/mobile/App.tsx`
+- `apps/mobile/app.json`
+- `apps/mobile/package.json`
+- `apps/mobile/.env.example`
+
+It renders one narrow form, submits through the existing controller seam, and shows the shared submission summary.
 
 ## Recommended first app seam
 

@@ -1,3 +1,13 @@
+---
+status: current
+canonical_for: agent working rules
+owner: repo
+last_verified: 2026-04-13
+supersedes: []
+superseded_by: null
+scope: repo
+---
+
 # AGENTS.md
 
 Operations guide for agents working in the **One L1fe** product repo.

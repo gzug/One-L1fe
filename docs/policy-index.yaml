@@ -1,0 +1,19 @@
+policies:
+  - topic: intended use and recommendation boundary
+    canonical: docs/compliance/intended-use.md
+    scope: product boundary
+  - topic: data handling and redaction
+    canonical: docs/compliance/data-handling-and-redaction.md
+    scope: operational privacy and safe artifacts
+  - topic: current execution state
+    canonical: CHECKPOINT.md
+    scope: active implementation state
+  - topic: durable project assumptions
+    canonical: MEMORY.md
+    scope: durable operating memory
+  - topic: agent operating rules
+    canonical: AGENTS.md
+    scope: agent work style and escalation
+  - topic: OpenClaw repo operations
+    canonical: docs/ops/openclaw.md
+    scope: OpenClaw usage and truth promotion
