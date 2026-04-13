@@ -31,6 +31,8 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep lightweight GitHub hygiene in place: templates, CODEOWNERS, and CI for typecheck plus domain tests.
 - Do not let generated docs or AI-assisted code drift away from the actual implemented path.
 - Treat local Supabase replay plus authenticated smoke-test success as the required backend baseline before claiming the edge-function seam works.
+- Treat hosted Supabase security-advisor clean status plus ordered migration confirmation as sufficient evidence that the hardening baseline is live, even if GitHub-side enforcement still needs separate verification.
+- Do not treat a local-only Supabase function as a hosted-ready backend seam. Hosted deployment and one authenticated hosted smoke call are required before claiming the mobile path is production-ready.
 
 ## Startup rule
 

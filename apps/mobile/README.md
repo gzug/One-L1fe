@@ -24,6 +24,12 @@ Architecture scaffold only. The next mobile integration path should use the shar
 4. `minimumSliceMobileIntegration.ts` for a minimal submission-state wrapper plus compact submission-state summary suitable for app usage
 5. `minimumSliceResultSummary.ts` for compact UI-facing summaries of the returned backend result
 
+The first thin app-side model now lives at:
+- `apps/mobile/minimumSliceScreenModel.ts`
+- `apps/mobile/minimumSliceScreenModel.example.ts`
+
+These files keep the app seam narrow: draft state in the app layer, request shaping and transport in the shared domain layer, and compact submission summaries ready for UI rendering.
+
 ## Recommended first app seam
 
 Execution brief:

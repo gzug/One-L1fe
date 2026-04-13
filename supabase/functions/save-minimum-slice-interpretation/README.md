@@ -53,6 +53,24 @@ Auth-backed smoke test helper:
 SUPABASE_ANON_KEY=... npm run smoke:function:minimum-slice
 ```
 
+## Hosted deploy
+
+This function cannot import shared files from `../../../packages/domain/` at deploy time because Supabase bundles each function inside its own boundary.
+
+Before deployment, vendor the required shared domain files into this function's local `_lib/domain/` directory:
+
+```bash
+npm run prepare:function:minimum-slice
+```
+
+Then deploy with:
+
+```bash
+SUPABASE_PROJECT_REF=your-project-ref npm run deploy:function:minimum-slice
+```
+
+The deploy script keeps `packages/domain/` as the source of truth and stages a deploy-local copy for the function bundle.
+
 The smoke-test script:
 - signs up a local test user,
 - falls back to password sign-in on repeat runs when the user already exists,

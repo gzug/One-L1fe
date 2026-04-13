@@ -2,7 +2,7 @@
 
 ## Verdict
 
-The local backend seam is now verified. The next Supabase work should focus only on hosted confirmation and GitHub enforcement, not more local backend invention.
+The hosted database baseline is clean. The next Supabase work should focus on deploying and proving the hosted edge-function path, then finishing GitHub enforcement, not inventing more backend surface.
 
 ## What is already done
 
@@ -13,7 +13,29 @@ The local backend seam is now verified. The next Supabase work should focus only
 
 ## Immediate tasks
 
-### 1. Run one hosted lint pass
+### 1. Deploy the hosted edge function
+Command:
+
+```bash
+supabase functions deploy save-minimum-slice-interpretation --project-ref "$SUPABASE_PROJECT_REF"
+```
+
+Report:
+- deployed or failed
+- exact deploy error if it fails
+- deploy timestamp if it succeeds
+
+### 2. Run one hosted authenticated smoke call
+After deploy, call the hosted function with an authenticated user token and the example payload from:
+
+`supabase/functions/save-minimum-slice-interpretation/example-request.json`
+
+Report:
+- HTTP status
+- whether rows were created or upserted successfully
+- exact runtime error if it fails
+
+### 3. Run one hosted lint pass
 Prerequisite:
 - valid `SUPABASE_ACCESS_TOKEN`
 - valid project ref
@@ -29,7 +51,7 @@ Report:
 - exact failing rule if any
 - backend issue vs config/workflow issue
 
-### 2. Run one hosted drift-baseline check
+### 4. Run one hosted drift-baseline check
 Command:
 
 ```bash
@@ -41,7 +63,7 @@ Report only:
 - if not clean, the concrete drift categories
 - whether drift is safe, risky, or blocking
 
-### 3. Confirm GitHub secrets exist
+### 5. Confirm GitHub secrets exist
 Repository secrets to verify:
 - `SUPABASE_ACCESS_TOKEN`
 - `SUPABASE_PROJECT_REF`
@@ -50,7 +72,7 @@ Report:
 - both present or not
 - if missing, which one is missing
 
-### 4. Confirm live GitHub protections
+### 6. Confirm live GitHub protections
 Check whether GitHub now enforces:
 - branch protection on `main`
 - required status checks before merge
@@ -65,13 +87,16 @@ Report:
 - no new schema changes
 - no dashboard-first edits
 - no new seed strategy
+- no app claim that the hosted endpoint exists until the function is actually deployed
 - no drift automation until one clean manual hosted diff is confirmed
 - no mixing feature work into the same PR
 
 ## Next recommendation threshold
 
 Only recommend automated drift detection after all are true:
-1. hosted lint passes
-2. hosted diff is clean or clearly understood
-3. replay workflow is stable
-4. GitHub protections are live
+1. hosted function is deployed
+2. hosted authenticated smoke call passes
+3. hosted lint passes
+4. hosted diff is clean or clearly understood
+5. replay workflow is stable
+6. GitHub protections are live

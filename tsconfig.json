@@ -16,7 +16,8 @@
     "outDir": "dist"
   },
   "include": [
-    "packages/domain/**/*.ts"
+    "packages/domain/**/*.ts",
+    "apps/mobile/**/*.ts"
   ],
   "exclude": [
     "dist",

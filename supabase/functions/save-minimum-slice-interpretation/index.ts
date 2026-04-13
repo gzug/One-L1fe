@@ -3,8 +3,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import {
   parseMinimumSliceFunctionRequestBody,
   parseOptionalDateFromIso,
-} from '../../../packages/domain/minimumSliceFunctionContract.ts';
-import { saveMinimumSliceInterpretation } from '../../../packages/domain/supabaseRepository.ts';
+} from './_lib/domain/minimumSliceFunctionContract.ts';
+import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository.ts';
 import { corsHeaders, json } from '../_shared/http.ts';
 
 Deno.serve(async (request) => {
