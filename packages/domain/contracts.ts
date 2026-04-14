@@ -57,22 +57,15 @@ export interface InterpretationPersistencePayload {
   recommendations: RecommendationRecord[];
 }
 
+// Produces a stable, URL-safe ID by replacing any character outside
+// [a-zA-Z0-9_-] with an underscore. Colons are intentionally excluded
+// to keep IDs compatible with SQL identifiers and path segments.
 function makeId(prefix: string, parts: Array<string | number>): string {
   return [prefix, ...parts]
     .join('_')
-    .replace(/[^a-zA-Z0-9_:-]/g, '_');
+    .replace(/[^a-zA-Z0-9_-]/g, '_');
 }
 
-/**
- * Converts a MinimumSliceEvaluation into a persistence payload.
- *
- * ID IDEMPOTENCY DESIGN:
- * interpretationRunId and interpretedEntryIds are deterministic — derived from
- * panelId + ruleVersion (and panelId + markerKey respectively). This is intentional:
- * re-submitting the same panel+version combination upserts the existing record
- * rather than creating a duplicate. createdAt does NOT affect the generated IDs.
- * If you need to force a new row for the same panel, change the panelId.
- */
 export function toInterpretationPersistencePayload(
   evaluation: MinimumSliceEvaluation,
   inputSnapshot: unknown,

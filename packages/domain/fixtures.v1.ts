@@ -1,5 +1,9 @@
 import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
 
+// Fixture collectedAt dates are pinned relative to FIXTURE_NOW so freshness
+// assertions stay deterministic regardless of when the suite runs.
+export const FIXTURE_NOW = new Date('2026-04-14T06:00:00.000Z');
+
 export const fixturePrimaryLipidWithBoundedModifiers: MinimumSlicePanelInput = {
   profileId: 'profile_demo_1',
   panelId: 'panel_demo_1',
@@ -32,6 +36,7 @@ export const fixtureFallbackLipidAndAssayBlockedCRP: MinimumSlicePanelInput = {
 export const fixtureAmbiguousHbA1cAndStalePanel: MinimumSlicePanelInput = {
   profileId: 'profile_demo_3',
   panelId: 'panel_demo_3',
+  // Intentionally > 180 days before FIXTURE_NOW so freshness resolves to Stale.
   collectedAt: '2025-07-10T08:00:00.000Z',
   source: 'fixture',
   entries: [
@@ -59,7 +64,8 @@ export const fixtureExpectations = {
   },
 } as const;
 
-export function runFixtureSet(now: Date = new Date('2026-04-12T21:50:00.000Z')) {
+// Always pass FIXTURE_NOW so assertions are not sensitive to wall-clock time.
+export function runFixtureSet(now: Date = FIXTURE_NOW) {
   return {
     primaryLipidWithBoundedModifiers: evaluateMinimumSlice(fixturePrimaryLipidWithBoundedModifiers, now),
     fallbackLipidAndAssayBlockedCRP: evaluateMinimumSlice(fixtureFallbackLipidAndAssayBlockedCRP, now),
