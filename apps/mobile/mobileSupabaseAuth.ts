@@ -1,4 +1,3 @@
-import 'react-native-url-polyfill/auto';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {
@@ -20,6 +19,9 @@ export function getMobileSupabaseClient(): SupabaseClient {
     );
   }
 
+  // AsyncStorage is required on React Native / Expo for session persistence
+  // across app restarts. Without it, the Supabase client cannot restore
+  // the session and the user would be signed out on every cold start.
   _client = createClient(url, anonKey, {
     auth: {
       storage: AsyncStorage,
@@ -28,55 +30,53 @@ export function getMobileSupabaseClient(): SupabaseClient {
       detectSessionInUrl: false,
     },
   });
+
   return _client;
 }
 
-export type FreshAccessTokenResult =
-  | { kind: 'ok'; accessToken: string }
-  | { kind: 'signed-out' }
-  | { kind: 'error'; message: string };
+/**
+ * Returns a fresh access token by calling refreshSession().
+ * Use this as the canonical token path when calling the backend.
+ * Do NOT use getSession() for token retrieval — it may return a stale token
+ * without triggering a refresh.
+ */
+export async function getFreshAccessToken(): Promise<string> {
+  const client = getMobileSupabaseClient();
+  const { data, error } = await client.auth.refreshSession();
 
-export async function getFreshAccessToken(): Promise<FreshAccessTokenResult> {
-  try {
-    const client = getMobileSupabaseClient();
-    const { data, error } = await client.auth.getSession();
-
-    if (error !== null) {
-      return { kind: 'error', message: error.message };
-    }
-
-    if (data.session === null) {
-      return { kind: 'signed-out' };
-    }
-
-    return { kind: 'ok', accessToken: data.session.access_token };
-  } catch (err) {
-    return {
-      kind: 'error',
-      message: err instanceof Error ? err.message : String(err),
-    };
+  if (error !== null) {
+    throw new Error(`Supabase token refresh failed: ${error.message}`);
   }
+
+  if (data.session === null) {
+    throw new Error('No active session after refresh. Please sign in.');
+  }
+
+  return data.session.access_token;
 }
 
 export function createMobileSupabaseAuthSessionProvider(): MinimumSliceAuthSessionProvider {
   return {
     async getSession(): Promise<MinimumSliceAuthSession> {
-      const result = await getFreshAccessToken();
+      const client = getMobileSupabaseClient();
 
-      if (result.kind === 'signed-out') {
+      // Use getUser() to validate the session server-side and get a
+      // confirmed user object, then getFreshAccessToken() for a live token.
+      const { data: userData, error: userError } = await client.auth.getUser();
+
+      if (userError !== null) {
+        throw new Error(`Supabase auth error: ${userError.message}`);
+      }
+
+      if (userData.user === null) {
         throw new Error('No active session. Please sign in first.');
       }
 
-      if (result.kind === 'error') {
-        throw new Error(`Supabase auth error: ${result.message}`);
-      }
-
-      const client = getMobileSupabaseClient();
-      const { data } = await client.auth.getSession();
+      const accessToken = await getFreshAccessToken();
 
       return {
-        user: { id: data.session!.user.id },
-        accessToken: result.accessToken,
+        user: { id: userData.user.id },
+        accessToken,
       };
     },
   };

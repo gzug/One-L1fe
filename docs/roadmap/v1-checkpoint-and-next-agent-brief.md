@@ -1,90 +1,68 @@
 # V1 Checkpoint and Next-Agent Brief
 
+---
+status: reference
+canonical_for: v1 planning handoff
+owner: repo
+last_verified: 2026-04-14
+note: This file describes the end-state of the V1 planning round and the seam state at time of writing. Current execution state is in CHECKPOINT.md. Do not treat this file as current operational truth.
+---
+
 ## Purpose of this file
 
 This file is the compact handoff checkpoint for the next work round.
 It explains:
-- what was achieved,
-- what changed from the old model,
-- what is already stable enough,
-- what new research material is now available,
-- and what the next agent should do next.
+- what was achieved in the V1 planning round,
+- what changed from the old Notion-centric model,
+- what is already stable,
+- and what the next agent should do.
 
-## Current checkpoint
+**For current execution state, always use `CHECKPOINT.md` instead.**
 
-The project now has a real V1 planning baseline for the first serious data and interpretation layer.
+## Seam state at time of writing (2026-04-14)
 
-This includes:
-- a cleaner Notion V1 target structure,
-- a clearer separation between raw measurements, insights, and recommendations,
+The following is confirmed as of 2026-04-14:
+- Local Supabase replay from scratch works.
+- The minimum-slice hosted Edge Function (`save-minimum-slice-interpretation`) is deployed and returned HTTP 200 with a real authenticated call.
+- Shared domain imports are cross-runtime safe for Node and Supabase Edge.
+- The Expo mobile seam uses a real Supabase auth session via `mobileSupabaseAuth.ts` with `AsyncStorage` for session persistence.
+- `useAuthSession.ts` owns auth-state subscription.
+- `LoginScreen.tsx` owns the minimal email/password sign-in UI.
+- `MinimumSliceScreen.tsx` owns the signed-in minimum-slice form.
+- `App.tsx` is the ~55-line pure auth-gate shell.
+- The first live Expo submit (authenticated, real hosted endpoint) has NOT yet been performed.
+
+## Current blockers (as of 2026-04-14)
+
+See `CHECKPOINT.md` for the full, authoritative blocker list.
+Key items:
+- Wearables migrations not yet applied on hosted Supabase.
+- Two Supabase-only RLS-fix migrations were not committed to repo (now fixed in PR `fix/repo-optimizations-2026-04-14`).
+- First live authenticated Expo submit pending.
+
+## V1 planning baseline achieved
+
+The project now has a real V1 planning baseline for the first serious data and interpretation layer:
+- a cleaner separation between raw measurements, insights, and recommendations,
 - a bounded recommendation contract,
 - a first rule matrix,
 - explicit handling for coverage, freshness, units, and assay requirements,
 - an implementation-ready rule inventory,
 - decision tables for deterministic V1 control flow,
-- and a more honest framing of the score as a **Priority Score**, not a medical risk score.
-
-The repo also now has a verified local backend and app-facing minimum-slice baseline:
-- local Supabase replay from scratch works,
-- the authenticated minimum-slice edge-function smoke path works,
-- shared domain imports are cross-runtime safe for Node and Supabase Edge,
-- and the first app-facing seam now includes a mobile form-to-panel adapter, submission-state wrapper, and compact summary path.
-
-## What was improved compared with the old Notion MVP
-
-### Old situation
-The old MVP was useful for learning and prototyping, but too much lived in too few places.
-A single structure tried to act as:
-- data entry layer,
-- scoring engine,
-- recommendation engine,
-- and dashboard.
-
-That made it easy to prototype, but harder to trust, scale, or automate safely.
-
-### New V1 approach
-The new V1 keeps the useful layered idea, but improves the structure:
-- one layer for profile baseline,
-- one layer for lab panels,
-- one layer for lab entries,
-- one layer for derived insights,
-- one layer for recommendations,
-- one layer for overview/dashboard.
-
-This makes the MVP:
-- easier to understand,
-- easier to review,
-- easier to automate later,
-- less dependent on hidden Notion formulas,
-- and less likely to require a full rebuild.
+- and a Priority Score framing (not a medical risk score).
 
 ## Most important design decisions already made
 
-1. **Severity is not coverage**
-   - missing data must not behave like disease severity.
+1. **Severity is not coverage** — missing data must not behave like disease severity.
+2. **ApoB is primary, LDL is fallback or secondary lens** — avoid double-counting.
+3. **Weak/contextual markers should not shape the hard core score** — DAO stays contextual.
+4. **Units and assay type are part of the truth** — especially for Lp(a), HbA1c, glucose, CRP.
+5. **The score is a Priority Score, not a risk score** — it helps focus attention, not simulate medical certainty.
+6. **Recommendations need a contract** — verdict, evidence, confidence, scope, and type must be explicit.
+7. **Notion is not the final home of core health logic** — domain logic belongs in shared domain files and backend.
 
-2. **ApoB is primary, LDL is fallback or secondary lens**
-   - avoid double-counting the same biological story.
+## Main architecture files from this round
 
-3. **Weak/contextual markers should not shape the hard core score**
-   - DAO stays contextual, not core.
-
-4. **Units and assay type are part of the truth**
-   - especially relevant for Lp(a), HbA1c, glucose, and CRP.
-
-5. **The score is a Priority Score, not a risk score**
-   - it helps focus attention, not simulate medical certainty.
-
-6. **Recommendations need a contract**
-   - verdict, evidence, confidence, scope, and recommendation type must be explicit.
-
-7. **Notion is not the final home of core health logic**
-   - Notion may help with review and structured operations,
-   - but long-term domain logic belongs in shared domain files and backend logic.
-
-## Main files created in this round
-
-### Architecture
 - `docs/architecture/measurement-interpretation-policy.md`
 - `docs/architecture/recommendation-contract-v1.md`
 - `docs/architecture/v1-rule-matrix.md`
@@ -94,72 +72,14 @@ This makes the MVP:
 - `docs/architecture/v1-implementation-rule-inventory.md`
 - `docs/architecture/v1-decision-tables.md`
 
-### Notion / data model
-- `docs/notion/final-first-automation-structure.md`
-- `docs/notion/compact-private-notion-workspace-v1.md`
-- `docs/notion/future-role-of-notion.md`
-- `docs/archive/notion/private-notion-v1-change-log.md` (historical)
-- `docs/notion/v1-database-property-spec.md`
-- `docs/archive/notion/old-to-v1-migration-map.md` (historical)
-- `docs/notion/notion-vs-backend-calculation-boundary.md`
-- `docs/notion/v1-implementation-sequence.md`
+## Next agent tasks (ordered)
 
-### Research posture
-- `docs/research/v1-research-gaps-and-targeted-followups.md`
-
-## New research material now available for the next round
-
-The inbox now also contains a larger second-pass research set, including targeted reports for:
-- core biomarker policy,
-- ApoB vs LDL fallback policy,
-- Lp(a) unit policy,
-- CRP / hs-CRP assay policy,
-- ferritin context gate,
-- vitamin D policy,
-- weekly anchors,
-- priority score design,
-- safety states and recommendation boundaries,
-- source registry design,
-- Notion-to-backend migration,
-- source-quality auditing.
-
-Location:
-- `/Users/ufo/.openclaw/workspace/inbox/research/`
-
-## What the next agent should do
-
-### Primary mission
-Tighten and extend the first shared runtime implementation artifacts so they become testable and storage-ready.
-
-### Required approach
-The next agent should:
-1. read the current V1 planning files first,
-2. use the implementation inventory and decision tables as the coding source of truth,
-3. project rule metadata into shared runtime config or domain files,
-4. implement interpretability gates before marker-specific status logic,
-5. implement ApoB-primary and LDL-fallback behavior exactly once in shared logic,
-6. preserve the bounded recommendation and Priority Score posture.
-
-## Specific tasks for the next round
-
-1. **Use the new shared mobile seam in a real app screen or hook**
-   - start from:
-     - `packages/domain/minimumSliceMobileForm.ts`
-     - `packages/domain/minimumSliceMobileIntegration.ts`
-     - `packages/domain/minimumSliceResultSummary.ts`
-     - `docs/planning/mobile-minimum-slice-first-seam.md`
-     - `apps/mobile/minimum-slice-example.md`
-
-2. **Keep app code thin**
-   - do not rebuild request shaping, transport wiring, or backend result parsing in UI files.
-
-3. **Finish GitHub-side enforcement once credentials exist**
-   - add secrets,
-   - confirm branch protection,
-   - and run the hosted baseline helper.
-
-4. **Only then resume deeper rule expansion**
-   - preserve the current bounded minimum-slice posture and avoid broadening logic before the first real app seam exists.
+1. **Apply wearables migrations** — `supabase db push --linked` to apply `20260413214000` + `20260413220000`.
+2. **Run first live Expo submit** — sign in, submit minimum-slice form, verify HTTP 200 + DB write.
+3. **Merge open PRs** — PR #35, #36, and `fix/repo-optimizations-2026-04-14` (this audit).
+4. **Use the mobile seam in a real screen or hook** — start from `MinimumSliceScreen.tsx` and `minimumSliceScreenController.ts`.
+5. **Keep app code thin** — do not rebuild request shaping, transport wiring, or result parsing in UI files.
+6. **Finish GitHub-side enforcement** — add secrets, confirm branch protection, run the hosted baseline helper.
 
 ## Guardrails for the next agent
 
@@ -168,16 +88,5 @@ The next agent should:
 - Do not collapse Notion back into a hidden medical logic engine.
 - Do not turn the Priority Score into a fake clinical risk score.
 - Keep the system preventive, bounded, and honest.
-- Preserve the distinction between:
-  - measured data,
-  - interpretability,
-  - priority,
-  - and recommendation.
-
-## Definition of success for the next round
-
-The next round is successful if:
-- one real app screen or hook uses the shared mobile seam end to end,
-- backend replay and smoke validation remain green,
-- hosted Supabase checks are ready to run once credentials exist,
-- and the repo stays internally coherent.
+- Do not leave local machine paths (`/Users/...`) in repo documentation files.
+- Every migration applied to hosted Supabase must be committed to the repo before the session closes.

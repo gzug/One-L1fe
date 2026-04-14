@@ -22,32 +22,7 @@ Read deeper files only on demand:
 - `GLOSSARY.md` when terms or abbreviations are unclear
 - `MEMORY.md` for durable history or old decisions
 - `docs/compliance/intended-use.md` when the task touches compliance, recommendation wording, biomarker interpretation, or user-facing health language
-- `memory/agent-failure-patterns.md` when starting a session that involves schema, migrations, or end-to-end testing
-
-## Verification Rules
-
-Before labelling any statement as a confirmed fact:
-
-### 1. Schema and migration state
-Always query Supabase directly before stating schema facts:
-- `list_migrations` to check applied migrations
-- `execute_sql` on `information_schema.tables` to verify table existence
-- `list_edge_functions` to check deployment state and `entrypoint_path`
-
-### 2. Delta-only writes
-Always read the current file before writing. Patch only what changes. Preserve all confirmed facts unless explicitly superseded by a newer verified source.
-
-### 3. Dependency order
-Before proposing or executing any end-to-end test:
-1. Confirm all required migrations are applied
-2. Confirm test user has a `profiles` row
-3. Confirm required Edge Functions are deployed and show a non-local `entrypoint_path`
-
-### 4. CONTRADICT by default
-If current verified state contradicts a claim in `CHECKPOINT.md`, `MEMORY.md`, or any doc: state the contradiction explicitly before proceeding. Do not smooth it over.
-
-### 5. Label output accurately
-Use `[Fakt]` only for directly verified data. Use `[Inferenz]` for derived conclusions. Use `[Annahme]` for unverified starting points. Use `[Spekulation]` for forward projections.
+- `memory/agent-failure-patterns.md` when touching schema, migrations, RLS, or end-to-end testing
 
 ## Working Principles
 
@@ -62,6 +37,18 @@ Surface blockers, contradictions, missing inputs, or unsafe assumptions immediat
 
 ### 4. Keep the memory layer current
 If a durable project assumption changes, update `MEMORY.md` and, if needed, `GLOSSARY.md` in the same workstream.
+
+## Verification Rules
+
+These rules exist because past agent sessions produced plausible-but-wrong artifacts.
+
+- **Do not claim a migration is applied unless `supabase_migrations.schema_migrations` confirms it.**
+- **Do not claim an Edge Function is deployed unless a real HTTP call to the hosted endpoint returns 200.**
+- **Do not claim the schema matches the repo unless `supabase db diff` returns empty.**
+- **Do not claim a migration is in the repo unless the file exists in `supabase/migrations/`.**
+- **Before calling any migration applied: verify version + name match between repo file and `schema_migrations` row.**
+- **Every migration applied to hosted Supabase MUST be committed to `supabase/migrations/` before the session closes.**
+- **Do not leave local paths (e.g. `/Users/...`) in repo documentation files.**
 
 ## Agent Roles
 
@@ -134,6 +121,8 @@ Action: stop, escalate to a human, and do not continue that path autonomously.
 - Do not present product output as diagnosis, treatment, or medical advice.
 - Do not fabricate evidence, confidence, or data provenance.
 - Do not smooth over contradictions. Call them out directly.
+- Do not leave local machine paths in repo files.
+- Do not claim a seam or backend path is green without a real verified HTTP 200 against the hosted endpoint.
 
 ## Default Output Standard
 
