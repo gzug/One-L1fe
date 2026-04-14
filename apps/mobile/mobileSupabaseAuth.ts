@@ -1,12 +1,16 @@
-import 'react-native-url-polyfill/auto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 import type {
   MinimumSliceAuthSession,
   MinimumSliceAuthSessionProvider,
 } from './minimumSliceScreenController.ts';
 
 let _client: SupabaseClient | undefined;
+
+// On web, AsyncStorage is not available as a persistent store — fall back to
+// in-memory (default supabase-js behaviour) so the web export bundle succeeds.
+const authStorage = Platform.OS === 'web' ? undefined : AsyncStorage;
 
 export function getMobileSupabaseClient(): SupabaseClient {
   if (_client !== undefined) return _client;
@@ -22,7 +26,7 @@ export function getMobileSupabaseClient(): SupabaseClient {
 
   _client = createClient(url, anonKey, {
     auth: {
-      storage: AsyncStorage,
+      storage: authStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
@@ -32,7 +36,7 @@ export function getMobileSupabaseClient(): SupabaseClient {
   return _client;
 }
 
-// ─── Fresh Access Token ───────────────────────────────────────────────────────
+// ─── Fresh Access Token ───────────────────────────────────────────────────────────────────────────────
 
 export type FreshAccessTokenResult =
   | { kind: 'ok'; accessToken: string }
@@ -56,7 +60,7 @@ export async function getFreshAccessToken(): Promise<FreshAccessTokenResult> {
   return { kind: 'ok', accessToken: data.session.access_token };
 }
 
-// ─── Auth Session Provider ────────────────────────────────────────────────────
+// ─── Auth Session Provider ────────────────────────────────────────────────────────────────────────────
 
 export function createMobileSupabaseAuthSessionProvider(): MinimumSliceAuthSessionProvider {
   return {
