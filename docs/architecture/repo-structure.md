@@ -1,46 +1,56 @@
 # Repo Structure
 
-## Target Structure
+## Actual Structure (as of April 2026)
 
-This tree shows the intended long-term layout. The actual repo also contains paths listed in the Folder Roles section below.
+This is the real directory tree on `main`. Kept in sync with actual repo state.
 
 ```text
 One-L1fe/
 ├── apps/
-│   └── mobile/
+│   └── mobile/                    # React Native / Expo app
 ├── packages/
-│   └── domain/
-├── src/
-│   └── lib/
-│       └── wearables/
+│   └── domain/                    # Shared domain logic, types, schemas
 ├── supabase/
 │   ├── migrations/
 │   ├── functions/
 │   └── seed/
+├── src/
+│   └── lib/
+│       └── wearables/             # Wearables contracts, registry (syncClient pending PR #26)
 ├── docs/
 │   ├── architecture/
 │   ├── compliance/
-│   ├── planning/
 │   ├── roadmap/
+│   ├── ops/                       # Operational docs (openclaw, agent setup)
+│   ├── planning/
 │   ├── research/
-│   └── ops/
-├── scripts/
-├── memory/
-├── CHECKPOINT.md
-├── MEMORY.md
+│   ├── archive/
+│   └── notion/
+├── memory/                        # Short-term / daily agent memory files
+├── scripts/                       # Build, deploy, smoke-test shell scripts
+├── CHECKPOINT.md                  # Current state — source of truth for agent resets
+├── MEMORY.md                      # Durable project truth
+├── AGENTS.md                      # Agent operating rules
 ├── GLOSSARY.md
-└── AGENTS.md
+├── CONTRIBUTING.md
+└── checkpoint.yaml
 ```
+
+## Target Structure (aspirational)
+
+The structure above is already close to the target. The main pending addition is:
+- `apps/mobile/src/` — once the mobile codebase grows beyond flat-file layout
 
 ## Folder Roles
 
 ### `apps/mobile`
-Home of the React Native / Expo application.
+Home of the React Native application.
 
 Put here:
 - screens, navigation, app state
 - UI components that are app-specific
-- platform configuration (`app.json`, `.env.example`)
+- platform configuration
+- mobile auth adapter (`mobileSupabaseAuth.ts`)
 
 Do not put core biomarker rules here if they are needed elsewhere.
 
@@ -52,47 +62,45 @@ Put here:
 - derived-metric helpers, recommendation contracts
 - shared TypeScript types
 
-### `src/lib`
-Home of shared client-side library code not tied to a specific app or platform.
+### `src/lib/wearables`
+Home of wearables-layer contracts and clients (shared, not mobile-specific).
 
-Currently contains:
-- `wearables/` — `metricRegistry`, `syncContract`, `syncClient`
+Put here:
+- metric registry, sync contracts, sync client
+- types shared between mobile and edge functions
 
 ### `supabase`
 Home of backend state and server-side execution.
 
 Put here:
-- SQL migrations, edge functions
-- local seed helpers, backend configuration
-
-### `docs/`
-Home of all documentation.
-
-- `architecture/` — system shape and engineering decisions
-- `compliance/` — health-adjacent boundary docs
-- `planning/` — active task lists, PR sequences, backlogs
-- `roadmap/` — phased execution order
-- `research/` — evidence and source analysis
-- `ops/` — operational runbooks
-
-### `scripts/`
-Home of build, deploy, and maintenance scripts.
+- SQL migrations, edge functions, local seed helpers
+- backend configuration notes
 
 ### `memory/`
-Home of short-term agent context files (daily notes, session state).
+Short-term agent memory. Daily/session notes. Not durable truth — use `MEMORY.md` for that.
 
-### Root files
-- `CHECKPOINT.md` — canonical current state; read first before any repo work
-- `MEMORY.md` — durable decisions and invariants
-- `GLOSSARY.md` — term meanings
-- `AGENTS.md` — agent operating rules
+### `scripts/`
+Shell scripts for build, deploy, smoke-test, hygiene checks.
+
+### `docs/ops/`
+Operational docs: agent setup, OpenClaw config, deployment runbooks.
+
+### `docs/architecture`
+System shape and engineering decisions.
+
+### `docs/compliance`
+Boundary docs. Should exist, should not dominate early build velocity.
+
+### `docs/roadmap`
+Phased execution order and delivery sequencing.
 
 ## Working Rule
 
 If a concept is:
 - UI-only → `apps/mobile`
 - domain-critical → `packages/domain`
-- shared client library → `src/lib`
+- wearables contract/client → `src/lib/wearables`
 - persistence or secret-bearing → `supabase`
 - explanatory or planning-oriented → `docs/`
-- build or deploy tooling → `scripts/`
+- current state / agent truth → `CHECKPOINT.md` + `MEMORY.md`
+- short-term / daily notes → `memory/`
