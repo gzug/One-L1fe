@@ -1,21 +1,36 @@
-# Supabase Schema Draft
+# Supabase Schema
 
 ## Verdict
 
-This is the first clean database baseline for One L1fe.
+This is the active database baseline for One L1fe.
 It follows the product domain model instead of inventing the database shape first.
 
-## Design goals
+## Applied migrations (verified 2026-04-14)
 
-The schema is built to support one bounded end-to-end workflow:
-1. a user has a profile,
-2. biomarker definitions are known centrally,
-3. a lab result is recorded,
-4. individual biomarker entries are stored,
-5. derived insights can be generated,
-6. bounded recommendations can be stored with evidence, confidence, and scope.
+The following migrations are applied on the hosted Supabase project (`lbqgjourpsodqglputkj`):
 
-## Tables
+| version | name | repo file |
+|---|---|---|
+| 20260412163000 | phase0_initial_schema | ✅ committed |
+| 20260413013000 | phase0_interpretation_runs | ✅ committed |
+| 20260413021500 | phase0_evidence_registry | ✅ committed |
+| 20260413023000 | phase0_seed_evidence_registry | ✅ committed |
+| 20260413072607 | phase0_backend_hardening | ⚠️ timestamp drift — repo has `20260413093000` |
+| 20260413225404 | fix_fk_ownership_cross_ownership_rls_guards | ❌ NOT in repo — applied manually |
+| 20260414024917 | fix_rls_auth_initplan_lab_result_entries_interpreted_entries | ❌ NOT in repo — applied manually |
+
+**⚠️ Action required:** The two Supabase-only migrations (225404, 024917) must be committed to `supabase/migrations/` to close the drift. Until then, `supabase db reset` will NOT reproduce the full hosted schema.
+
+## Pending (in repo, not yet applied)
+
+| version | name | status |
+|---|---|---|
+| 20260413214000 | phase0_wearables_context | ❌ not applied — 8 tables missing on hosted |
+| 20260413220000 | phase0_wearables_hardening | ❌ not applied — depends on wearables_context |
+
+Run `supabase db push --linked` to apply.
+
+## Tables — core lab lane
 
 ### `profiles`
 User-owned profile rows keyed to `auth.users(id)`.
@@ -24,105 +39,71 @@ Purpose:
 - keep product-facing profile metadata separate from raw auth,
 - provide a stable ownership anchor for all health-tracking records.
 
+**Note:** No `on auth.user created` trigger exists. Profile rows must be inserted explicitly. A seed row for `test@one-l1fe.dev` was inserted on 2026-04-14.
+
 ### `biomarker_definitions`
-Canonical biomarker registry persisted in the database.
-
-Purpose:
-- mirror the shared domain layer,
-- keep unit, category, evidence level, and starter ranges queryable server-side,
-- avoid hard-coding biomarker metadata in SQL, UI, and prompts separately.
-
-Important note:
-The TypeScript domain registry is still the conceptual source of truth. This table is the database projection of that registry.
+Canonical biomarker registry.
 
 ### `lab_results`
 A single collection event, import, or manual entry session.
 
-Purpose:
-- group biomarker values by collection time,
-- preserve source information,
-- allow later imports and trend analysis.
-
 ### `lab_result_entries`
-The individual biomarker values belonging to a `lab_results` row.
-
-Purpose:
-- store normalized numeric values,
-- attach canonical status and weighted scoring,
-- support per-biomarker trend views.
+Individual biomarker values belonging to a `lab_results` row.
 
 ### `derived_insights`
-Server-side summaries or pattern detections based on stored biomarker data.
-
-Purpose:
-- separate raw health data from generated interpretation,
-- keep insight artifacts explicit and auditable.
+Server-side summaries or pattern detections.
 
 ### `interpretation_runs`
-A stored execution of the interpretation engine against a specific panel snapshot.
-
-Purpose:
-- persist rule version, score version, and engine mode,
-- preserve coverage state separately from severity,
-- store score metadata and input snapshot,
-- and create an auditable bridge between raw rows and derived outputs.
+A stored execution of the interpretation engine.
 
 ### `interpreted_entries`
-The per-marker evaluated rows produced by one interpretation run.
-
-Purpose:
-- store interpretability state,
-- preserve blocking reasons and freshness state,
-- keep score eligibility and contribution explicit,
-- and tie rule ids to each evaluated marker row.
+Per-marker evaluated rows from one interpretation run.
 
 ### `recommendations`
-Bounded interpretation-oriented suggestions tied to a profile and optionally to an insight or interpretation run.
+Bounded interpretation-oriented suggestions.
 
-Purpose:
-- encode the intended-use contract directly in storage,
-- require evidence, confidence, and scope fields,
-- carry provenance fields like rule id and anchor source,
-- and leave room for clinician handoff markers.
+## Tables — wearables + context lane (pending apply)
+
+Defined in migrations 20260413214000 + 20260413220000. Not yet applied to hosted project.
+
+### `wearable_sources`
+Per-profile wearable data source registration.
+
+### `wearable_sync_runs`
+Audit log of each sync operation against a source.
+
+### `wearable_metric_definitions`
+Canonical wearable metric taxonomy. Seeded with 14 v1 metrics.
+
+### `wearable_observations`
+Raw wearable observations — one row per source record per metric.
+
+### `wearable_daily_summaries`
+App-facing daily aggregates. Source-partitioned (no silent multi-source overwrites).
+
+### `weekly_checkins`
+User self-report scores per week.
+
+### `context_notes`
+Structured context events (stress, travel, illness, etc.). Queryable via `tags` + GIN index.
+
+### `profile_baselines`
+One-row-per-profile stable preferences, goals, and snapshot anchors.
 
 ## Privacy and ownership
 
 All user-specific tables use row-level security.
-Ownership is anchored to `auth.uid()` via `profile_id` or, for profiles, the row id itself.
+Ownership is anchored to `(select auth.uid())` via `profile_id` or the row id itself.
 
-This matches the private-first posture and keeps health-related records scoped to the owning user.
+RLS policies use `(select auth.uid())` rather than `auth.uid()` to prevent per-row re-evaluation.
 
 ## What the schema intentionally does not do yet
 
-Not included yet:
 - file imports,
 - attachment storage,
 - trend materializations,
 - full evidence citation tables,
 - clinician-sharing workflows,
 - diagnosis logic,
-- treatment planning.
-
-That is deliberate. The schema is trying to be a stable Phase 0 base, not an overbuilt health platform.
-
-A separate wearables and context expansion lane is now drafted in:
-- `docs/architecture/wearables-and-context-schema-draft.md`
-- `docs/architecture/wearable-metric-keys-v1.md`
-
-That next lane should stay separate from the lab schema rather than stretching `lab_results` into a generic health-events table.
-
-## Current phase update
-
-A second migration now extends the baseline with:
-- `interpretation_runs`,
-- `interpreted_entries`,
-- and richer recommendation provenance fields.
-
-This brings the database closer to the current domain evaluator and persistence payload shape.
-
-## Recommended next implementation step
-
-Build the next layer for:
-- database functions or views for trend summaries,
-- sync tooling that projects the TypeScript biomarker registry and evidence registry into the database automatically,
-- and storage wiring from the current domain evaluator into these new interpretation tables.
+- treatment planning,
+- `on auth.user created` profile auto-creation trigger.

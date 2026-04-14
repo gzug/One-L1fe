@@ -1,14 +1,38 @@
 status: current
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 repo: gzug/One-L1fe
 branch: main
-current_seam: expo mobile seam over shared minimum-slice controller and hosted Supabase function
+current_seam: expo mobile seam over real Supabase auth session (mobileSupabaseAuth.ts) and hosted minimum-slice edge function
 next_best_steps:
-  - wire a real app auth session source into the mobile controller path
-  - validate one authenticated Expo submission against the hosted endpoint
-  - choose the next thin mobile seam after the first hosted path is confirmed
+  - run supabase db push --linked to apply the 2 pending wearables migrations
+  - merge PR #36 (mobile seam hardening) and PR #35 (CHECKPOINT update)
+  - merge PR #41 (repo optimizations) after removing the duplicate RLS migration
+  - run first live authenticated Expo submit against hosted endpoint
+  - commit the 2 Supabase-only migrations (20260413225404, 20260414024917) to repo
 active_blockers:
-  - mobile auth still uses environment placeholders instead of a real app session source
+  - wearables migrations not applied on hosted Supabase (8 tables missing)
+  - 2 Supabase-applied migrations not committed to repo (schema drift)
+  - PR #36, #35, #41 open and unmerged
+  - first live Expo submit not yet performed
+schema_drift:
+  supabase_only:
+    - version: 20260413225404
+      name: fix_fk_ownership_cross_ownership_rls_guards
+      status: applied on hosted, NOT committed to repo
+    - version: 20260414024917
+      name: fix_rls_auth_initplan_lab_result_entries_interpreted_entries
+      status: applied on hosted, NOT committed to repo
+  repo_only:
+    - version: 20260413214000
+      name: phase0_wearables_context
+      status: committed to repo, NOT applied on hosted
+    - version: 20260413220000
+      name: phase0_wearables_hardening
+      status: committed to repo, NOT applied on hosted
+confirmed_facts:
+  - profiles row for test@one-l1fe.dev (3aa48a6f) inserted 2026-04-14
+  - save-minimum-slice-interpretation edge function deployed and returned HTTP 200
+  - RLS and policies are live for core lab lane
 startup_truth:
   - CHECKPOINT.md
   - README.md only for broad orientation

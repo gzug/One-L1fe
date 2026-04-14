@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: repo
@@ -32,9 +32,10 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
 - Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
 - For the first real mobile app seam, use Expo scaffolding first and avoid `expo-router` until there is a concrete navigation need.
-- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session through `mobileSupabaseAuth.ts` (`auth.getSession()`), with real Expo env keys for Supabase URL and anon key instead of auth placeholders.
+- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session through `mobileSupabaseAuth.ts`, with `AsyncStorage` for session persistence and `getFreshAccessToken()` as the canonical token path.
 - Keep the mobile auth/session architecture thin and explicit: `useAuthSession.ts` owns auth-state subscription, `LoginScreen.tsx` owns sign-in UI, `MinimumSliceScreen.tsx` owns the signed-in minimum-slice form, and `App.tsx` stays a small auth-gate shell that wires those pieces together.
-- For wearables, keep daily summaries explicit about source scope (`single_source` vs `merged`) and timezone semantics, and keep context notes minimally structured with tags instead of free text only.
+- For wearables, keep daily summaries explicit about source scope and timezone semantics, and keep context notes minimally structured with tags (GIN-indexed) instead of free text only.
+- Profile rows are NOT auto-created on auth signup. No `on auth.user created` trigger exists. Profile insertion must be explicit for new users and smoke-test users.
 
 ## Durable repo operations posture
 
@@ -46,11 +47,12 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep lightweight GitHub hygiene in place: templates, CODEOWNERS, and CI for typecheck plus domain tests.
 - Do not let generated docs or AI-assisted code drift away from the actual implemented path.
 - Treat local Supabase replay plus authenticated smoke-test success as the required backend baseline before claiming the edge-function seam works.
-- Treat hosted Supabase security-advisor clean status plus ordered migration confirmation as sufficient evidence that the hardening baseline is live, even if GitHub-side enforcement still needs separate verification.
-- Do not treat a local-only Supabase function as a hosted-ready backend seam. Hosted deployment and one authenticated hosted smoke call are required before claiming the mobile path is production-ready.
+- Do not treat a local-only Supabase function as a hosted-ready backend seam.
 - The minimum-slice hosted backend seam is green only when all are true: hosted migrations match repo, RLS/policies are live, the function is deployed, and an authenticated hosted smoke call returns 200 with writes succeeding.
-- Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy for fixtures, screenshots, logs, smoke tests, and copied examples.
-- Use `docs/ops/openclaw.md` as the canonical OpenClaw operating guide for startup order, promotion rules, and short-term memory usage.
+- Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy.
+- Use `docs/ops/openclaw.md` as the canonical OpenClaw operating guide.
+- **Every migration applied to hosted Supabase MUST be committed to `supabase/migrations/` before the session closes.** Supabase-only migrations create drift that survives until a reset or new developer onboarding.
+- `entrypoint_path` in a deployed Edge Function must NOT point to a local machine path. A local path means the deploy was manual and not reproducible from CI.
 
 ## Startup rule
 
