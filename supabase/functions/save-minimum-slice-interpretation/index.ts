@@ -71,7 +71,20 @@ Deno.serve(async (request) => {
 
     return json(result, { status: 200 });
   } catch (error) {
+    // Differentiate between config errors (500) and request errors (400)
+    // Config errors: missing env vars, Supabase client setup failures
+    // Request errors: malformed body, validation failures
+    const isConfigError =
+      error instanceof Error &&
+      (error.message.includes('SUPABASE_URL') ||
+        error.message.includes('SUPABASE_ANON_KEY') ||
+        error.message.includes('must be configured'));
+
+    const status = isConfigError ? 500 : 400;
     const message = error instanceof Error ? error.message : 'Unknown error.';
-    return json({ error: message }, { status: 400 });
+
+    console.error(`[save-minimum-slice-interpretation] ${status} error:`, message);
+
+    return json({ error: message }, { status });
   }
 });
