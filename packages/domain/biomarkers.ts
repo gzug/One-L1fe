@@ -1,3 +1,24 @@
+/**
+ * biomarkers.ts — Canonical biomarker registry and scoring primitives.
+ *
+ * IMPORTANT: Two evaluation paths exist in this codebase:
+ *
+ *   1. evaluateByThreshold() in thresholds.ts
+ *      Used by the minimum-slice evaluation pipeline (evaluateMinimumSlice).
+ *      Implements precise, preventive-grade per-unit thresholds.
+ *      This is the CANONICAL path for scoring and recommendations.
+ *
+ *   2. calculateCanonicalStatus() in this file
+ *      Used for quick ratio-based estimates and aggregate scoring.
+ *      Based on referenceRange.optimalMax/Min below.
+ *      Do NOT use this path for primary scoring logic.
+ *
+ * The referenceRange values below MUST stay aligned with the threshold
+ * midpoints used in thresholds.ts to avoid silent inconsistencies.
+ * When adding or changing thresholds in thresholds.ts, update the
+ * corresponding referenceRange here as a cross-reference.
+ */
+
 export enum CanonicalStatus {
   Optimal = 'optimal',
   Good = 'good',
@@ -52,7 +73,9 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 3,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Primary lipid-risk marker used as a top-level cardiovascular signal in the MVP.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 130 },
+    // Aligned with thresholds.ts evaluateApoB optimalMax (80 mg/dL preventive target).
+    // The canonical evaluation path uses evaluateByThreshold(), not this range.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 80 },
   },
   {
     key: 'ldl',
@@ -61,8 +84,9 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Core lipid marker tracked alongside ApoB and triglycerides.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    description: 'Core lipid marker. Secondary to ApoB per the lipid hierarchy policy.',
+    // Aligned with thresholds.ts evaluateLDL optimalMax (70 mg/dL preventive target).
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 70 },
   },
   {
     key: 'triglycerides',
@@ -72,7 +96,7 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
     description: 'Core metabolic and lipid-context marker in the MVP panel.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 150 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
   },
   {
     key: 'lpa',
@@ -81,7 +105,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inherited cardiovascular-risk marker tracked as part of the core set.',
+    description: 'Inherited cardiovascular-risk marker. Treated as a bounded modifier, not a recurring core score driver.',
+    // Aligned with thresholds.ts evaluateLpa optimalMax mg/dL path (30 mg/dL).
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 30 },
   },
   {
@@ -92,7 +117,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 2,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Long-range glucose marker used as a primary metabolic trend signal.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.7 },
+    // Aligned with thresholds.ts evaluateHbA1c optimalMax (5.3%). Preventive-grade threshold.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.3 },
   },
   {
     key: 'glucose',
@@ -102,17 +128,22 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Core glucose marker for the initial biomarker workflow.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    // Aligned with thresholds.ts evaluateGlucose optimalMax mg/dL path (85 mg/dL fasting estimate).
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 85 },
   },
   {
     key: 'crp',
     displayName: 'CRP',
+    // Note: CRP is registered as Core here for weight purposes, but is treated as a
+    // bounded optional marker in the minimum-slice evaluation pipeline. It does NOT
+    // behave as a primary core score driver. See minimumSlice.ts and v1.ts.
     category: BiomarkerCategory.Core,
     unit: 'mg/L',
     priorityWeight: 1.5,
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inflammation-related marker included in the MVP set.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 3 },
+    description: 'Inflammation-related marker. Context-sensitive and assay-dependent. Bounded optional in minimum-slice.',
+    // Aligned with thresholds.ts evaluateCRP optimalMax (1 mg/L hs-CRP target).
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 1 },
   },
   {
     key: 'vitamin_d',
@@ -122,7 +153,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
     description: 'Supporting nutrient-status marker used for broader context.',
-    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 20 },
+    // Aligned with thresholds.ts evaluateVitaminD optimalMin ng/mL path (30 ng/mL).
+    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 30 },
   },
   {
     key: 'ferritin',
@@ -193,6 +225,10 @@ function statusFromRatio(ratio: number): CanonicalStatus {
   return CanonicalStatus.Critical;
 }
 
+/**
+ * Quick ratio-based status estimate using biomarker.referenceRange.
+ * For primary scoring, use evaluateByThreshold() in thresholds.ts instead.
+ */
 export function calculateCanonicalStatus(
   biomarker: BiomarkerDefinition,
   value?: number | null,

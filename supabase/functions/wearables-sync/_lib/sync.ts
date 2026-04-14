@@ -105,8 +105,9 @@ export async function runSync(
         throw new Error(`Upsert failed: ${upsertError.message}`);
       }
 
-      // Supabase upsert count reflects affected rows; treat all as inserted for now.
-      // TODO: differentiate insert vs update once Supabase exposes it.
+      // Supabase upsert count reflects total affected rows.
+      // Supabase JS v2 does not expose separate insert vs update counts from upsert.
+      // Track all affected rows as inserted for now.
       recordsInserted += count ?? chunk.length;
     }
   } catch (err) {
@@ -116,11 +117,14 @@ export async function runSync(
 
   // ------------------------------------------------------------------
   // 4. Close sync run
+  // Best-effort: if this update fails, the sync run remains in 'running'
+  // state. The caller still receives the correct response. Stale running
+  // records should be cleaned up by a periodic maintenance job.
   // ------------------------------------------------------------------
   const completedAt = new Date().toISOString();
   const nextCursor = finalStatus === 'success' ? completedAt : null;
 
-  await supabase
+  const { error: closeError } = await supabase
     .from('wearable_sync_runs')
     .update({
       status: finalStatus,
@@ -131,6 +135,12 @@ export async function runSync(
       source_cursor: nextCursor,
     })
     .eq('id', syncRunId);
+
+  if (closeError) {
+    // Non-fatal: log but do not throw. The observations are already written.
+    // The sync_run row will stay in 'running' and needs manual or automated cleanup.
+    console.error(`[wearables-sync] Failed to close sync run ${syncRunId}: ${closeError.message}`);
+  }
 
   // ------------------------------------------------------------------
   // 5. Return response
