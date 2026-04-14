@@ -1,2 +1,26 @@
+# dependencies
 node_modules/
+
+# build output
 dist/
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# Expo / React Native
+.expo/
+*.orig.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/

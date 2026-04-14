@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: repo
@@ -32,9 +32,10 @@ Important: this file stores project memory, not personal health records. Do not 
 - Keep the Priority Score framed as a bounded prioritization aid, not a clinical risk score.
 - Keep shared domain imports cross-runtime safe when the same files must run under both Node-based tests and Supabase Edge Functions.
 - For the first real mobile app seam, use Expo scaffolding first and avoid `expo-router` until there is a concrete navigation need.
-- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session through `mobileSupabaseAuth.ts` (`auth.getSession()`), with real Expo env keys for Supabase URL and anon key instead of auth placeholders.
+- The Expo scaffold under `apps/mobile/` uses a real Supabase auth session through `mobileSupabaseAuth.ts` with `AsyncStorage`-backed session persistence, `autoRefreshToken: true`, and `persistSession: true`. Auth is accessed via `getFreshAccessToken()` as the central token path.
 - Keep the mobile auth/session architecture thin and explicit: `useAuthSession.ts` owns auth-state subscription, `LoginScreen.tsx` owns sign-in UI, `MinimumSliceScreen.tsx` owns the signed-in minimum-slice form, and `App.tsx` stays a small auth-gate shell that wires those pieces together.
 - For wearables, keep daily summaries explicit about source scope (`single_source` vs `merged`) and timezone semantics, and keep context notes minimally structured with tags instead of free text only.
+- `getFreshAccessToken()` is the canonical mobile token path. Any code that needs a JWT (e.g. `wearablesSyncClient`) must use `getFreshAccessToken()`, not `client.auth.getSession()` directly.
 
 ## Durable repo operations posture
 
@@ -51,6 +52,7 @@ Important: this file stores project memory, not personal health records. Do not 
 - The minimum-slice hosted backend seam is green only when all are true: hosted migrations match repo, RLS/policies are live, the function is deployed, and an authenticated hosted smoke call returns 200 with writes succeeding.
 - Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy for fixtures, screenshots, logs, smoke tests, and copied examples.
 - Use `docs/ops/openclaw.md` as the canonical OpenClaw operating guide for startup order, promotion rules, and short-term memory usage.
+- RLS policies on `lab_result_entries` and `interpreted_entries` use `(select auth.uid())` — not `auth.uid()` directly — to prevent per-row re-evaluation. This pattern must be followed for all future RLS policies on joined tables.
 
 ## Startup rule
 

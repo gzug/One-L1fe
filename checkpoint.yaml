@@ -1,14 +1,23 @@
 status: current
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 repo: gzug/One-L1fe
 branch: main
-current_seam: expo mobile seam over shared minimum-slice controller and hosted Supabase function
+current_seam: mobile seam hardening in progress (PR #36); wearables sync client on PR #26
 next_best_steps:
-  - wire a real app auth session source into the mobile controller path
-  - validate one authenticated Expo submission against the hosted endpoint
-  - choose the next thin mobile seam after the first hosted path is confirmed
+  - merge PR #36 (mobile seam hardening) after CI green
+  - merge PR #35 (CHECKPOINT docs update)
+  - merge PR #37 (hardening checklist + repo-structure docs)
+  - merge PR #25 (compute-daily-summaries) after replay-migrations Required Check added
+  - merge PR #26 (wearables sync client) after PR #36 on main
+  - build PR #29 HealthKit reader after PR #26 on main
 active_blockers:
-  - mobile auth still uses environment placeholders instead of a real app session source
+  - replay-migrations not yet set as Required Check on main (manual GitHub Settings step)
+  - Leaked Password Protection disabled in Supabase Auth (manual Dashboard step)
+completed_since_last_checkpoint:
+  - RLS auth initplan performance fixed on lab_result_entries + interpreted_entries (8 policies, migration 20260414024917)
+  - PR #36 opened for mobile seam hardening
+  - PR #35 opened for CHECKPOINT master audit
+  - PR #37 opened for hardening checklist + repo-structure docs
 startup_truth:
   - CHECKPOINT.md
   - README.md only for broad orientation
