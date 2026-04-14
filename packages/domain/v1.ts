@@ -1,6 +1,10 @@
-import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
+import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition, statusSeverityMap } from './biomarkers.ts';
 
 export type BiomarkerKey = BiomarkerDefinition['key'];
+
+// Re-export statusSeverityMap so callers can import it from v1.ts without
+// importing directly from biomarkers.ts (which would expose internals).
+export { statusSeverityMap };
 
 export enum MarkerRole {
   Core = 'core',
@@ -193,15 +197,6 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
     notes: 'Contextual only in V1.',
   },
-};
-
-export const statusSeverityMap: Record<CanonicalStatus, number> = {
-  [CanonicalStatus.Optimal]: 0,
-  [CanonicalStatus.Good]: 1,
-  [CanonicalStatus.Borderline]: 2,
-  [CanonicalStatus.High]: 3,
-  [CanonicalStatus.Critical]: 4,
-  [CanonicalStatus.Missing]: 0,
 };
 
 export function getMarkerRuntimeConfig(key: BiomarkerKey): MarkerRuntimeConfig {

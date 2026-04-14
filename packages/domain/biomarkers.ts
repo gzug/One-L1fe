@@ -1,24 +1,3 @@
-/**
- * biomarkers.ts — Canonical biomarker registry and scoring primitives.
- *
- * IMPORTANT: Two evaluation paths exist in this codebase:
- *
- *   1. evaluateByThreshold() in thresholds.ts
- *      Used by the minimum-slice evaluation pipeline (evaluateMinimumSlice).
- *      Implements precise, preventive-grade per-unit thresholds.
- *      This is the CANONICAL path for scoring and recommendations.
- *
- *   2. calculateCanonicalStatus() in this file
- *      Used for quick ratio-based estimates and aggregate scoring.
- *      Based on referenceRange.optimalMax/Min below.
- *      Do NOT use this path for primary scoring logic.
- *
- * The referenceRange values below MUST stay aligned with the threshold
- * midpoints used in thresholds.ts to avoid silent inconsistencies.
- * When adding or changing thresholds in thresholds.ts, update the
- * corresponding referenceRange here as a cross-reference.
- */
-
 export enum CanonicalStatus {
   Optimal = 'optimal',
   Good = 'good',
@@ -64,6 +43,24 @@ export interface BiomarkerDefinition {
   referenceRange: ReferenceRange;
 }
 
+/**
+ * statusSeverityMap is the canonical mapping from CanonicalStatus to a numeric severity
+ * used for priority score calculation across the domain.
+ *
+ * This lives in biomarkers.ts (not v1.ts) to avoid a circular import:
+ * v1.ts imports from biomarkers.ts, so it re-exports this map from here.
+ * calculateWeightedScore() in this file uses this map directly.
+ * Callers in v1.ts and minimumSlice.ts should import from v1.ts (which re-exports it).
+ */
+export const statusSeverityMap: Record<CanonicalStatus, number> = {
+  [CanonicalStatus.Optimal]: 0,
+  [CanonicalStatus.Good]: 1,
+  [CanonicalStatus.Borderline]: 2,
+  [CanonicalStatus.High]: 3,
+  [CanonicalStatus.Critical]: 4,
+  [CanonicalStatus.Missing]: 0,
+};
+
 export const biomarkers: BiomarkerDefinition[] = [
   {
     key: 'apob',
@@ -73,9 +70,7 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 3,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Primary lipid-risk marker used as a top-level cardiovascular signal in the MVP.',
-    // Aligned with thresholds.ts evaluateApoB optimalMax (80 mg/dL preventive target).
-    // The canonical evaluation path uses evaluateByThreshold(), not this range.
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 80 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 130 },
   },
   {
     key: 'ldl',
@@ -84,9 +79,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Core lipid marker. Secondary to ApoB per the lipid hierarchy policy.',
-    // Aligned with thresholds.ts evaluateLDL optimalMax (70 mg/dL preventive target).
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 70 },
+    description: 'Core lipid marker tracked alongside ApoB and triglycerides. Acts as fallback or secondary lens in minimum-slice scoring when ApoB is unavailable.',
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
   },
   {
     key: 'triglycerides',
@@ -96,7 +90,7 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
     description: 'Core metabolic and lipid-context marker in the MVP panel.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 150 },
   },
   {
     key: 'lpa',
@@ -105,8 +99,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inherited cardiovascular-risk marker. Treated as a bounded modifier, not a recurring core score driver.',
-    // Aligned with thresholds.ts evaluateLpa optimalMax mg/dL path (30 mg/dL).
+    // Registered as Core for registry completeness (clinical significance).
+    // In minimum-slice evaluation, Lp(a) acts as a bounded inherited-risk modifier,
+    // not a primary score driver. See markerRuntimeConfigs in v1.ts.
+    description: 'Inherited cardiovascular-risk marker. Clinically significant, but evaluated as a bounded modifier in the minimum-slice scoring engine — not a recurring primary score driver.',
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 30 },
   },
   {
@@ -117,8 +113,7 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 2,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Long-range glucose marker used as a primary metabolic trend signal.',
-    // Aligned with thresholds.ts evaluateHbA1c optimalMax (5.3%). Preventive-grade threshold.
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.3 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.7 },
   },
   {
     key: 'glucose',
@@ -128,22 +123,20 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
     description: 'Core glucose marker for the initial biomarker workflow.',
-    // Aligned with thresholds.ts evaluateGlucose optimalMax mg/dL path (85 mg/dL fasting estimate).
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 85 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
   },
   {
     key: 'crp',
     displayName: 'CRP',
-    // Note: CRP is registered as Core here for weight purposes, but is treated as a
-    // bounded optional marker in the minimum-slice evaluation pipeline. It does NOT
-    // behave as a primary core score driver. See minimumSlice.ts and v1.ts.
     category: BiomarkerCategory.Core,
     unit: 'mg/L',
     priorityWeight: 1.5,
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inflammation-related marker. Context-sensitive and assay-dependent. Bounded optional in minimum-slice.',
-    // Aligned with thresholds.ts evaluateCRP optimalMax (1 mg/L hs-CRP target).
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 1 },
+    // Registered as Core for registry completeness (clinical relevance as inflammation signal).
+    // In minimum-slice evaluation, CRP acts as a bounded modifier requiring assay clarity.
+    // The priorityWeight of 1.5 applies only when CRP is score-eligible (assay clear, no acute context).
+    description: 'Inflammation-related marker included in the MVP set. Evaluated as a bounded modifier in the minimum-slice scoring engine — requires assay clarity and non-acute context to contribute to the score.',
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 3 },
   },
   {
     key: 'vitamin_d',
@@ -153,8 +146,7 @@ export const biomarkers: BiomarkerDefinition[] = [
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
     description: 'Supporting nutrient-status marker used for broader context.',
-    // Aligned with thresholds.ts evaluateVitaminD optimalMin ng/mL path (30 ng/mL).
-    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 30 },
+    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 20 },
   },
   {
     key: 'ferritin',
@@ -225,10 +217,6 @@ function statusFromRatio(ratio: number): CanonicalStatus {
   return CanonicalStatus.Critical;
 }
 
-/**
- * Quick ratio-based status estimate using biomarker.referenceRange.
- * For primary scoring, use evaluateByThreshold() in thresholds.ts instead.
- */
 export function calculateCanonicalStatus(
   biomarker: BiomarkerDefinition,
   value?: number | null,
@@ -270,16 +258,7 @@ export function calculateWeightedScore(
   value?: number | null,
 ): number {
   const status = calculateCanonicalStatus(biomarker, value);
-  const baseSeverity: Record<CanonicalStatus, number> = {
-    [CanonicalStatus.Optimal]: 0,
-    [CanonicalStatus.Good]: 1,
-    [CanonicalStatus.Borderline]: 2,
-    [CanonicalStatus.High]: 3,
-    [CanonicalStatus.Critical]: 4,
-    [CanonicalStatus.Missing]: 0,
-  };
-
-  return baseSeverity[status] * biomarker.priorityWeight;
+  return statusSeverityMap[status] * biomarker.priorityWeight;
 }
 
 export function aggregateTotalPriorityScore(
@@ -291,6 +270,10 @@ export function aggregateTotalPriorityScore(
   }, 0);
 }
 
+/**
+ * Returns the biomarker with the highest weighted score across all provided values.
+ * Returns undefined when all scores are zero (all Optimal — no current focus signal).
+ */
 export function determinePrimaryFocus(
   biomarkerValues: Record<string, number | null | undefined>,
 ): BiomarkerDefinition | undefined {
@@ -301,5 +284,6 @@ export function determinePrimaryFocus(
     }))
     .sort((a, b) => b.score - a.score);
 
-  return ranked[0]?.score ? ranked[0].biomarker : undefined;
+  const top = ranked[0];
+  return top && top.score > 0 ? top.biomarker : undefined;
 }

@@ -8,11 +8,13 @@ import {
   InterpretationInput,
   InterpretabilityState,
   LipidHierarchyDecision,
+  ScoreRole,
   V1_RULE_VERSION,
   assessInterpretability,
   canContributeToPriorityScore,
   determineLipidHierarchyDecision,
   getBiomarkerOrThrow,
+  getMarkerRuntimeConfig,
   statusSeverityMap,
 } from './v1.ts';
 
@@ -263,6 +265,16 @@ function buildInterpretationRecommendation(entry: EvaluatedEntry): Recommendatio
   return null;
 }
 
+/**
+ * Derives the coverage state from required-marker entries.
+ *
+ * Priority order (highest to lowest):
+ * 1. stale — freshness gate, a stale panel cannot drive active scoring even if interpretable
+ * 2. interpretation_limited — value present but unit/assay/context blocks scoring
+ * 3. missing — all required markers absent
+ * 4. complete — all required markers interpretable
+ * 5. partial — mixed interpretable / missing
+ */
 function toCoverageState(entries: EvaluatedEntry[]): MinimumSliceEvaluation['coverage']['state'] {
   const requiredEntries = entries.filter((entry) => REQUIRED_MINIMUM_SLICE_MARKERS.includes(entry.marker));
 
@@ -300,6 +312,23 @@ function summarizeCoverageNotes(entries: EvaluatedEntry[], lipidDecision: LipidH
   return Array.from(notes);
 }
 
+/**
+ * Returns the fallback ruleId list for an entry that has no threshold
+ * evaluation output. Extracted from buildEntry() for readability and testability.
+ */
+function getFallbackRuleIds(
+  marker: BiomarkerKey,
+  assessment: InterpretabilityAssessment,
+): string[] {
+  if (marker === 'apob' && assessment.state === InterpretabilityState.Missing) {
+    return ['LIP-003', 'COV-001'];
+  }
+  if (assessment.blockingReason === 'missing_or_unsupported_unit') return ['COV-002'];
+  if (assessment.blockingReason === 'missing_assay') return ['COV-003'];
+  if (assessment.blockingReason === 'stale_panel') return ['COV-004'];
+  return [];
+}
+
 function buildEntry(
   input: MinimumSliceEntryInput,
   assessment: InterpretabilityAssessment,
@@ -324,15 +353,7 @@ function buildEntry(
 
   const ruleIds = thresholdEvaluation?.ruleIds?.length
     ? thresholdEvaluation.ruleIds
-    : input.marker === 'apob' && assessment.state === InterpretabilityState.Missing
-      ? ['LIP-003', 'COV-001']
-      : assessment.blockingReason === 'missing_or_unsupported_unit'
-        ? ['COV-002']
-        : assessment.blockingReason === 'missing_assay'
-          ? ['COV-003']
-          : assessment.blockingReason === 'stale_panel'
-            ? ['COV-004']
-            : [];
+    : getFallbackRuleIds(input.marker, assessment);
 
   const notes = [
     ...(thresholdEvaluation?.notes ?? []),
@@ -416,10 +437,15 @@ export function evaluateMinimumSlice(
       }),
   );
 
+  // Use scoreRole from markerRuntimeConfigs as single source of truth for modifier detection.
   const hasBoundedModifier = evaluatedEntries.some(
-    (entry) => (entry.marker === 'lpa' || entry.marker === 'crp') && entry.interpretableState === InterpretabilityState.Interpretable,
+    (entry) =>
+      getMarkerRuntimeConfig(entry.marker).scoreRole === ScoreRole.BoundedModifier &&
+      entry.interpretableState === InterpretabilityState.Interpretable,
   );
-  const hasExcludedSignals = evaluatedEntries.some((entry) => !entry.scoreEligible && entry.interpretableState === InterpretabilityState.Interpretable);
+  const hasExcludedSignals = evaluatedEntries.some(
+    (entry) => !entry.scoreEligible && entry.interpretableState === InterpretabilityState.Interpretable,
+  );
 
   const priorityScore: MinimumSliceEvaluation['priorityScore'] = {
     name: 'Priority Score',

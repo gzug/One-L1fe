@@ -185,6 +185,8 @@ export function evaluateVitaminD(value: number, unit: string): ThresholdEvaluati
         borderlineMin: 15,
         highMin: 10,
       }),
+      // SUP-001 / SUP-002 are registered in evidenceRegistry.ts.
+      // They are currently draft entries pending full bibliography expansion.
       ruleIds: ['SUP-001', 'SUP-002'],
     };
   }
@@ -221,6 +223,10 @@ export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation 
     case 'vitamin_d':
       return evaluateVitaminD(input.value, input.unit);
     default:
+      // Markers not listed here (triglycerides, ferritin, b12, magnesium, dao)
+      // are intentionally excluded from threshold evaluation in V1.
+      // They return null → canonicalStatus 'unknown' → scoreEligible: false.
+      // Add explicit cases here as threshold rules are defined for these markers.
       return null;
   }
 }

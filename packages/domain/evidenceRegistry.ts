@@ -134,6 +134,19 @@ export const evidenceSources: Record<string, EvidenceSource> = {
     mainUsableContribution: 'Anchors missing-data, unit, assay, and freshness gating as product safety policy.',
     mainWeakness: 'This is product-governance policy, not biomedical threshold evidence.',
   },
+  src_vitamin_d_threshold_policy_v1: {
+    sourceId: 'src_vitamin_d_threshold_policy_v1',
+    title: 'Vitamin D threshold interpretation anchor for V1',
+    publisher: 'One L1fe evidence registry',
+    year: 2026,
+    canonicalUrlOrDoi: 'internal://docs/research/v1-research-gaps-and-targeted-followups#supporting-markers',
+    sourceType: 'expert_synthesis',
+    biomedicalEvidenceClass: 'B',
+    authorityLevel: 'medium',
+    bucket: 'secondary',
+    mainUsableContribution: 'Anchors ng/mL and nmol/L threshold paths for Vitamin D sufficiency interpretation.',
+    mainWeakness: 'Draft entry — final external bibliography linkage (e.g. Endocrine Society guidelines) still needed.',
+  },
 };
 
 export const ruleEvidenceLinks: Record<string, RuleEvidenceLink> = {
@@ -257,6 +270,28 @@ export const ruleEvidenceLinks: Record<string, RuleEvidenceLink> = {
     supportingSourceIds: [],
     productEvidenceClass: 'P0',
     status: 'active',
+  },
+  'SUP-001': {
+    ruleId: 'SUP-001',
+    biomarkerOrTopic: 'Vitamin D',
+    logic: 'Vitamin D sufficiency interpretation via explicit ng/mL or nmol/L threshold path.',
+    description: 'Vitamin D threshold rule anchoring sufficiency cutoffs for the ng/mL and nmol/L unit paths.',
+    origin: 'evidence_extrapolated',
+    anchorSourceId: 'src_vitamin_d_threshold_policy_v1',
+    supportingSourceIds: [],
+    productEvidenceClass: 'P1',
+    status: 'draft',
+  },
+  'SUP-002': {
+    ruleId: 'SUP-002',
+    biomarkerOrTopic: 'Vitamin D',
+    logic: 'Vitamin D nmol/L unit-path conversion and threshold interpretation.',
+    description: 'Ensures the nmol/L path is treated as a distinct threshold band, not a raw mg/dL conversion.',
+    origin: 'evidence_extrapolated',
+    anchorSourceId: 'src_vitamin_d_threshold_policy_v1',
+    supportingSourceIds: [],
+    productEvidenceClass: 'P1',
+    status: 'draft',
   },
 };
 
