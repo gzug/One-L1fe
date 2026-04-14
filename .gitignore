@@ -1,2 +1,25 @@
+# dependencies
 node_modules/
+
+# build output
 dist/
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# Expo / React Native
+.expo/
+*.orig.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase local (also covered by supabase/.gitignore)
+# supabase/.branches/ and supabase/.temp/ are ignored via supabase/.gitignore

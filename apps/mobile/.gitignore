@@ -1,5 +1,18 @@
+# dependencies
 node_modules
+
+# Expo / Metro build output
 .expo
 .web-build
 dist
+
+# logs
 *.log
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
