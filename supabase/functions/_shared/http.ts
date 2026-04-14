@@ -5,7 +5,7 @@ export const corsHeaders: Record<string, string> = {
 };
 
 export function json(body: unknown, init?: ResponseInit): Response {
-  return new Response(JSON.stringify(body, null, 2), {
+  return new Response(JSON.stringify(body), {
     ...init,
     headers: {
       'Content-Type': 'application/json',
