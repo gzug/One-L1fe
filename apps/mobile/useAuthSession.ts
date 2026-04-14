@@ -69,7 +69,9 @@ export function useAuthSession(): UseAuthSessionResult {
 
       const authStateChangeListener = client.auth.onAuthStateChange(
         (_event, session) => {
-          setError(undefined);
+          // Note: we intentionally do NOT clear error here.
+          // A successful auth state change does not mean a previous config
+          // error is resolved — only a full re-mount does.
           setUser(
             session !== null
               ? {
@@ -99,7 +101,18 @@ export function useAuthSession(): UseAuthSessionResult {
   }, []);
 
   const signOut = useCallback(async (): Promise<void> => {
-    const client = getMobileSupabaseClient();
+    let client;
+
+    try {
+      client = getMobileSupabaseClient();
+    } catch (clientError) {
+      throw new Error(
+        clientError instanceof Error
+          ? clientError.message
+          : 'Supabase client configuration is invalid.',
+      );
+    }
+
     const { error: signOutError } = await client.auth.signOut();
 
     if (signOutError !== null) {
