@@ -1,11 +1,16 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 import type {
   MinimumSliceAuthSession,
   MinimumSliceAuthSessionProvider,
 } from './minimumSliceScreenController.ts';
 
 let _client: SupabaseClient | undefined;
+
+// On web, AsyncStorage is not available as a persistent store — fall back to
+// in-memory (default supabase-js behaviour) so the web export bundle succeeds.
+const authStorage = Platform.OS === 'web' ? undefined : AsyncStorage;
 
 export function getMobileSupabaseClient(): SupabaseClient {
   if (_client !== undefined) return _client;
@@ -19,12 +24,9 @@ export function getMobileSupabaseClient(): SupabaseClient {
     );
   }
 
-  // AsyncStorage is required on React Native / Expo for session persistence
-  // across app restarts. Without it, the Supabase client cannot restore
-  // the session and the user would be signed out on every cold start.
   _client = createClient(url, anonKey, {
     auth: {
-      storage: AsyncStorage,
+      storage: authStorage,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
@@ -34,50 +36,51 @@ export function getMobileSupabaseClient(): SupabaseClient {
   return _client;
 }
 
-/**
- * Returns a fresh access token by calling refreshSession().
- * Use this as the canonical token path when calling the backend.
- * Do NOT use getSession() for token retrieval — it may return a stale token
- * without triggering a refresh.
- */
-export async function getFreshAccessToken(): Promise<string> {
-  const client = getMobileSupabaseClient();
-  const { data, error } = await client.auth.refreshSession();
+// ─── Fresh Access Token ───────────────────────────────────────────────────────────────────────────────
 
-  if (error !== null) {
-    throw new Error(`Supabase token refresh failed: ${error.message}`);
+export type FreshAccessTokenResult =
+  | { kind: 'ok'; accessToken: string }
+  | { kind: 'signed-out' }
+  | { kind: 'error'; message: string };
+
+export async function getFreshAccessToken(): Promise<FreshAccessTokenResult> {
+  let client: SupabaseClient;
+  try {
+    client = getMobileSupabaseClient();
+  } catch (e) {
+    return {
+      kind: 'error',
+      message: e instanceof Error ? e.message : 'Supabase client config invalid.',
+    };
   }
 
-  if (data.session === null) {
-    throw new Error('No active session after refresh. Please sign in.');
-  }
-
-  return data.session.access_token;
+  const { data, error } = await client.auth.getSession();
+  if (error) return { kind: 'error', message: `getSession failed: ${error.message}` };
+  if (!data.session?.access_token) return { kind: 'signed-out' };
+  return { kind: 'ok', accessToken: data.session.access_token };
 }
+
+// ─── Auth Session Provider ────────────────────────────────────────────────────────────────────────────
 
 export function createMobileSupabaseAuthSessionProvider(): MinimumSliceAuthSessionProvider {
   return {
     async getSession(): Promise<MinimumSliceAuthSession> {
-      const client = getMobileSupabaseClient();
+      const result = await getFreshAccessToken();
 
-      // Use getUser() to validate the session server-side and get a
-      // confirmed user object, then getFreshAccessToken() for a live token.
-      const { data: userData, error: userError } = await client.auth.getUser();
-
-      if (userError !== null) {
-        throw new Error(`Supabase auth error: ${userError.message}`);
+      if (result.kind === 'ok') {
+        const client = getMobileSupabaseClient();
+        const { data } = await client.auth.getSession();
+        return {
+          user: { id: data.session!.user.id },
+          accessToken: result.accessToken,
+        };
       }
 
-      if (userData.user === null) {
+      if (result.kind === 'signed-out') {
         throw new Error('No active session. Please sign in first.');
       }
 
-      const accessToken = await getFreshAccessToken();
-
-      return {
-        user: { id: userData.user.id },
-        accessToken,
-      };
+      throw new Error(result.message);
     },
   };
 }
