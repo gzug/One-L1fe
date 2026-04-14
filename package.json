@@ -5,6 +5,7 @@
   "type": "commonjs",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "typecheck:mobile": "npm --prefix apps/mobile run typecheck",
     "build:domain": "tsc -p tsconfig.json",
     "test:domain": "npm run build:domain && node dist/packages/domain/runMinimumSliceAssertions.js",
     "generate:evidence-sql": "npm run build:domain && node scripts/generate-evidence-registry-sql.js",

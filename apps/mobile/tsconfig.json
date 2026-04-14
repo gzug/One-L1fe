@@ -3,6 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "skipLibCheck": true,
+    "types": ["react", "react-native", "node"]
   }
 }
