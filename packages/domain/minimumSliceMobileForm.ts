@@ -1,5 +1,8 @@
 import { MinimumSlicePanelInput } from './minimumSlice.ts';
 
+/** Default source label for manually entered panels via the mobile form. */
+export const MOBILE_MANUAL_ENTRY_SOURCE = 'mobile-manual-entry';
+
 export interface MinimumSliceMobileFormDraft {
   panelId: string;
   collectedAt: string;
@@ -72,7 +75,7 @@ export function createMinimumSliceMobileFormDraft(): MinimumSliceMobileFormDraft
     lpa: '',
     crp: '',
     fastingContext: true,
-    source: 'mobile-manual-entry',
+    source: MOBILE_MANUAL_ENTRY_SOURCE,
   };
 }
 
@@ -98,7 +101,7 @@ export function buildMinimumSlicePanelInputFromMobileDraft(
     profileId,
     panelId,
     collectedAt,
-    source: draft.source?.trim().length ? draft.source.trim() : options.defaultSource ?? 'mobile-manual-entry',
+    source: draft.source?.trim().length ? draft.source.trim() : options.defaultSource ?? MOBILE_MANUAL_ENTRY_SOURCE,
     entries: [
       { marker: 'apob', value: parseRequiredNumber(draft.apob, 'apob'), unit: 'mg/dL' },
       { marker: 'ldl', value: parseRequiredNumber(draft.ldl, 'ldl'), unit: 'mg/dL' },

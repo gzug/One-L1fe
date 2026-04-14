@@ -57,6 +57,17 @@ export interface InterpretationPersistencePayload {
   recommendations: RecommendationRecord[];
 }
 
+/**
+ * Builds a stable deterministic string ID from a prefix and parts.
+ * Characters outside [a-zA-Z0-9_:-] are replaced with '_'.
+ *
+ * The resulting ID is used as an external_run_id / external_entry_id for Supabase upserts.
+ * This means: same panelId + ruleVersion always produces the same interpretationRunId,
+ * which is intentional — it enables idempotent re-runs of the same panel.
+ * If you need to force a new run for the same panel, pass a distinct panelId.
+ *
+ * Callers must ensure panelId values are sufficiently unique (e.g. UUID-based).
+ */
 function makeId(prefix: string, parts: Array<string | number>): string {
   return [prefix, ...parts]
     .join('_')

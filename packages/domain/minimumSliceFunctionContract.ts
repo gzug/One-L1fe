@@ -97,6 +97,18 @@ function parseOptionalNullableIsoString(value: unknown, field: string): string |
   return parseOptionalIsoString(value, field);
 }
 
+/**
+ * Parses panel.collectedAt as a required ISO timestamp string.
+ * The field is structurally required and must be a valid ISO 8601 date.
+ */
+function requireIsoString(value: unknown, field: string): string {
+  const str = requireString(value, field);
+  if (Number.isNaN(new Date(str).getTime())) {
+    throw new Error(`${field} must be a valid ISO timestamp.`);
+  }
+  return str;
+}
+
 function parseEntry(value: unknown, index: number): MinimumSliceFunctionRequestEntry {
   if (!isRecord(value)) {
     throw new Error(`panel.entries[${index}] must be an object.`);
@@ -172,7 +184,7 @@ export function parseMinimumSliceFunctionRequestBody(value: unknown): MinimumSli
   const body: MinimumSliceFunctionRequestBody = {
     panel: {
       panelId: requireString(value.panel.panelId, 'panel.panelId'),
-      collectedAt: parseOptionalIsoString(value.panel.collectedAt, 'panel.collectedAt') ?? requireString(value.panel.collectedAt, 'panel.collectedAt'),
+      collectedAt: requireIsoString(value.panel.collectedAt, 'panel.collectedAt'),
       entries: value.panel.entries.map((entry, index) => parseEntry(entry, index)),
     },
   };

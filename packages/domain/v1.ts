@@ -76,6 +76,16 @@ export interface LipidHierarchyDecision {
 
 export const V1_RULE_VERSION = 'v1-draft-implementation-bridge';
 
+/**
+ * markerRuntimeConfigs defines evaluation-time behavior for each biomarker.
+ *
+ * Note on markerRole vs BiomarkerCategory:
+ * Some markers (lpa, crp) are registered as BiomarkerCategory.Core in biomarkers.ts
+ * for registry completeness, but use MarkerRole.Supporting here.
+ * This is intentional: the registry category reflects clinical importance,
+ * while markerRole here reflects minimum-slice evaluation policy (bounded optional).
+ * Do NOT conflate these two fields.
+ */
 export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
   apob: {
     key: 'apob',
@@ -104,6 +114,8 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
   },
   lpa: {
     key: 'lpa',
+    // MarkerRole.Supporting here despite BiomarkerCategory.Core in the registry.
+    // In minimum-slice evaluation, lpa is a bounded modifier, not a primary driver.
     markerRole: MarkerRole.Supporting,
     scoreRole: ScoreRole.BoundedModifier,
     allowedUnits: ['mg/dL', 'nmol/L'],
@@ -130,6 +142,8 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
   },
   crp: {
     key: 'crp',
+    // MarkerRole.Supporting here despite BiomarkerCategory.Core in the registry.
+    // In minimum-slice evaluation, crp is a bounded modifier requiring assay clarity.
     markerRole: MarkerRole.Supporting,
     scoreRole: ScoreRole.BoundedModifier,
     allowedUnits: ['mg/L'],
@@ -339,7 +353,10 @@ export function canContributeToPriorityScore(params: {
   }
 
   if (config.scoreRole === ScoreRole.Excluded) return false;
-  if (config.scoreRole === ScoreRole.BoundedModifier) return marker === 'lpa' || marker === 'crp';
+
+  // BoundedModifier markers contribute to the score but with a capped weight.
+  // The scoreRole field is the single source of truth — no marker-key allowlist needed.
+  if (config.scoreRole === ScoreRole.BoundedModifier) return true;
 
   if (marker === 'apob') return lipidDecision?.includeApoBScore ?? true;
   if (marker === 'ldl') return lipidDecision?.includeLDLScore ?? false;
