@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardTypeOptions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,7 +12,11 @@ import {
 import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
 
-const FIELD_ORDER = [
+const FIELD_ORDER: ReadonlyArray<{
+  key: FieldKey;
+  label: string;
+  keyboardType: KeyboardTypeOptions;
+}> = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
   { key: 'collectedAt', label: 'Collected at (ISO)', keyboardType: 'default' },
   { key: 'apob', label: 'ApoB', keyboardType: 'numeric' },
@@ -21,9 +26,18 @@ const FIELD_ORDER = [
   { key: 'lpa', label: 'Lp(a)', keyboardType: 'numeric' },
   { key: 'crp', label: 'CRP', keyboardType: 'numeric' },
   { key: 'source', label: 'Source', keyboardType: 'default' },
-] as const;
+];
 
-type FieldKey = (typeof FIELD_ORDER)[number]['key'];
+type FieldKey =
+  | 'panelId'
+  | 'collectedAt'
+  | 'apob'
+  | 'ldl'
+  | 'hba1c'
+  | 'glucose'
+  | 'lpa'
+  | 'crp'
+  | 'source';
 
 function renderTopDrivers(state: MinimumSliceScreenModel): string {
   const topDrivers = state.submissionSummary.lastResultSummary?.topDrivers;
@@ -102,8 +116,8 @@ export default function MinimumSliceScreen({
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
             <TextInput
-              keyboardType={field.keyboardType as any}
-              onChangeText={(value) => handleChange(field.key, value)}
+              keyboardType={field.keyboardType}
+              onChangeText={(value: string) => handleChange(field.key, value)}
               style={styles.input}
               value={screenState.draft[field.key]}
             />
