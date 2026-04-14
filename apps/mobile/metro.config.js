@@ -1,33 +1,19 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const { getDefaultConfig } = require('expo/metro-config');
 
-/**
- * Metro config for Expo monorepo.
- *
- * watchFolders must include all workspace packages that the mobile app
- * imports directly (e.g. ../../packages/domain/). Without this, Metro's
- * module resolver cannot traverse outside the app root — causing
- * "Unable to resolve module" errors during `expo export --platform web`.
- *
- * @see https://docs.expo.dev/guides/monorepos/
- */
-const config = getDefaultConfig(__dirname);
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, '../..');
 
-const monorepoRoot = path.resolve(__dirname, '../..');
+const config = getDefaultConfig(projectRoot);
 
-config.watchFolders = [
-  path.resolve(monorepoRoot, 'packages'),
-];
-
-// Ensure Metro resolves .ts extensions for the domain package files
-// imported without extension stripping (allowImportingTsExtensions).
+config.watchFolders = [workspaceRoot];
 config.resolver = {
   ...config.resolver,
-  sourceExts: [
-    ...config.resolver.sourceExts,
-    'ts',
-    'tsx',
+  nodeModulesPaths: [
+    path.resolve(projectRoot, 'node_modules'),
+    path.resolve(workspaceRoot, 'node_modules'),
   ],
+  sourceExts: Array.from(new Set([...(config.resolver.sourceExts ?? []), 'ts', 'tsx'])),
 };
 
 module.exports = config;
