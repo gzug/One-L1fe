@@ -63,6 +63,16 @@ function makeId(prefix: string, parts: Array<string | number>): string {
     .replace(/[^a-zA-Z0-9_:-]/g, '_');
 }
 
+/**
+ * Converts a MinimumSliceEvaluation into a persistence payload.
+ *
+ * ID IDEMPOTENCY DESIGN:
+ * interpretationRunId and interpretedEntryIds are deterministic — derived from
+ * panelId + ruleVersion (and panelId + markerKey respectively). This is intentional:
+ * re-submitting the same panel+version combination upserts the existing record
+ * rather than creating a duplicate. createdAt does NOT affect the generated IDs.
+ * If you need to force a new row for the same panel, change the panelId.
+ */
 export function toInterpretationPersistencePayload(
   evaluation: MinimumSliceEvaluation,
   inputSnapshot: unknown,

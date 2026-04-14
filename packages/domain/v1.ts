@@ -1,6 +1,8 @@
 import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
 
-export type BiomarkerKey = BiomarkerDefinition['key'];
+// Literal union type derived from the biomarkers array — gives compile-time
+// safety for all marker key references across the domain layer.
+export type BiomarkerKey = (typeof biomarkers)[number]['key'];
 
 export enum MarkerRole {
   Core = 'core',
