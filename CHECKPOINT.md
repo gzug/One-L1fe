@@ -12,274 +12,122 @@ scope: repo
 
 ## Verdict
 
-The repo has a credible domain seam, a real Supabase backend, and a strong truth/ops layer. It is not yet a privately usable product core — not because of the idea or the architecture, but because the mobile/auth seam on `main` is technically incomplete: dependencies are undeclared, there is no mobile CI, no central token refresh path, and no wearables sync client on `main`. The immediate need is **mobile seam hardening + CI coverage**, not more architecture or planning docs.
+The repo has a credible domain seam, a real Supabase backend, and a strong truth/ops layer. The mobile/auth seam hardening is **in progress** (PR #36 open). Supabase RLS performance has been patched. Immediate need is merging PR #36 → #35 → #25 → #26 in sequence, then building the HealthKit reader (PR #29).
 
 ---
 
 ## What is genuinely solid today
 
-- **Domain sharpness** [Fact]: Clear product boundary — ApoB primary, LDL fallback. Priority Score is a bounded prioritisation aid, not a clinical risk score. Shared domain lives in `packages/domain`, not scattered in UI or prompt logic.
-- **Truth/ops layer** [Fact]: `README → CHECKPOINT → MEMORY → memory/ → deep docs` follows a single consistent logic. Current state in `CHECKPOINT`, durable decisions in `MEMORY`, daily/short-term in `memory/`, deep docs on demand.
-- **Backend seam** [Fact]: `save-minimum-slice-interpretation` is deployed with real JWT enforcement. The edge function overwrites `profileId` server-side with `user.id`. Not a mock auth check — a real one. One authenticated hosted smoke call returned HTTP 200 with a confirmed DB write end to end.
-- **Wearables foundation** [Fact]: `src/lib/wearables/metricRegistry.ts` and `src/lib/wearables/syncContract.ts` exist on `main` and are exported. Types and contracts are in place. The sync client is on branch `feat/wearables-sync-client` (PR #26), not yet on `main`.
+- **Domain sharpness** [Fact]: Clear product boundary — ApoB primary, LDL fallback. Priority Score is a bounded prioritisation aid, not a clinical risk score.
+- **Truth/ops layer** [Fact]: `README → CHECKPOINT → MEMORY → memory/ → deep docs` follows a single consistent logic.
+- **Backend seam** [Fact]: `save-minimum-slice-interpretation` is deployed with real JWT enforcement. One authenticated hosted smoke call returned HTTP 200 with confirmed DB write.
+- **Wearables foundation** [Fact]: `metricRegistry.ts` and `syncContract.ts` on `main`. `syncClient.ts` on PR #26.
+- **RLS performance** [Fact]: Migration `20260414024917_fix_rls_auth_initplan_lab_result_entries_interpreted_entries` applied. All 8 policies on `lab_result_entries` and `interpreted_entries` now use `(select auth.uid())` — Supabase WARN resolved.
 
 ---
 
-## File-by-file status (as of main @ 95e1fb6d)
+## File-by-file status (as of main @ 95e1fb6d + PR #36 open)
 
-### `apps/mobile/package.json` — ❌ Direct blocker
-**Fact:** `dependencies` contains only `expo ~53.0.0`, `expo-status-bar ~2.2.3`, `react 19.0.0`, `react-native 0.79.5`. `devDependencies` contains only `@babel/core ^7.28.0`, `typescript ^5.9.3`. Scripts: only `start`, `android`, `ios`, `web`.
+### `apps/mobile/package.json` — ⚠️ Fixed in PR #36 (open)
+Added: `@supabase/supabase-js`, `@react-native-async-storage/async-storage`, `react-native-url-polyfill`, `typecheck` script.
 
-**Missing:** `@supabase/supabase-js`, `@react-native-async-storage/async-storage`, `react-native-url-polyfill` are all absent. Fresh clone + fresh install breaks here immediately.
+### `apps/mobile/mobileSupabaseAuth.ts` — ⚠️ Fixed in PR #36 (open)
+Added: `AsyncStorage` config, `getFreshAccessToken()`, `createMobileSupabaseAuthSessionProvider()` routes through `getFreshAccessToken()`.
 
-**Minimal delta (additive, no overwrite):**
-```json
-"dependencies": {
-  "@react-native-async-storage/async-storage": "^2.1.2",
-  "@supabase/supabase-js": "^2.49.4",
-  "react-native-url-polyfill": "^2.0.0"
-},
-"scripts": {
-  "typecheck": "npx tsc --noEmit"
-}
-```
+### `.github/workflows/ci.yml` — ⚠️ Fixed in PR #36 (open)
+Added: `Mobile install` + `Mobile typecheck` steps after domain tests.
 
----
+### `apps/mobile/useAuthSession.ts` — ✅ Good. No changes needed.
+### `apps/mobile/App.tsx` — ✅ Good. Clean auth-gate shell.
+### `apps/mobile/LoginScreen.tsx` — ⚠️ UI-direct login. Not a blocker. Decide post-seam-hardening.
 
-### `apps/mobile/mobileSupabaseAuth.ts` — ❌ Direct blocker
-**Fact:** `createClient(url, anonKey)` is called without a third config parameter. No `AsyncStorage` import. No `react-native-url-polyfill` import. No `getFreshAccessToken()` function. `createMobileSupabaseAuthSessionProvider().getSession()` calls `client.auth.getSession()` and returns `data.session.access_token` directly — no central refresh or error path.
+### `src/lib/wearables/` — ❌ syncClient not on main yet (PR #26 open, waits for PR #36)
 
-**Missing:** AsyncStorage-based session persistence (sessions do not survive background idle on RN without it). No central token path for the wearables sync client.
+### `docs/architecture/repo-structure.md` — ⚠️ Shows Target Structure only. Real paths missing: `memory/`, `scripts/`, `docs/planning/`, `src/`, `CHECKPOINT.md`. Not a product blocker.
 
-**Minimal delta — full replacement:**
-```ts
-import 'react-native-url-polyfill/auto';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type {
-  MinimumSliceAuthSession,
-  MinimumSliceAuthSessionProvider,
-} from './minimumSliceScreenController.ts';
+### `package.json` (root) — ⚠️ No `typecheck:mobile` script. Optional.
 
-let _client: SupabaseClient | undefined;
-
-export function getMobileSupabaseClient(): SupabaseClient {
-  if (_client !== undefined) return _client;
-
-  const url = process.env.EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL;
-  const anonKey = process.env.EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      'EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL and EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY must be set.',
-    );
-  }
-
-  _client = createClient(url, anonKey, {
-    auth: {
-      storage: AsyncStorage,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  });
-
-  return _client;
-}
-
-export type FreshAccessTokenResult =
-  | { kind: 'ok'; accessToken: string }
-  | { kind: 'signed-out' }
-  | { kind: 'error'; message: string };
-
-export async function getFreshAccessToken(): Promise<FreshAccessTokenResult> {
-  let client: SupabaseClient;
-  try {
-    client = getMobileSupabaseClient();
-  } catch (e) {
-    return {
-      kind: 'error',
-      message: e instanceof Error ? e.message : 'Supabase client config invalid.',
-    };
-  }
-
-  const { data, error } = await client.auth.getSession();
-  if (error) return { kind: 'error', message: `getSession failed: ${error.message}` };
-  if (!data.session?.access_token) return { kind: 'signed-out' };
-  return { kind: 'ok', accessToken: data.session.access_token };
-}
-
-export function createMobileSupabaseAuthSessionProvider(): MinimumSliceAuthSessionProvider {
-  return {
-    async getSession(): Promise<MinimumSliceAuthSession> {
-      const result = await getFreshAccessToken();
-      if (result.kind === 'ok') {
-        const client = getMobileSupabaseClient();
-        const { data } = await client.auth.getSession();
-        return {
-          user: { id: data.session!.user.id },
-          accessToken: result.accessToken,
-        };
-      }
-      if (result.kind === 'signed-out')
-        throw new Error('No active session. Please sign in first.');
-      throw new Error(result.message);
-    },
-  };
-}
-```
+### `supabase/` — ✅ 7 migrations applied. RLS live. `save-minimum-slice-interpretation` deployed.
 
 ---
 
-### `apps/mobile/useAuthSession.ts` — ✅ Good
-**Fact:** 4 states (`loading / signed-out / signed-in / config-error`), `onAuthStateChange` wired, calls `getMobileSupabaseClient()` directly. Automatically benefits from AsyncStorage config once the patch above lands. No changes needed.
+## PR sequence — current
 
-### `apps/mobile/App.tsx` — ✅ Good
-**Fact:** Clean ~55-line auth-gate shell. Renders `loading → blank`, `signed-out/config-error → LoginScreen`, `signed-in → SessionBar + MinimumSliceScreen`. No changes needed.
-
-### `apps/mobile/LoginScreen.tsx` — ⚠️ Architecturally half-consistent
-**Fact:** Calls `getMobileSupabaseClient().auth.signInWithPassword()` directly from UI. Not a day blocker — but after auth seam hardening, consciously decide whether to keep UI-direct login or move to a controller.
-
-### `.github/workflows/ci.yml` — ❌ Direct blocker
-**Fact:** One job `validate` with steps: `npm ci → check:repo-hygiene → typecheck → test:domain`. No mobile install, no mobile typecheck, no web export smoke. Mobile lives entirely outside the quality net. As long as this is true, the mobile seam is believed, not verified.
-
-**Minimal delta (insert after domain tests step):**
-```yaml
-      - name: Mobile install
-        working-directory: apps/mobile
-        run: npm install
-
-      - name: Mobile typecheck
-        working-directory: apps/mobile
-        run: npx tsc --noEmit
-```
-Optional later: `npx expo export --platform web` as smoke.
-
-### `package.json` (root) — ⚠️ Minor
-**Fact:** No `typecheck:mobile` script. Not a top blocker if CI handles mobile directly.
-**Optional delta:** `"typecheck:mobile": "npm --prefix apps/mobile run typecheck"`
-
-### `src/lib/wearables/` — ❌ syncClient not on main
-**Fact:** `index.ts` exports only `metricRegistry` and `syncContract`. `syncClient.ts` exists on branch `feat/wearables-sync-client` (PR #26) but is not on `main`. There is no `apps/mobile/src/` directory.
-
-### `CHECKPOINT.md` — ⚠️ Partial drift (now corrected in this version)
-**Fact:** Previous version did not mention AsyncStorage-based session persistence or mobile CI coverage gaps. Both are now documented here.
-
-### `docs/architecture/repo-structure.md` — ⚠️ Stale
-**Fact:** File describes itself as "Target Structure". Real repo also contains: `memory/`, `scripts/`, `docs/ops/`, `docs/planning/`, `docs/research/`, `docs/archive/`, `docs/notion/`, `src/`, `CHECKPOINT.md`, `CONTRIBUTING.md`, `checkpoint.yaml` — none of which appear in the documented tree. No product blocker, but clear signal of doc drift.
+| PR | Title | Status | Depends on |
+|----|-------|--------|------------|
+| #36 | Mobile seam hardening | ✅ Open — CI pending | — |
+| #35 | CHECKPOINT master audit | ✅ Open — docs only | Can merge now |
+| #24 | CHECKPOINT (older) | ❌ Close — superseded by #35 | — |
+| #25 | compute-daily-summaries | ✅ Open | replay-migrations as Required Check |
+| #26 | wearablesSyncClient | ✅ Open | PR #36 on main |
+| #29 | HealthKit reader | ❌ Not started | PR #26 on main |
 
 ---
 
-## PR sequence — what is needed now
+## Remaining task list (chronological)
 
-### PR #27 — Mobile seam hardening (do this first)
-**Scope:** `apps/mobile/package.json` + `apps/mobile/mobileSupabaseAuth.ts` + `.github/workflows/ci.yml`
-
-**Why first:** [Fact] PR #26 (`syncClient.ts`) expects `getAccessToken` as an async callback — that contract is only reliable once `getFreshAccessToken()` exists on `main`. [Fact] Without AsyncStorage config, session persistence after background idle is not guaranteed on RN.
-
-**Definition of Done:**
-- `cd apps/mobile && npm install` — no errors
-- `cd apps/mobile && npx tsc --noEmit` — no errors
-- App starts in Expo; session survives 30+ seconds background
-- `getFreshAccessToken()` → `{ kind: 'ok', accessToken }` after login
-- `getFreshAccessToken()` → `{ kind: 'signed-out' }` after sign-out
-- CI green on PR branch
-
-### PR #28 — Wearables sync client on main (merge PR #26)
-**After PR #27 is done.**
-
-The `getAccessToken` binding pattern for `syncClient.ts`:
-```ts
-getAccessToken: async () => {
-  const result = await getFreshAccessToken();
-  if (result.kind === 'ok') return result.accessToken;
-  if (result.kind === 'signed-out') throw new Error('User is signed out.');
-  throw new Error(result.message);
-},
-```
-
-**Definition of Done:** `src/lib/wearables/syncClient.ts` on `main`, CI green, `wearablesSyncClient.example.ts` manually runnable against real `.env`.
-
-### PR #29 — First reader (HealthKit first, not both platforms simultaneously)
-**After PR #28.**
-
-**Why not immediately:** [Inference] iOS + Android simultaneously = two permission models + two SDK APIs + two mapping layers on top of a not-yet-verified auth seam. One reader first is the enforced smallest slice.
-
-**Scope:**
-- Typed input shapes: `HealthKitSleepSample`, `HealthKitStepsSample`, etc.
-- Mapping functions: `mapHealthKitStepsToMobileObservations()`, `mapHealthKitSleepToRaw()`, etc.
-- `buildWearablesSyncRequest()` as the single aggregation entry point
-- `readTodayStepsFromHealthKit()` — real bridge, not pseudo
-- Permissions request (`NSHealthShareUsageDescription` in `app.json`)
-
-**Definition of Done:** HealthKit permissions granted, last 24h steps mapped into `MobileObservation[]`, `invokeWearablesSync()` → `{ ok: true }` with real data, DB write in Supabase verified.
+1. **GitHub Settings** — add `replay-migrations` as Required Check on `main` [Manual]
+2. **PR #36 merge** — after CI green
+3. **PR #35 merge** — docs only, no risk
+4. **PR #24 close** — superseded
+5. **PR #25 merge** — after point 1
+6. **PR #26 merge** — after PR #36 on main
+7. **Supabase Auth** — enable Leaked Password Protection in Dashboard [Manual]
+8. **PR #29 build** — HealthKit reader, after PR #26 on main
+9. **`repo-structure.md`** — extend with real paths or mark clearly as target-only [Minor]
+10. **`package.json` root** — add `typecheck:mobile` [Optional]
 
 ---
 
-## Systemic risks — not blockers today, not ignorable
+## Supabase live status
 
-| Risk | Severity | Source |
-|------|----------|--------|
-| `labResultId` / `derivedInsightId` forwarded without server-side ownership check | ⚠️ Medium-term | [Fact] not guarded in read code |
-| Edge Function catch-all 400 too coarse for real private use | ⚠️ Medium-term | [Fact] |
-| `repo-structure.md` stale | ⚠️ Minor | [Fact] |
+- Project: `lbqgjourpsodqglputkj` · `https://lbqgjourpsodqglputkj.supabase.co` · ACTIVE_HEALTHY
+- 7 migrations applied (last: `20260414024917_fix_rls_auth_initplan_...`)
+- Security advisors: 1 WARN remaining — Leaked Password Protection disabled [Manual fix]
+- Performance advisors: 8× RLS initplan WARN → **resolved by migration above**
+- 11× unused index INFO — retain until real traffic, re-evaluate then
 
 ---
 
-## Priority order
+## Systemic risks — not blockers today
 
-1. **Mobile seam hardening** (PR #27) — `package.json` + `mobileSupabaseAuth.ts` + CI [Fact: direct blockers]
-2. **Wearables client on main** (PR #28 = merge PR #26) [Fact]
-3. **First real intake path** (PR #29, HealthKit only) [Inference]
-4. **Truth layer sync** — update `CHECKPOINT.md` drift, mark `repo-structure.md` as target or extend it [Fact]
-5. **Backend integrity** — reference ownership + error granularity (after stable mobile loop) [Fact]
-
-**The one sentence that matters:**
-Treat One-L1fe as a seam-hardening problem, not a structure problem. The architecture is good enough. The first real private usage loop can only be built once the mobile/auth path on `main` is technically complete. Sequence without exception: Dependencies → AsyncStorage config + `getFreshAccessToken()` → Mobile CI → merge PR #26 → then HealthKit.
+| Risk | Severity |
+|------|----------|
+| `labResultId` / `derivedInsightId` forwarded without server-side ownership check | ⚠️ Medium-term |
+| Edge Function catch-all 400 too coarse for real private use | ⚠️ Medium-term |
+| `repo-structure.md` stale | ⚠️ Minor |
 
 ---
 
 ## Confirmed facts (carry-forward)
 
 - Hosted migrations match repo
-- RLS and policies are live
+- RLS and policies live
 - `save-minimum-slice-interpretation` deployed with JWT enforcement
 - One authenticated hosted smoke call returned HTTP 200 with DB write confirmed
-- Backend hardening migration `20260413093000_phase0_backend_hardening.sql` is on `main`
-- PR #1 (phase0 backend hardening) merged to `main` on 2026-04-13
 - Supabase CI runs linked-project lint + local `supabase start` + `supabase db reset`
 - Supabase test user: `test@one-l1fe.dev` (UID `3aa48a6f-0f7b-47d3-9875-7353064dd359`)
-- `apps/mobile/.env.example` has `EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL` + `EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY`
-- Supabase project: `lbqgjourpsodqglputkj` · `https://lbqgjourpsodqglputkj.supabase.co` · status: ACTIVE_HEALTHY
-- Domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`; source of truth stays in `packages/domain/`
-- `useAuthSession.ts` owns the thin React auth-state wrapper — merged PR #17 on 2026-04-13
-- `MinimumSliceScreen.tsx` is the standalone minimum-slice form component — merged PR #19 on 2026-04-13
-- `App.tsx` is a ~55-line pure auth-gate shell — merged PR #20 on 2026-04-13
-- Missing mobile Supabase env no longer hard-crashes; login surface stays visible with a clear config error
-- Signed-in shell includes a thin session bar with explicit sign-out
+- `apps/mobile/.env.example` complete
+- Domain files vendored into `_lib/domain` via `scripts/prepare-supabase-function-domain.sh`
 
 ---
 
 ## Startup rule
 
-For meaningful repo work, start with `CHECKPOINT.md`.
-Read `README.md` first only when a person or agent needs broad repo orientation.
-Only read deeper docs when the task actually touches them.
+Start with `CHECKPOINT.md`. Read `README.md` only for broad orientation. Read deep docs only when the task touches them.
 
 ## Read-on-demand map
 
-- `docs/compliance/intended-use.md` — health-adjacent copy, recommendation wording, compliance boundaries
-- `docs/architecture/evidence-registry-and-rule-governance-v1.md` — provenance / evidence logic
-- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` — planning the next implementation seam
-- `GLOSSARY.md` — abbreviations and term meanings
+- `docs/compliance/intended-use.md` — health-adjacent copy, compliance boundaries
+- `docs/architecture/evidence-registry-and-rule-governance-v1.md` — provenance/evidence logic
+- `GLOSSARY.md` — term meanings
 - `README.md` — broad repo orientation
-- `supabase/README.md` — Supabase workflow, CI commands, secrets, deploy procedure
+- `supabase/README.md` — Supabase workflow, CI, secrets, deploy
 
 ## Guardrails
 
-- Keep the product boundary explicit; normative detail in `docs/compliance/intended-use.md`.
-- Keep ApoB primary and LDL fallback/secondary.
+- Keep ApoB primary, LDL fallback/secondary.
 - Keep severity separate from coverage.
 - Keep Notion out of hidden runtime logic.
-- Do not treat the Priority Score as a clinical risk score.
-- Keep raw personal health data, direct identifiers, and unsafe artifacts out of the repo. Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy.
+- Do not treat Priority Score as a clinical risk score.
+- Keep raw personal health data and direct identifiers out of the repo.
