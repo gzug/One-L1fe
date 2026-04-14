@@ -12,11 +12,7 @@ import {
 import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
 
-const FIELD_ORDER: ReadonlyArray<{
-  key: FieldKey;
-  label: string;
-  keyboardType: KeyboardTypeOptions;
-}> = [
+const FIELD_ORDER = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
   { key: 'collectedAt', label: 'Collected at (ISO)', keyboardType: 'default' },
   { key: 'apob', label: 'ApoB', keyboardType: 'numeric' },
@@ -26,18 +22,13 @@ const FIELD_ORDER: ReadonlyArray<{
   { key: 'lpa', label: 'Lp(a)', keyboardType: 'numeric' },
   { key: 'crp', label: 'CRP', keyboardType: 'numeric' },
   { key: 'source', label: 'Source', keyboardType: 'default' },
-];
+] as const satisfies ReadonlyArray<{
+  key: string;
+  label: string;
+  keyboardType: KeyboardTypeOptions;
+}>;
 
-type FieldKey =
-  | 'panelId'
-  | 'collectedAt'
-  | 'apob'
-  | 'ldl'
-  | 'hba1c'
-  | 'glucose'
-  | 'lpa'
-  | 'crp'
-  | 'source';
+type FieldKey = (typeof FIELD_ORDER)[number]['key'];
 
 function renderTopDrivers(state: MinimumSliceScreenModel): string {
   const topDrivers = state.submissionSummary.lastResultSummary?.topDrivers;

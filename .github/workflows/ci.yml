@@ -12,16 +12,19 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install mobile dependencies
+        run: npm --prefix apps/mobile ci
 
       - name: Repo hygiene
         run: npm run check:repo-hygiene
@@ -29,13 +32,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Mobile typecheck
+        run: npm --prefix apps/mobile run typecheck
+
+      - name: Mobile web export
+        run: npm --prefix apps/mobile run export:web
+
       - name: Domain tests
         run: npm run test:domain
-
-      - name: Mobile install
-        working-directory: apps/mobile
-        run: npm install
-
-      - name: Mobile typecheck
-        working-directory: apps/mobile
-        run: npx tsc --noEmit

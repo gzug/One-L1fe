@@ -4,6 +4,7 @@
     "strict": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["react", "react-native", "node"]
   }
 }
