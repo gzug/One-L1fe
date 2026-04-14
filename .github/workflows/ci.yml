@@ -31,3 +31,11 @@ jobs:
 
       - name: Domain tests
         run: npm run test:domain
+
+      - name: Mobile install
+        working-directory: apps/mobile
+        run: npm install
+
+      - name: Mobile typecheck
+        working-directory: apps/mobile
+        run: npx tsc --noEmit
