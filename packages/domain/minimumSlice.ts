@@ -300,6 +300,23 @@ function summarizeCoverageNotes(entries: EvaluatedEntry[], lipidDecision: LipidH
   return Array.from(notes);
 }
 
+/**
+ * Returns the fallback ruleId list for an entry that has no threshold
+ * evaluation output. Extracted from buildEntry() for readability and testability.
+ */
+function getFallbackRuleIds(
+  marker: BiomarkerKey,
+  assessment: InterpretabilityAssessment,
+): string[] {
+  if (marker === 'apob' && assessment.state === InterpretabilityState.Missing) {
+    return ['LIP-003', 'COV-001'];
+  }
+  if (assessment.blockingReason === 'missing_or_unsupported_unit') return ['COV-002'];
+  if (assessment.blockingReason === 'missing_assay') return ['COV-003'];
+  if (assessment.blockingReason === 'stale_panel') return ['COV-004'];
+  return [];
+}
+
 function buildEntry(
   input: MinimumSliceEntryInput,
   assessment: InterpretabilityAssessment,
@@ -324,15 +341,7 @@ function buildEntry(
 
   const ruleIds = thresholdEvaluation?.ruleIds?.length
     ? thresholdEvaluation.ruleIds
-    : input.marker === 'apob' && assessment.state === InterpretabilityState.Missing
-      ? ['LIP-003', 'COV-001']
-      : assessment.blockingReason === 'missing_or_unsupported_unit'
-        ? ['COV-002']
-        : assessment.blockingReason === 'missing_assay'
-          ? ['COV-003']
-          : assessment.blockingReason === 'stale_panel'
-            ? ['COV-004']
-            : [];
+    : getFallbackRuleIds(input.marker, assessment);
 
   const notes = [
     ...(thresholdEvaluation?.notes ?? []),
