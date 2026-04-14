@@ -46,6 +46,9 @@ export interface SupabaseRecommendationInsert {
   verdict: string;
   recommendation_text: string;
   evidence_summary: string;
+  // TODO: evidence field is currently a single-element array wrapping evidence_summary.
+  // This should be typed as string[] in the DB schema and populated with the full
+  // supporting source list from the evidence registry (anchorSourceId + supportingSourceIds).
   evidence: unknown;
   confidence: string;
   scope: string;

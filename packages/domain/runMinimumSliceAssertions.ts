@@ -24,7 +24,7 @@ async function main(): Promise<void> {
   runEvidenceRegistrySeedAssertions();
   await runSupabasePersistenceAssertions();
   await runSupabaseRepositoryAssertions();
-  console.log('minimum-slice, function contract, app client, app http client, mobile form, mobile integration, result summary, contract, Supabase payload, evidence seed, persistence, and repository assertions passed');
+  console.log('✅ All domain assertions passed.');
 }
 
 void main().catch((error: unknown) => {
