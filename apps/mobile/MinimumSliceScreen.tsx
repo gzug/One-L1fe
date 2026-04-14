@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardTypeOptions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,7 +22,11 @@ const FIELD_ORDER = [
   { key: 'lpa', label: 'Lp(a)', keyboardType: 'numeric' },
   { key: 'crp', label: 'CRP', keyboardType: 'numeric' },
   { key: 'source', label: 'Source', keyboardType: 'default' },
-] as const;
+] as const satisfies ReadonlyArray<{
+  key: string;
+  label: string;
+  keyboardType: KeyboardTypeOptions;
+}>;
 
 type FieldKey = (typeof FIELD_ORDER)[number]['key'];
 
@@ -102,8 +107,8 @@ export default function MinimumSliceScreen({
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
             <TextInput
-              keyboardType={field.keyboardType as any}
-              onChangeText={(value) => handleChange(field.key, value)}
+              keyboardType={field.keyboardType}
+              onChangeText={(value: string) => handleChange(field.key, value)}
               style={styles.input}
               value={screenState.draft[field.key]}
             />
