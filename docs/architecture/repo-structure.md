@@ -2,12 +2,17 @@
 
 ## Target Structure
 
+This tree shows the intended long-term layout. The actual repo also contains paths listed in the Folder Roles section below.
+
 ```text
 One-L1fe/
 ├── apps/
 │   └── mobile/
 ├── packages/
 │   └── domain/
+├── src/
+│   └── lib/
+│       └── wearables/
 ├── supabase/
 │   ├── migrations/
 │   ├── functions/
@@ -15,7 +20,13 @@ One-L1fe/
 ├── docs/
 │   ├── architecture/
 │   ├── compliance/
-│   └── roadmap/
+│   ├── planning/
+│   ├── roadmap/
+│   ├── research/
+│   └── ops/
+├── scripts/
+├── memory/
+├── CHECKPOINT.md
 ├── MEMORY.md
 ├── GLOSSARY.md
 └── AGENTS.md
@@ -24,14 +35,12 @@ One-L1fe/
 ## Folder Roles
 
 ### `apps/mobile`
-Home of the React Native application.
+Home of the React Native / Expo application.
 
 Put here:
-- screens,
-- navigation,
-- app state,
-- UI components that are app-specific,
-- platform configuration.
+- screens, navigation, app state
+- UI components that are app-specific
+- platform configuration (`app.json`, `.env.example`)
 
 Do not put core biomarker rules here if they are needed elsewhere.
 
@@ -39,35 +48,51 @@ Do not put core biomarker rules here if they are needed elsewhere.
 Home of product-domain logic.
 
 Put here:
-- biomarker definitions,
-- units,
-- validation schemas,
-- derived-metric helpers,
-- recommendation contracts,
-- shared TypeScript types.
+- biomarker definitions, units, validation schemas
+- derived-metric helpers, recommendation contracts
+- shared TypeScript types
+
+### `src/lib`
+Home of shared client-side library code not tied to a specific app or platform.
+
+Currently contains:
+- `wearables/` — `metricRegistry`, `syncContract`, `syncClient`
 
 ### `supabase`
 Home of backend state and server-side execution.
 
 Put here:
-- SQL migrations,
-- edge functions,
-- local seed helpers,
-- backend configuration notes.
+- SQL migrations, edge functions
+- local seed helpers, backend configuration
 
-### `docs/architecture`
-Home of system shape and engineering decisions.
+### `docs/`
+Home of all documentation.
 
-### `docs/compliance`
-Home of boundary docs that should exist, but should not dominate early build velocity.
+- `architecture/` — system shape and engineering decisions
+- `compliance/` — health-adjacent boundary docs
+- `planning/` — active task lists, PR sequences, backlogs
+- `roadmap/` — phased execution order
+- `research/` — evidence and source analysis
+- `ops/` — operational runbooks
 
-### `docs/roadmap`
-Home of phased execution order and delivery sequencing.
+### `scripts/`
+Home of build, deploy, and maintenance scripts.
+
+### `memory/`
+Home of short-term agent context files (daily notes, session state).
+
+### Root files
+- `CHECKPOINT.md` — canonical current state; read first before any repo work
+- `MEMORY.md` — durable decisions and invariants
+- `GLOSSARY.md` — term meanings
+- `AGENTS.md` — agent operating rules
 
 ## Working Rule
 
 If a concept is:
-- UI-only, it belongs in `apps/mobile`
-- domain-critical, it belongs in `packages/domain`
-- persistence or secret-bearing, it belongs in `supabase`
-- explanatory or planning-oriented, it belongs in `docs/`
+- UI-only → `apps/mobile`
+- domain-critical → `packages/domain`
+- shared client library → `src/lib`
+- persistence or secret-bearing → `supabase`
+- explanatory or planning-oriented → `docs/`
+- build or deploy tooling → `scripts/`
