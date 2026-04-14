@@ -65,10 +65,17 @@ export function summarizeMinimumSliceSubmissionState(
   return summary;
 }
 
+/**
+ * Submits a minimum-slice panel over HTTP.
+ *
+ * @param currentState - The active submission state before this call. Used to
+ *   carry forward lastResult on error so the UI can still display the previous
+ *   successful result while showing the new error.
+ */
 export async function submitMinimumSlicePanel(
   options: MinimumSliceMobileIntegrationOptions,
   input: MinimumSlicePanelInput,
-  previous?: MinimumSliceSubmissionState,
+  currentState?: MinimumSliceSubmissionState,
 ): Promise<SubmitMinimumSliceResult> {
   try {
     const requestOptions = options.functionPath !== undefined ? { path: options.functionPath } : undefined;
@@ -89,8 +96,8 @@ export async function submitMinimumSlicePanel(
       lastError: message,
     };
 
-    if (previous?.lastResult !== undefined) {
-      nextState.lastResult = previous.lastResult;
+    if (currentState?.lastResult !== undefined) {
+      nextState.lastResult = currentState.lastResult;
     }
 
     return {

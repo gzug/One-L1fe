@@ -8,6 +8,29 @@ import {
 import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository.ts';
 import { corsHeaders, json } from '../_shared/http.ts';
 
+/**
+ * Determines whether a thrown error is the result of bad client input
+ * (parse/validation failure) vs. an unexpected server-side failure.
+ * Client errors → 400, server errors → 500.
+ */
+function isClientError(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const clientErrorSignals = [
+    'must be',
+    'must be a',
+    'must be an',
+    'panel.',
+    'persistence.',
+    'execution.',
+    'Request body',
+    'non-empty',
+    'valid ISO',
+    'number or null',
+    'boolean or null',
+  ];
+  return clientErrorSignals.some((signal) => error.message.includes(signal));
+}
+
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -72,6 +95,7 @@ Deno.serve(async (request) => {
     return json(result, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error.';
-    return json({ error: message }, { status: 400 });
+    const status = isClientError(error) ? 400 : 500;
+    return json({ error: message }, { status });
   }
 });
