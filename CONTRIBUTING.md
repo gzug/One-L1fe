@@ -2,7 +2,7 @@
 status: current
 canonical_for: contribution workflow
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: repo
@@ -57,9 +57,10 @@ Before merging a meaningful change:
 
 1. Can I explain what changed in plain language?
 2. Does `npm run typecheck` pass?
-3. Does `npm run test:domain` pass?
-4. If behavior changed, did I update the right source-of-truth doc?
-5. Did I avoid adding raw personal health data or unsafe health claims?
+3. 2a. Does `npm --prefix apps/mobile run typecheck` pass?
+4. Does `npm run test:domain` pass?
+5. If behavior changed, did I update the right source-of-truth doc?
+6. Did I avoid adding raw personal health data or unsafe health claims?
 
 ## Pull requests and issues
 
