@@ -2,7 +2,7 @@
 status: current
 canonical_for: agent working rules
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-14
 supersedes: []
 superseded_by: null
 scope: repo
@@ -22,6 +22,32 @@ Read deeper files only on demand:
 - `GLOSSARY.md` when terms or abbreviations are unclear
 - `MEMORY.md` for durable history or old decisions
 - `docs/compliance/intended-use.md` when the task touches compliance, recommendation wording, biomarker interpretation, or user-facing health language
+- `memory/agent-failure-patterns.md` when starting a session that involves schema, migrations, or end-to-end testing
+
+## Verification Rules
+
+Before labelling any statement as a confirmed fact:
+
+### 1. Schema and migration state
+Always query Supabase directly before stating schema facts:
+- `list_migrations` to check applied migrations
+- `execute_sql` on `information_schema.tables` to verify table existence
+- `list_edge_functions` to check deployment state and `entrypoint_path`
+
+### 2. Delta-only writes
+Always read the current file before writing. Patch only what changes. Preserve all confirmed facts unless explicitly superseded by a newer verified source.
+
+### 3. Dependency order
+Before proposing or executing any end-to-end test:
+1. Confirm all required migrations are applied
+2. Confirm test user has a `profiles` row
+3. Confirm required Edge Functions are deployed and show a non-local `entrypoint_path`
+
+### 4. CONTRADICT by default
+If current verified state contradicts a claim in `CHECKPOINT.md`, `MEMORY.md`, or any doc: state the contradiction explicitly before proceeding. Do not smooth it over.
+
+### 5. Label output accurately
+Use `[Fakt]` only for directly verified data. Use `[Inferenz]` for derived conclusions. Use `[Annahme]` for unverified starting points. Use `[Spekulation]` for forward projections.
 
 ## Working Principles
 
