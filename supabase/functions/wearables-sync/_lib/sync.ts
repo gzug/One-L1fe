@@ -24,7 +24,7 @@ export async function runSync(
   // ------------------------------------------------------------------
   const { data: source, error: sourceError } = await supabase
     .from('wearable_sources')
-    .select('id, profile_id')
+    .select('id, profile_id, is_active')
     .eq('id', body.wearable_source_id)
     .single();
 
@@ -33,6 +33,9 @@ export async function runSync(
   }
   if (source.profile_id !== profileId) {
     throw new Error('wearable_source_id does not belong to authenticated user.');
+  }
+  if (source.is_active !== true) {
+    throw new Error('wearable_source is inactive. Reactivate before syncing.');
   }
 
   // ------------------------------------------------------------------
