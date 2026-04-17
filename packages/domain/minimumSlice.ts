@@ -3,6 +3,7 @@ import { getRuleProvenance, ProductEvidenceClass, RuleOrigin } from './provenanc
 import { evaluateByThreshold } from './thresholds.ts';
 import {
   BiomarkerKey,
+  FieldState,
   FreshnessState,
   InterpretabilityAssessment,
   InterpretationInput,
@@ -53,6 +54,7 @@ export interface EvaluatedEntry {
   marker: BiomarkerKey;
   displayName: string;
   value: number | null | undefined;
+  fieldState?: FieldState;
   unit: string | null | undefined;
   interpretableState: InterpretabilityState;
   freshness: FreshnessState;
@@ -103,6 +105,10 @@ function dedupeRecommendations(recommendations: Recommendation[]): Recommendatio
 }
 
 function buildCoverageRecommendation(entry: EvaluatedEntry): Recommendation | null {
+  if (entry.fieldState === 'disabled') {
+    return null;
+  }
+
   if (entry.interpretableState === InterpretabilityState.Missing) {
     return {
       type: 'collect_more_data',
@@ -279,6 +285,11 @@ function summarizeCoverageNotes(entries: EvaluatedEntry[], lipidDecision: LipidH
   const notes = new Set<string>();
 
   for (const entry of entries) {
+    if (entry.fieldState === 'disabled') {
+      notes.add(`${entry.displayName} was intentionally not provided and is excluded from active use.`);
+      continue;
+    }
+
     if (entry.interpretableState === InterpretabilityState.Missing) {
       notes.add(`Missing ${entry.displayName}.`);
     }
@@ -307,7 +318,11 @@ function summarizeCoverageNotes(entries: EvaluatedEntry[], lipidDecision: LipidH
 function getFallbackRuleIds(
   marker: BiomarkerKey,
   assessment: InterpretabilityAssessment,
+  input: MinimumSliceEntryInput,
 ): string[] {
+  if (input.field_state === 'disabled') {
+    return [];
+  }
   if (marker === 'apob' && assessment.state === InterpretabilityState.Missing) {
     return ['LIP-003', 'COV-001'];
   }
@@ -341,7 +356,7 @@ function buildEntry(
 
   const ruleIds = thresholdEvaluation?.ruleIds?.length
     ? thresholdEvaluation.ruleIds
-    : getFallbackRuleIds(input.marker, assessment);
+    : getFallbackRuleIds(input.marker, assessment, input);
 
   const notes = [
     ...(thresholdEvaluation?.notes ?? []),
@@ -355,6 +370,7 @@ function buildEntry(
     marker: input.marker,
     displayName: biomarker.displayName,
     value: input.value,
+    ...(input.field_state !== undefined ? { fieldState: input.field_state } : {}),
     unit: input.unit,
     interpretableState: assessment.state,
     freshness: assessment.freshness,

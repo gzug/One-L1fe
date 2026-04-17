@@ -1,4 +1,38 @@
+import { FieldState, FieldStateReason, FieldValueSource } from './fieldValueState.ts';
 import { MinimumSlicePanelInput } from './minimumSlice.ts';
+
+export interface MinimumSliceMobileFieldMetadata {
+  fieldState?: FieldState;
+  valueSource?: FieldValueSource;
+  stateReason?: FieldStateReason | null;
+}
+
+export type OptionalMinimumSliceMarkerKey = 'lpa' | 'crp';
+
+export interface OptionalMinimumSliceMarkerConfig {
+  marker: OptionalMinimumSliceMarkerKey;
+  fieldKey: OptionalMinimumSliceMarkerKey;
+  metadataKey: 'lpaMeta' | 'crpMeta';
+  label: string;
+  unit: string;
+}
+
+export const OPTIONAL_MINIMUM_SLICE_MARKERS: readonly OptionalMinimumSliceMarkerConfig[] = [
+  {
+    marker: 'lpa',
+    fieldKey: 'lpa',
+    metadataKey: 'lpaMeta',
+    label: 'Lp(a)',
+    unit: 'mg/dL',
+  },
+  {
+    marker: 'crp',
+    fieldKey: 'crp',
+    metadataKey: 'crpMeta',
+    label: 'CRP',
+    unit: 'mg/L',
+  },
+] as const;
 
 export interface MinimumSliceMobileFormDraft {
   panelId: string;
@@ -8,9 +42,42 @@ export interface MinimumSliceMobileFormDraft {
   hba1c: string;
   glucose: string;
   lpa?: string;
+  lpaMeta?: MinimumSliceMobileFieldMetadata;
   crp?: string;
+  crpMeta?: MinimumSliceMobileFieldMetadata;
   fastingContext?: boolean;
   source?: string;
+}
+
+export function createOptionalFieldMetadata(
+  fieldState: Extract<FieldState, 'provided' | 'missing' | 'disabled'>,
+): MinimumSliceMobileFieldMetadata {
+  if (fieldState === 'provided') {
+    return { fieldState: 'provided', valueSource: 'manual', stateReason: null };
+  }
+
+  if (fieldState === 'disabled') {
+    return { fieldState: 'disabled', valueSource: 'manual', stateReason: 'user_disabled' };
+  }
+
+  return { fieldState: 'missing', valueSource: 'unknown', stateReason: 'not_available' };
+}
+
+export function getOptionalMarkerConfig(marker: OptionalMinimumSliceMarkerKey): OptionalMinimumSliceMarkerConfig {
+  const config = OPTIONAL_MINIMUM_SLICE_MARKERS.find((candidate) => candidate.marker === marker);
+  if (!config) {
+    throw new Error(`Unsupported optional minimum-slice marker: ${marker}`);
+  }
+
+  return config;
+}
+
+export function getOptionalFieldMetadata(
+  draft: MinimumSliceMobileFormDraft,
+  marker: OptionalMinimumSliceMarkerKey,
+): MinimumSliceMobileFieldMetadata | undefined {
+  const config = getOptionalMarkerConfig(marker);
+  return draft[config.metadataKey];
 }
 
 export interface BuildMinimumSlicePanelFromDraftOptions {
@@ -61,6 +128,33 @@ function parseOptionalNumber(value: string | undefined, field: string): number |
   return parsed;
 }
 
+function hasFieldMetadata(metadata: MinimumSliceMobileFieldMetadata | undefined): boolean {
+  return metadata?.fieldState !== undefined || metadata?.valueSource !== undefined || metadata?.stateReason !== undefined;
+}
+
+function buildOptionalEntry(
+  marker: MinimumSlicePanelInput['entries'][number]['marker'],
+  rawValue: string | undefined,
+  field: string,
+  unit: string,
+  metadata: MinimumSliceMobileFieldMetadata | undefined,
+): MinimumSlicePanelInput['entries'][number] | undefined {
+  const value = parseOptionalNumber(rawValue, field);
+
+  if (value === undefined && !hasFieldMetadata(metadata)) {
+    return undefined;
+  }
+
+  return {
+    marker,
+    value: value ?? null,
+    unit,
+    ...(metadata?.fieldState !== undefined ? { field_state: metadata.fieldState } : {}),
+    ...(metadata?.valueSource !== undefined ? { value_source: metadata.valueSource } : {}),
+    ...(metadata?.stateReason !== undefined ? { state_reason: metadata.stateReason } : {}),
+  };
+}
+
 export function createMinimumSliceMobileFormDraft(): MinimumSliceMobileFormDraft {
   return {
     panelId: '',
@@ -70,7 +164,9 @@ export function createMinimumSliceMobileFormDraft(): MinimumSliceMobileFormDraft
     hba1c: '',
     glucose: '',
     lpa: '',
+    lpaMeta: createOptionalFieldMetadata('missing'),
     crp: '',
+    crpMeta: createOptionalFieldMetadata('missing'),
     fastingContext: true,
     source: 'mobile-manual-entry',
   };
@@ -107,14 +203,18 @@ export function buildMinimumSlicePanelInputFromMobileDraft(
     ],
   };
 
-  const lpa = parseOptionalNumber(draft.lpa, 'lpa');
-  if (lpa !== undefined) {
-    input.entries.push({ marker: 'lpa', value: lpa, unit: 'mg/dL' });
-  }
+  for (const config of OPTIONAL_MINIMUM_SLICE_MARKERS) {
+    const entry = buildOptionalEntry(
+      config.marker,
+      draft[config.fieldKey],
+      config.fieldKey,
+      config.unit,
+      draft[config.metadataKey],
+    );
 
-  const crp = parseOptionalNumber(draft.crp, 'crp');
-  if (crp !== undefined) {
-    input.entries.push({ marker: 'crp', value: crp, unit: 'mg/L' });
+    if (entry !== undefined) {
+      input.entries.push(entry);
+    }
   }
 
   return input;

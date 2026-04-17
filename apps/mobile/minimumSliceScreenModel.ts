@@ -1,8 +1,12 @@
 import {
   buildMinimumSlicePanelInputFromMobileDraft,
+  createOptionalFieldMetadata,
   createMinimumSliceMobileFormDraft,
+  getOptionalMarkerConfig,
   MinimumSliceMobileFormDraft,
+  OptionalMinimumSliceMarkerKey,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
+import { FieldState } from '../../packages/domain/fieldValueState.ts';
 import {
   createIdleMinimumSliceSubmissionState,
   createSubmittingMinimumSliceSubmissionState,
@@ -16,6 +20,7 @@ export interface MinimumSliceMobileSession {
   profileId: string;
   accessToken: string;
   supabaseUrl: string;
+  supabaseAnonKey?: string;
   functionPath?: string;
 }
 
@@ -69,6 +74,24 @@ export function patchMinimumSliceDraft(
   };
 }
 
+export function setOptionalMarkerFieldState(
+  state: MinimumSliceScreenModel,
+  marker: OptionalMinimumSliceMarkerKey,
+  fieldState: Extract<FieldState, 'provided' | 'missing' | 'disabled'>,
+): MinimumSliceScreenModel {
+  const config = getOptionalMarkerConfig(marker);
+  const nextMetadata = createOptionalFieldMetadata(fieldState);
+
+  return {
+    ...state,
+    draft: {
+      ...state.draft,
+      ...(fieldState === 'disabled' ? { [marker]: '' } : {}),
+      [config.metadataKey]: nextMetadata,
+    },
+  };
+}
+
 export async function submitMinimumSliceScreen(
   state: MinimumSliceScreenModel,
   session: MinimumSliceMobileSession,
@@ -82,6 +105,9 @@ export async function submitMinimumSliceScreen(
   const options = {
     baseUrl: `${trimTrailingSlash(session.supabaseUrl)}/functions/v1`,
     getAccessToken: () => session.accessToken,
+    ...(session.supabaseAnonKey !== undefined
+      ? { supabaseAnonKey: session.supabaseAnonKey }
+      : {}),
     ...(session.functionPath !== undefined ? { functionPath: session.functionPath } : {}),
   };
 

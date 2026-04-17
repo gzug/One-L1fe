@@ -11,6 +11,11 @@ import {
 } from 'react-native';
 import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
+import {
+  createOptionalFieldMetadata,
+  getOptionalFieldMetadata,
+  OptionalMinimumSliceMarkerKey,
+} from '../../packages/domain/minimumSliceMobileForm.ts';
 
 const FIELD_ORDER = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
@@ -35,6 +40,13 @@ function renderTopDrivers(state: MinimumSliceScreenModel): string {
   return topDrivers !== undefined && topDrivers.length > 0
     ? topDrivers.join(', ')
     : 'none';
+}
+
+function getOptionalMarkerState(state: MinimumSliceScreenModel, marker: OptionalMinimumSliceMarkerKey): 'provided' | 'missing' | 'disabled' {
+  const meta = getOptionalFieldMetadata(state.draft, marker);
+  if (meta?.fieldState === 'disabled') return 'disabled';
+  if (meta?.fieldState === 'provided') return 'provided';
+  return 'missing';
 }
 
 interface MinimumSliceScreenProps {
@@ -83,7 +95,25 @@ export default function MinimumSliceScreen({
 
   const handleChange = useCallback(
     (field: FieldKey, value: string): void => {
-      const nextState = controller.patchDraft({ [field]: value });
+      const patch: Record<string, unknown> = { [field]: value };
+
+      if (field === 'lpa') {
+        patch.lpaMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'crp') {
+        patch.crpMeta = createOptionalFieldMetadata('provided');
+      }
+
+      const nextState = controller.patchDraft(patch as Partial<MinimumSliceScreenModel['draft']>);
+      setScreenState(nextState);
+    },
+    [controller],
+  );
+
+  const handleOptionalMarkerStateChange = useCallback(
+    (marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): void => {
+      const nextState = controller.setOptionalMarkerFieldState(marker, fieldState);
       setScreenState(nextState);
     },
     [controller],
@@ -112,6 +142,35 @@ export default function MinimumSliceScreen({
               style={styles.input}
               value={screenState.draft[field.key]}
             />
+            {(field.key === 'lpa' || field.key === 'crp') ? (
+              <View style={styles.optionRow}>
+                {(['provided', 'missing', 'disabled'] as const).map((stateOption) => {
+                  const isActive = getOptionalMarkerState(screenState, field.key) === stateOption;
+                  return (
+                    <Pressable
+                      key={stateOption}
+                      onPress={() => handleOptionalMarkerStateChange(field.key, stateOption)}
+                      style={[styles.optionChip, isActive ? styles.optionChipActive : null]}
+                    >
+                      <Text style={[styles.optionChipText, isActive ? styles.optionChipTextActive : null]}>
+                        {stateOption === 'provided'
+                          ? 'Active'
+                          : stateOption === 'missing'
+                            ? 'Missing'
+                            : 'Not provided'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
+            {(field.key === 'lpa' || field.key === 'crp') && getOptionalMarkerState(screenState, field.key) !== 'provided' ? (
+              <Text style={styles.fieldHint}>
+                {getOptionalMarkerState(screenState, field.key) === 'disabled'
+                  ? `${field.label} is intentionally excluded from use.`
+                  : `${field.label} is currently unavailable and should not break calculations.`}
+              </Text>
+            ) : null}
           </View>
         ))}
       </View>
@@ -203,6 +262,37 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 6,
+  },
+  optionChip: {
+    backgroundColor: '#eef2ff',
+    borderColor: '#c7d2fe',
+    borderRadius: 999,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  optionChipActive: {
+    backgroundColor: '#4263eb',
+    borderColor: '#4263eb',
+  },
+  optionChipText: {
+    color: '#334155',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  optionChipTextActive: {
+    color: '#ffffff',
+  },
+  fieldHint: {
+    color: '#52607a',
+    fontSize: 13,
+    lineHeight: 18,
   },
   sectionTitle: {
     color: '#152033',
