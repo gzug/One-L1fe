@@ -1,5 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
 import {
   parseMinimumSliceFunctionRequestBody,
@@ -8,10 +8,19 @@ import {
 import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository.ts';
 import { corsHeaders, json } from '../_shared/http.ts';
 
-/**
- * Thrown when the request payload is invalid or fails validation.
- * Maps to HTTP 400.
- */
+// ---------------------------------------------------------------------------
+// Typed error classes (#33)
+// ---------------------------------------------------------------------------
+
+/** Auth token missing or invalid → 401 */
+class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
+/** Request payload malformed or fails validation → 400 */
 class ClientError extends Error {
   constructor(message: string) {
     super(message);
@@ -19,16 +28,113 @@ class ClientError extends Error {
   }
 }
 
-/**
- * Thrown when the authenticated user does not own the requested resource.
- * Maps to HTTP 403.
- */
+/** Referenced ID does not belong to the authenticated user → 403 */
 class OwnershipError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'OwnershipError';
   }
 }
+
+/** Supabase write/read failed unexpectedly → 502 */
+class PersistenceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'PersistenceError';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ownership validation (#32)
+// ---------------------------------------------------------------------------
+
+/**
+ * Verifies that a lab_results row with the given id belongs to profileId.
+ * Throws OwnershipError if it does not exist or belongs to another profile.
+ */
+async function assertLabResultOwnership(
+  client: SupabaseClient,
+  labResultId: string,
+  profileId: string,
+): Promise<void> {
+  const { data, error } = await client
+    .from('lab_results')
+    .select('id')
+    .eq('id', labResultId)
+    .eq('profile_id', profileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new PersistenceError(`Ownership check failed for lab_results: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new OwnershipError(
+      `labResultId ${labResultId} does not exist or does not belong to the authenticated profile.`,
+    );
+  }
+}
+
+/**
+ * Verifies that all lab_result_entries rows belong to profileId via their
+ * parent lab_result. Only validates IDs actually present in the map.
+ */
+async function assertLabResultEntriesOwnership(
+  client: SupabaseClient,
+  entryIds: string[],
+  profileId: string,
+): Promise<void> {
+  if (entryIds.length === 0) return;
+
+  const { data, error } = await client
+    .from('lab_result_entries')
+    .select('id, lab_results!inner(profile_id)')
+    .in('id', entryIds)
+    .eq('lab_results.profile_id', profileId);
+
+  if (error) {
+    throw new PersistenceError(`Ownership check failed for lab_result_entries: ${error.message}`);
+  }
+
+  const ownedIds = new Set((data ?? []).map((row: { id: string }) => row.id));
+  const foreign = entryIds.filter((id) => !ownedIds.has(id));
+
+  if (foreign.length > 0) {
+    throw new OwnershipError(
+      `interpretedEntryLabResultEntryIds contains IDs that do not belong to the authenticated profile: ${foreign.join(', ')}.`,
+    );
+  }
+}
+
+/**
+ * Verifies that a derived_insights row belongs to profileId.
+ */
+async function assertDerivedInsightOwnership(
+  client: SupabaseClient,
+  derivedInsightId: string,
+  profileId: string,
+): Promise<void> {
+  const { data, error } = await client
+    .from('derived_insights')
+    .select('id')
+    .eq('id', derivedInsightId)
+    .eq('profile_id', profileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new PersistenceError(`Ownership check failed for derived_insights: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new OwnershipError(
+      `derivedInsightId ${derivedInsightId} does not exist or does not belong to the authenticated profile.`,
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Handler
+// ---------------------------------------------------------------------------
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
@@ -50,15 +156,11 @@ Deno.serve(async (request) => {
     const authHeader = request.headers.get('Authorization');
 
     if (!authHeader) {
-      return json({ error: 'Missing Authorization header.' }, { status: 401 });
+      throw new AuthError('Missing Authorization header.');
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader,
-        },
-      },
+      global: { headers: { Authorization: authHeader } },
     });
 
     const {
@@ -67,9 +169,14 @@ Deno.serve(async (request) => {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return json({ error: 'Unauthorized.' }, { status: 401 });
+      throw new AuthError('Unauthorized.');
     }
 
+    // profileId is always derived from the auth session — never from the
+    // request body. Caller-supplied profile ids are intentionally ignored.
+    const profileId = user.id;
+
+    // Parse and validate request body (ClientError on failure)
     let rawBody: unknown;
     try {
       rawBody = await request.json();
@@ -85,41 +192,63 @@ Deno.serve(async (request) => {
       }
     })();
 
-    // Ownership enforcement: profileId is always taken from the authenticated
-    // session. Any caller-supplied profileId in the payload is intentionally
-    // ignored (see README). We surface an explicit error if the panel somehow
-    // routes to a different profile to make ownership violations auditable.
-    const profileId = user.id;
+    // Ownership validation for all referenced IDs (#32)
+    const persistence = body.persistence;
 
-    const result = await saveMinimumSliceInterpretation(
-      supabase,
-      {
-        profileId,
-        panelId: body.panel.panelId,
-        collectedAt: body.panel.collectedAt,
-        source: body.panel.source,
-        entries: body.panel.entries,
-      },
-      {
-        now: parseOptionalDateFromIso(body.execution?.now, 'execution.now'),
-        createdAt: body.execution?.createdAt,
-        labResultId: body.persistence?.labResultId,
-        interpretedEntryLabResultEntryIds: body.persistence?.interpretedEntryLabResultEntryIds,
-        derivedInsightId: body.persistence?.derivedInsightId,
-        auditTraceId: body.persistence?.auditTraceId,
-      },
-    );
+    if (persistence?.labResultId) {
+      await assertLabResultOwnership(supabase, persistence.labResultId, profileId);
+    }
+
+    if (persistence?.interpretedEntryLabResultEntryIds) {
+      const entryIds = Object.values(persistence.interpretedEntryLabResultEntryIds);
+      await assertLabResultEntriesOwnership(supabase, entryIds, profileId);
+    }
+
+    if (persistence?.derivedInsightId) {
+      await assertDerivedInsightOwnership(supabase, persistence.derivedInsightId, profileId);
+    }
+
+    // Persistence (PersistenceError bubbles from supabaseRepository on failure)
+    let result;
+    try {
+      result = await saveMinimumSliceInterpretation(
+        supabase,
+        {
+          profileId,
+          panelId: body.panel.panelId,
+          collectedAt: body.panel.collectedAt,
+          source: body.panel.source,
+          entries: body.panel.entries,
+        },
+        {
+          now: parseOptionalDateFromIso(body.execution?.now, 'execution.now'),
+          createdAt: body.execution?.createdAt,
+          labResultId: persistence?.labResultId,
+          interpretedEntryLabResultEntryIds: persistence?.interpretedEntryLabResultEntryIds,
+          derivedInsightId: persistence?.derivedInsightId,
+          auditTraceId: persistence?.auditTraceId,
+        },
+      );
+    } catch (e) {
+      if (e instanceof OwnershipError || e instanceof ClientError || e instanceof AuthError) throw e;
+      throw new PersistenceError(e instanceof Error ? e.message : 'Persistence failed.');
+    }
 
     return json(result, { status: 200 });
+
   } catch (error) {
+    if (error instanceof AuthError) {
+      return json({ error: error.message }, { status: 401 });
+    }
     if (error instanceof ClientError) {
       return json({ error: error.message }, { status: 400 });
     }
-
     if (error instanceof OwnershipError) {
       return json({ error: error.message }, { status: 403 });
     }
-
+    if (error instanceof PersistenceError) {
+      return json({ error: error.message }, { status: 502 });
+    }
     const message = error instanceof Error ? error.message : 'Unknown error.';
     return json({ error: message }, { status: 500 });
   }
