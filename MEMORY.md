@@ -37,8 +37,10 @@ Important: this file stores project memory, not personal health records. Do not 
 - In the mobile auth seam, load `react-native-url-polyfill/auto` before `@supabase/supabase-js`.
 - Treat true signed-out auth states separately from operational auth errors in `getFreshAccessToken()` and adjacent mobile flows.
 - For wearable work, reuse `apps/mobile/mobileSupabaseAuth.ts` and do not introduce a second mobile Supabase client.
-- Early wearable seams should be prepared in a device-free, mockable way when no physical device/app access is available yet.
-- Garmin smartwatch is the current first planning target for wearable source provisioning.
+- The current mobile wearable path on `main` includes `useWearableSource`, `useWearableSync`, `WearableSyncScreen`, and an Android-first Health Connect permission gate.
+- Android wearable permissions currently use `react-native-health-connect`; iOS remains an explicit stub until a separate HealthKit adapter slice is added.
+- Early wearable seams should be prepared in a device-free, mockable way when no physical device/app access is available yet, but reset/readiness docs must clearly distinguish hosted-proof from real device proof.
+- Garmin smartwatch is the current first target for wearable source provisioning and eventual real-device verification, but current proof is still device-free / hosted until physical hardware access exists.
 - The first tight Garmin-first field slice should prioritize `resting_heart_rate`, `sleep_duration`, `steps_total`, and `hrv` with explicit method metadata.
 - `subjective_energy` is useful as an early calibrator, but should stay self-report-first rather than being forced into wearable ingest.
 - The chosen pre-ingest provisioning seam is `supabase/functions/wearable-source-resolve/`.
