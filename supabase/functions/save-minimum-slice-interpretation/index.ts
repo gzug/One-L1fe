@@ -9,26 +9,25 @@ import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository
 import { corsHeaders, json } from '../_shared/http.ts';
 
 /**
- * Determines whether a thrown error is the result of bad client input
- * (parse/validation failure) vs. an unexpected server-side failure.
- * Client errors → 400, server errors → 500.
+ * Thrown when the request payload is invalid or fails validation.
+ * Maps to HTTP 400.
  */
-function isClientError(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const clientErrorSignals = [
-    'must be',
-    'must be a',
-    'must be an',
-    'panel.',
-    'persistence.',
-    'execution.',
-    'Request body',
-    'non-empty',
-    'valid ISO',
-    'number or null',
-    'boolean or null',
-  ];
-  return clientErrorSignals.some((signal) => error.message.includes(signal));
+class ClientError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ClientError';
+  }
+}
+
+/**
+ * Thrown when the authenticated user does not own the requested resource.
+ * Maps to HTTP 403.
+ */
+class OwnershipError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'OwnershipError';
+  }
 }
 
 Deno.serve(async (request) => {
@@ -71,12 +70,31 @@ Deno.serve(async (request) => {
       return json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
-    const body = parseMinimumSliceFunctionRequestBody(await request.json());
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      throw new ClientError('Request body must be valid JSON.');
+    }
+
+    const body = (() => {
+      try {
+        return parseMinimumSliceFunctionRequestBody(rawBody);
+      } catch (e) {
+        throw new ClientError(e instanceof Error ? e.message : 'Invalid request body.');
+      }
+    })();
+
+    // Ownership enforcement: profileId is always taken from the authenticated
+    // session. Any caller-supplied profileId in the payload is intentionally
+    // ignored (see README). We surface an explicit error if the panel somehow
+    // routes to a different profile to make ownership violations auditable.
+    const profileId = user.id;
 
     const result = await saveMinimumSliceInterpretation(
       supabase,
       {
-        profileId: user.id,
+        profileId,
         panelId: body.panel.panelId,
         collectedAt: body.panel.collectedAt,
         source: body.panel.source,
@@ -94,8 +112,15 @@ Deno.serve(async (request) => {
 
     return json(result, { status: 200 });
   } catch (error) {
+    if (error instanceof ClientError) {
+      return json({ error: error.message }, { status: 400 });
+    }
+
+    if (error instanceof OwnershipError) {
+      return json({ error: error.message }, { status: 403 });
+    }
+
     const message = error instanceof Error ? error.message : 'Unknown error.';
-    const status = isClientError(error) ? 400 : 500;
-    return json({ error: message }, { status });
+    return json({ error: message }, { status: 500 });
   }
 });
