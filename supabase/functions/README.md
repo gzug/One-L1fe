@@ -9,3 +9,5 @@ Use this area for:
 
 Current function paths:
 - `save-minimum-slice-interpretation/` for authenticated minimum-slice evaluation and persistence writes into `interpretation_runs`, `interpreted_entries`, and `recommendations`.
+- `wearable-source-resolve/` as the single authenticated wearable provisioning seam for `wearable_source_id` ownership before ingestion.
+- `wearables-sync/` for authenticated wearable observation ingest/upsert tied to an owned `wearable_source_id`.
