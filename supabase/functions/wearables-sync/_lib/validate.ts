@@ -35,6 +35,9 @@ export function validateSyncRequest(raw: unknown): WearableSyncRequest {
   if (!Array.isArray(body.observations)) {
     throw new Error('observations must be an array.');
   }
+  if (body.observations.length === 0) {
+    throw new Error('observations must not be empty. Send at least one observation per sync request.');
+  }
   if (body.observations.length > 5000) {
     throw new Error('observations exceeds maximum batch size of 5000.');
   }
