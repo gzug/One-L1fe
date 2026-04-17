@@ -1,14 +1,14 @@
 import { FieldState, FieldStateReason, FieldValueSource, requiresNullValueForFieldState } from './fieldValueState.ts';
 import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
 
-// Literal union type derived from the biomarkers array — gives compile-time
-// safety for all marker key references across the domain layer.
-export type BiomarkerKey = (typeof biomarkers)[number]['key'];
+export type BiomarkerKey = BiomarkerDefinition['key'];
 
 export enum MarkerRole {
   Core = 'core',
   Supporting = 'supporting',
   Contextual = 'contextual',
+  // Weekly is reserved for future scheduled-check markers and is not yet
+  // assigned to any biomarker in markerRuntimeConfigs.
   Weekly = 'weekly',
   Coverage = 'coverage',
 }
@@ -96,6 +96,9 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
   ldl: {
     key: 'ldl',
     markerRole: MarkerRole.Core,
+    // LDL scoreRole is Fallback, but it is still listed in REQUIRED_MINIMUM_SLICE_MARKERS
+    // because its presence or absence directly drives the lipid hierarchy decision
+    // (LIP-002 / LIP-003). Missing LDL is a coverage signal, not just an optional gap.
     scoreRole: ScoreRole.Fallback,
     allowedUnits: ['mg/dL'],
     requiresAssay: false,

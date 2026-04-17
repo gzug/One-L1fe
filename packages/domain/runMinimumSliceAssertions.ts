@@ -26,7 +26,7 @@ async function main(): Promise<void> {
   runEvidenceRegistrySeedAssertions();
   await runSupabasePersistenceAssertions();
   await runSupabaseRepositoryAssertions();
-  console.log('✅ All domain assertions passed.');
+  console.log('All domain assertions passed.');
 }
 
 void main().catch((error: unknown) => {

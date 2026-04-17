@@ -13,12 +13,10 @@ import {
 import { getMobileSupabaseClient } from './mobileSupabaseAuth.ts';
 
 interface LoginScreenProps {
-  onSignedIn: () => void;
   initialError?: string;
 }
 
 export default function LoginScreen({
-  onSignedIn,
   initialError,
 }: LoginScreenProps): React.JSX.Element {
   const [email, setEmail] = useState('');
@@ -51,7 +49,7 @@ export default function LoginScreen({
         return;
       }
 
-      onSignedIn();
+      // Navigation is handled automatically by useAuthSession's onAuthStateChange listener.
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sign in failed.');
     } finally {
