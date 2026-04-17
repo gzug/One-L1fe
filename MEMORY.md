@@ -49,6 +49,7 @@ Important: this file stores project memory, not personal health records. Do not 
 - In V1, treat `provided` as a display-layer umbrella concept rather than a required persisted canonical state.
 - Keep `declined` out of V1 unless a real settings/preferences flow exists.
 - If `stale` is added, derive it from one shared typed domain policy, preferably from metric-level freshness/observation timestamps rather than a coarse source timestamp.
+- **`stale` policy is live.** `isDerivedStale()` and `getDerivedDisplayState()` in `packages/domain/fieldValueState.ts` are the canonical shared policy. `stale` must never be persisted as a `field_state` column value — derive it at read/render time only.
 - Keep the HRV no-method render guard explicit in the reusable component contract as an impossible-state WARN path, not as a normal product path.
 - The canonical architecture note for this is `docs/architecture/field-value-state-and-missingness-v1.md`.
 - Field-state QA priorities and release blockers live in `docs/architecture/field-status-qa-checklist-v1.md`.
