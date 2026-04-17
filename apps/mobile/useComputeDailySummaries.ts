@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { supabase } from './supabaseClient';
+import { getMobileSupabaseClient } from './mobileSupabaseAuth';
 
 export type ComputeState = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -35,6 +35,7 @@ export function useComputeDailySummaries(): UseComputeDailySummariesReturn {
       setResult(null);
 
       try {
+        const supabase = getMobileSupabaseClient();
         const { data, error: fnError } = await supabase.functions.invoke(
           'compute-daily-summaries',
           { body: params },
