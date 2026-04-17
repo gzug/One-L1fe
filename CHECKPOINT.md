@@ -12,22 +12,28 @@ scope: repo
 
 ## Verdict
 
-The minimum-slice mobile seam is proven live end to end. Field-state contract is now complete through the `stale` derived-policy layer. Wearable ingestion proof (provisioning + first ingest) is the only remaining active seam — all local code, migration, and doc prep is done; hosted function deployment and smoke-test are the remaining blockers.
+The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. Wearable ingestion proof is now **hosted-proof complete** at the function/smoke-test level — provisioning, idempotency, ingest, and all negative paths verified against hosted Supabase. No physical Garmin device or app yet; that is the only remaining gap before real data flows.
 
 ## Current state
 
-- Branch: `main`, currently aligned with `origin/main` as the clean base for the next cycle
-- Active seam: wearable ingestion proof — local prep complete, hosted deployment + smoke-test still pending
+- Branch: `main` at `c61e44f`, fully aligned with `origin/main`
+- PRs #52, #53, #54, #55 merged
+- Active seam: app-side wearable sync integration — backend is proven, mobile trigger is next
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
-  - **PR #52** (`pr-e-field-state-stale-and-validate-guardrails`) — open, awaiting CI + review
-  - **PR #53** (`pr-f-memory-stale-policy-live`) — open, merge after #52
-  - **PR #54** (`pr-g-checkpoint-post-ef`) — this PR, merge after #53
-  - hosted deployment of `wearable-source-resolve` and `wearables-sync` still pending — no physical device/Garmin app available yet
-  - no product blocker remains on the minimum-slice seam
+  - no physical Garmin device / Health Connect app access yet
+  - no product blocker remains on minimum-slice or wearable backend seams
 - Key confirmed facts:
-  - hosted migrations match repo (all 8 migrations including `20260417093000_wearable_source_identity_guards.sql`)
-  - RLS and policies are live
+  - hosted migrations applied and local chain aligned (all migrations through `20260417093000_wearable_source_identity_guards.sql`)
+  - RLS and policies live
+  - `wearable-source-resolve` v1 deployed, `verify_jwt: false`, smoke tests green:
+    - create: `wearable_source_id` provisioned for `g.zugang@hotmail.com`
+    - idempotency: second call returns same ID, `created: false`
+    - missing instance identity: 400 with correct error
+    - missing auth: 401
+  - `wearables-sync` v2 deployed, `verify_jwt: false`, smoke test green:
+    - 1 `resting_heart_rate` observation, `records_inserted: 1`, `status: success`
+  - all edge functions use `verify_jwt: false` + in-function `getUser()` auth — documented in `supabase/README.md`
   - `save-minimum-slice-interpretation` works for real authenticated mobile submit
   - Expo Go login via QR confirmed live on iPhone for `g.zugang@hotmail.com`
   - the current controllable confirmed smoke-test user is `g.zugang@hotmail.com` (UID `523b48a4-2aa2-4e4c-97f2-8fa95141ac8b`)
@@ -36,49 +42,43 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
   - `apps/mobile/.gitignore` protects `.env` and `.env.*`
   - `apps/mobile/metro.config.js` present for monorepo layout resolution
   - for the wearable seam, mobile auth must continue to flow through `apps/mobile/mobileSupabaseAuth.ts`
-  - wearable provisioning path is `supabase/functions/wearable-source-resolve/` only; the parallel `provision-wearable-source/` draft is removed
+  - wearable provisioning path is `supabase/functions/wearable-source-resolve/` only
   - local mobile helpers exist at `apps/mobile/wearableSourceProvisioning.ts` and `apps/mobile/src/hooks/useWearableSource.ts`
   - provisioning identity anchored to instance-level identifiers: `app_install_id` first, `device_hardware_id` later
   - `source_app_id` is connector metadata, not a sole ownership key
-  - identity-guard migration (`20260417093000_wearable_source_identity_guards.sql`) is on `main` and applies unique index guards for `(profile_id, source_kind, app_install_id)` and `(profile_id, source_kind, device_hardware_id)`
-  - `wearables-sync` rejects inactive `wearable_sources` and now also rejects empty observations arrays (enforced in `validate.ts` as of PR #52)
-  - Garmin smartwatch is the first intended wearable target, but only at planning/preparation level; no physical device or Garmin app access yet
+  - identity-guard migration (`20260417093000_wearable_source_identity_guards.sql`) applies unique index guards for `(profile_id, source_kind, app_install_id)` and `(profile_id, source_kind, device_hardware_id)`
+  - `wearables-sync` rejects inactive `wearable_sources` and empty observations arrays
+  - Garmin smartwatch is the first intended wearable target — at planning level only, no physical device yet
   - Garmin-first field priority: `resting_heart_rate`, `sleep_duration`, `steps_total`, `hrv` with explicit method tagging
   - HRV V1 policy: always store/display method metadata, never compare or aggregate SDNN and RMSSD together, `unknown` method rejected at `validate.ts` layer
-  - `wearable_metric_definitions` already seeded for first real device metrics
+  - `wearable_metric_definitions` seeded for first real device metrics
   - `subjective_energy` stays self-report-first, not forced into wearable ingest
-  - Garmin-first example payloads exist under `supabase/functions/wearables-sync/examples/` using `platform = health_connect` as the near-term path
-  - field-state contract is now complete:
-    - `packages/domain/fieldValueState.ts` defines `FieldState`, `FieldValueSource`, `FieldStateReason`, `AppFieldValue<T>`, `ACTIVE_FIELD_STATES`, `isActiveFieldState()`, `requiresNullValueForFieldState()`, `DerivedDisplayState`, `isDerivedStale()`, `getDerivedDisplayState()`
-    - `stale` is a derived display/recommendation concept only — never persisted as a `field_state` column value; derived at read/render time via `isDerivedStale()` (default 30-day window, configurable)
-    - minimum-slice function parsing accepts field-state metadata (`field_state`, `value_source`, `state_reason`) with early guardrails
-    - minimum-slice mobile draft/model/UI support explicit optional-field states for `lpa` and `crp`
-    - minimum-slice recommendation logic distinguishes `disabled` from generic `missing` — intentionally excluded fields do not trigger false collect-more-data prompts
-    - `declined` stays out of V1 unless a real settings/preferences flow exists
-    - `provided` is a display-layer umbrella concept, not a required persisted canonical state
-    - "reset to device value" stays later unless the product starts retaining parallel synced + manual candidate values explicitly
-  - field-state QA checklist (`docs/architecture/field-status-qa-checklist-v1.md`) is now `status: current`:
-    - P0 #9 (HRV-without-method) marked enforced
-    - P0 #15 (empty observations) marked enforced
-    - P1 #1 (stale) updated with implementation pointer
-  - deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`; source of truth stays in `packages/domain/`
-  - local cleanup on 2026-04-16 removed disposable AI-generated repo/project clutter
+  - Garmin-first example payloads exist under `supabase/functions/wearables-sync/examples/` using `platform = health_connect`
+  - field-state contract is complete:
+    - `packages/domain/fieldValueState.ts` defines full contract including `isDerivedStale()`, `getDerivedDisplayState()`
+    - `stale` is derived-only, never persisted
+    - minimum-slice function parsing accepts field-state metadata with early guardrails
+    - minimum-slice recommendation logic distinguishes `disabled` from `missing`
+  - field-state QA checklist (`docs/architecture/field-status-qa-checklist-v1.md`) is `status: current`:
+    - P0 #9 (HRV-without-method) enforced
+    - P0 #15 (empty observations) enforced
+    - P1 #1 (stale) implemented
+  - deployment note: domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`
 
 ## Current next step
 
 In order:
-1. **Merge open PRs in order**: #52 (field-state+validate) → #53 (memory) → #54 (this checkpoint)
-2. **Deploy `wearable-source-resolve` to hosted Supabase** and run one authenticated smoke call to verify `wearable_source_id` ownership for `g.zugang@hotmail.com`
-3. **Deploy `wearables-sync` to hosted Supabase** and run one minimal ingest request using the resolved `wearable_source_id`; verify `wearable_sync_runs` + `wearable_observations` writes
-4. **Verify negative paths explicitly**: inactive source on `wearables-sync`, unknown source id, missing/invalid auth on `wearable-source-resolve`, missing instance-level identity on provisioning
-5. **Then open CHECKPOINT for wearable seam proven** — once steps 2–4 are green
+1. **App-side sync trigger** — wire `useWearableSource.ts` and `wearableSourceProvisioning.ts` into the mobile app flow; call `wearable-source-resolve` on first launch
+2. **First real Health Connect / Apple Health ingest** — pass real observations from device to `wearables-sync`
+3. **Daily summaries computation** — derive `resting_heart_rate`, `sleep_duration`, `steps_total` from raw observations
+4. **Physical Garmin device** — when available, verify real data flow end to end
 
 Near-term simplifications to keep:
 - keep `declined` out of V1 unless a real settings/preferences flow exists
 - keep "reset to device value" as later work
 - treat `provided` as a display-layer umbrella, not a required persisted state
-- keep the HRV render guard explicit in the reusable component contract as a WARN-level impossible-state fallback
-- keep `isDerivedStale()` default 30-day window as the lab-field starting policy; tighten for wearable-freshness at callsite when real sync data exists
+- keep the HRV render guard explicit in the reusable component contract
+- keep `isDerivedStale()` default 30-day window as the lab-field starting policy
 
 ## Startup rule
 
@@ -96,7 +96,7 @@ Only read deeper docs when the task actually touches them.
 - `docs/architecture/field-status-qa-checklist-v1.md` when the task is about test coverage, QA priorities, or release-blocking field-state failures.
 - `GLOSSARY.md` only when abbreviations or term meanings are unclear.
 - `README.md` only for broad repo orientation.
-- `supabase/README.md` for Supabase workflow, CI commands, secrets, and deploy procedure.
+- `supabase/README.md` for Supabase workflow, CI commands, secrets, deploy procedure, and edge function conventions.
 - `supabase/functions/wearable-source-resolve/README.md` only when working directly on wearable source resolution/provisioning.
 
 ## Guardrails
