@@ -12,17 +12,19 @@ scope: repo
 
 ## Verdict
 
-The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. Wearable ingestion proof is now **hosted-proof complete** at the function/smoke-test level — provisioning, idempotency, ingest, and all negative paths verified against hosted Supabase. No physical Garmin device or app yet; that is the only remaining gap before real data flows.
+The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. The wearable backend seam is hosted-proof complete, and the first app-side wearable sync UI path is now merged on `main`. The remaining gaps are native Android Health Connect wiring outside the current repo, replacement of the temporary dev install identifier, and first real device-backed ingest proof.
 
 ## Current state
 
-- Branch: `main` at `c61e44f`, fully aligned with `origin/main`
-- PRs #52, #53, #54, #55 merged
-- Active seam: app-side wearable sync integration — backend is proven, mobile trigger is next
+- Branch: `main` at `243a116`, aligned with `origin/main`
+- PRs #48 through #64 merged, including provisioning, ingest guardrails, field-state, docs, wearable mobile hooks/UI, Health Connect permission gate, and follow-up cleanup/fixes
+- Active seam: real device-backed wearable ingest proof and native Android completion
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
-  - no physical Garmin device / Health Connect app access yet
-  - no product blocker remains on minimum-slice or wearable backend seams
+  - no physical Garmin device / Health Connect data source proof yet
+  - Android native Health Connect setup is documented but still requires manual `MainActivity.kt` and `AndroidManifest.xml` changes outside the current repo state
+  - `WearableSyncScreen.tsx` still uses a temporary `MOCK_APP_INSTALL_ID` and should switch to a real install/device identity once the device seam is available
+  - branch protection for `main` still needs explicit verification/enforcement
 - Key confirmed facts:
   - hosted migrations applied and local chain aligned (all migrations through `20260417093000_wearable_source_identity_guards.sql`)
   - RLS and policies live
@@ -31,31 +33,43 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
     - idempotency: second call returns same ID, `created: false`
     - missing instance identity: 400 with correct error
     - missing auth: 401
-  - `wearables-sync` v2 deployed, `verify_jwt: false`, smoke test green:
-    - 1 `resting_heart_rate` observation, `records_inserted: 1`, `status: success`
-  - all edge functions use `verify_jwt: false` + in-function `getUser()` auth — documented in `supabase/README.md`
+  - `wearables-sync` v2 deployed, `verify_jwt: false`, smoke tests green:
+    - hosted ingest writes succeed
+    - inactive source is rejected
+    - empty observations arrays are rejected
+  - all edge functions use `verify_jwt: false` + in-function `getUser()` auth, documented in `supabase/README.md`
   - `save-minimum-slice-interpretation` works for real authenticated mobile submit
   - Expo Go login via QR confirmed live on iPhone for `g.zugang@hotmail.com`
   - the current controllable confirmed smoke-test user is `g.zugang@hotmail.com` (UID `523b48a4-2aa2-4e4c-97f2-8fa95141ac8b`)
   - `mobileSupabaseAuth.ts` uses AsyncStorage-backed Supabase session persistence, normalizes true signed-out cases distinctly from operational auth errors
   - `react-native-url-polyfill/auto` must load before `@supabase/supabase-js` in the mobile auth seam
   - `apps/mobile/.gitignore` protects `.env` and `.env.*`
-  - `apps/mobile/metro.config.js` present for monorepo layout resolution
-  - for the wearable seam, mobile auth must continue to flow through `apps/mobile/mobileSupabaseAuth.ts`
+  - `apps/mobile/metro.config.js` is present for monorepo layout resolution
+  - wearable mobile auth continues to flow through `apps/mobile/mobileSupabaseAuth.ts`
   - wearable provisioning path is `supabase/functions/wearable-source-resolve/` only
-  - local mobile helpers exist at `apps/mobile/wearableSourceProvisioning.ts` and `apps/mobile/src/hooks/useWearableSource.ts`
-  - provisioning identity anchored to instance-level identifiers: `app_install_id` first, `device_hardware_id` later
+  - mobile wearable helpers now exist on `main` at:
+    - `apps/mobile/wearableSourceProvisioning.ts`
+    - `apps/mobile/useWearableSource.ts`
+    - `apps/mobile/wearableSyncClient.ts`
+    - `apps/mobile/useWearableSync.ts`
+    - `apps/mobile/WearableSyncScreen.tsx`
+    - `apps/mobile/wearablePermissions.ts`
+    - `apps/mobile/useWearablePermissions.ts`
+    - `apps/mobile/HealthConnectPermissionGate.tsx`
+  - Health Connect native setup steps are documented in `apps/mobile/docs/health-connect-native-setup.md`
+  - current platform posture is Android-first via `react-native-health-connect`; iOS remains an explicit stub until a separate HealthKit adapter slice is added
+  - provisioning identity stays anchored to instance-level identifiers: `app_install_id` first, `device_hardware_id` later
   - `source_app_id` is connector metadata, not a sole ownership key
   - identity-guard migration (`20260417093000_wearable_source_identity_guards.sql`) applies unique index guards for `(profile_id, source_kind, app_install_id)` and `(profile_id, source_kind, device_hardware_id)`
   - `wearables-sync` rejects inactive `wearable_sources` and empty observations arrays
-  - Garmin smartwatch is the first intended wearable target — at planning level only, no physical device yet
-  - Garmin-first field priority: `resting_heart_rate`, `sleep_duration`, `steps_total`, `hrv` with explicit method tagging
+  - Garmin smartwatch is the first intended wearable target, but no physical device proof exists yet
+  - Garmin-first field priority remains `resting_heart_rate`, `sleep_duration`, `steps_total`, `hrv` with explicit method tagging
   - HRV V1 policy: always store/display method metadata, never compare or aggregate SDNN and RMSSD together, `unknown` method rejected at `validate.ts` layer
-  - `wearable_metric_definitions` seeded for first real device metrics
+  - `wearable_metric_definitions` is seeded for first real device metrics
   - `subjective_energy` stays self-report-first, not forced into wearable ingest
   - Garmin-first example payloads exist under `supabase/functions/wearables-sync/examples/` using `platform = health_connect`
   - field-state contract is complete:
-    - `packages/domain/fieldValueState.ts` defines full contract including `isDerivedStale()`, `getDerivedDisplayState()`
+    - `packages/domain/fieldValueState.ts` defines the shared contract including `isDerivedStale()` and `getDerivedDisplayState()`
     - `stale` is derived-only, never persisted
     - minimum-slice function parsing accepts field-state metadata with early guardrails
     - minimum-slice recommendation logic distinguishes `disabled` from `missing`
@@ -68,10 +82,11 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
 ## Current next step
 
 In order:
-1. **App-side sync trigger** — wire `useWearableSource.ts` and `wearableSourceProvisioning.ts` into the mobile app flow; call `wearable-source-resolve` on first launch
-2. **First real Health Connect / Apple Health ingest** — pass real observations from device to `wearables-sync`
-3. **Daily summaries computation** — derive `resting_heart_rate`, `sleep_duration`, `steps_total` from raw observations
-4. **Physical Garmin device** — when available, verify real data flow end to end
+1. **Complete native Android Health Connect wiring** — apply the documented `MainActivity.kt` and `AndroidManifest.xml` changes from `apps/mobile/docs/health-connect-native-setup.md`
+2. **Replace the temporary dev identity path** — remove `MOCK_APP_INSTALL_ID` in `apps/mobile/WearableSyncScreen.tsx` once a real install/device identity source is available
+3. **Run first real Health Connect ingest proof** — provision with a real app/device identity, request permissions, and pass real observations into `wearables-sync`
+4. **Verify physical Garmin path** — once hardware/app access exists, confirm real end-to-end Garmin-backed flow
+5. **Clean small follow-ups** — resolve `memory/2026-04-17.md`, verify branch protection on `main`, and address remaining typed cleanup like the `as any` follow-up when the result type stabilizes
 
 Near-term simplifications to keep:
 - keep `declined` out of V1 unless a real settings/preferences flow exists
