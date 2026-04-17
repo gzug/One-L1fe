@@ -1,5 +1,5 @@
 import { CanonicalStatus } from './biomarkers.ts';
-import { fixtureExpectations, runFixtureSet } from './fixtures.v1.ts';
+import { fixtureExpectations, FIXTURE_NOW, runFixtureSet } from './fixtures.v1.ts';
 import { evaluateMinimumSlice } from './minimumSlice.ts';
 
 function assert(condition: unknown, message: string): void {
@@ -9,7 +9,7 @@ function assert(condition: unknown, message: string): void {
 }
 
 export function runMinimumSliceAssertions(): void {
-  const results = runFixtureSet();
+  const results = runFixtureSet(FIXTURE_NOW);
 
   const primary = results.primaryLipidWithBoundedModifiers;
   assert(

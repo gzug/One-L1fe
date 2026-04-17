@@ -1,4 +1,4 @@
-import { fixturePrimaryLipidWithBoundedModifiers } from './fixtures.v1.ts';
+import { fixturePrimaryLipidWithBoundedModifiers, FIXTURE_NOW } from './fixtures.v1.ts';
 import { evaluateMinimumSlice } from './minimumSlice.ts';
 import { DOMAIN_ENGINE_MODE, PRIORITY_SCORE_VERSION, toInterpretationPersistencePayload } from './contracts.ts';
 
@@ -11,7 +11,7 @@ function assert(condition: unknown, message: string): void {
 export function runContractAssertions(): void {
   const evaluation = evaluateMinimumSlice(
     fixturePrimaryLipidWithBoundedModifiers,
-    new Date('2026-04-12T21:50:00.000Z'),
+    FIXTURE_NOW,
   );
   const payload = toInterpretationPersistencePayload(evaluation, fixturePrimaryLipidWithBoundedModifiers);
 
