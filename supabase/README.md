@@ -13,6 +13,7 @@ This directory is the canonical backend surface for One L1fe.
 
 Current baseline includes:
 - schema for profiles, lab results, entries, interpretation runs, interpreted entries, derived insights, recommendations, evidence sources, and rule-evidence links
+- schema for wearable sources, sync runs, metric definitions, observations, daily summaries, weekly check-ins, context notes, and profile baselines
 - row-level security policies
 - seed-backed evidence registry data
 - local Supabase config
@@ -43,6 +44,28 @@ supabase stop --no-backup
 ```
 
 Use this to confirm the full migration chain can replay from scratch.
+
+## Edge function convention
+
+### verify_jwt: false — project standard
+
+All edge functions in this project are deployed with `verify_jwt: false`.
+
+This is intentional and not a security gap. Every function handler performs explicit authentication:
+
+```ts
+const { data: { user }, error: userError } = await supabase.auth.getUser();
+if (userError || !user) {
+  return json({ error: 'Unauthorized.' }, { status: 401 });
+}
+```
+
+Reasons for this convention:
+- The Supabase gateway JWT verification does not support ES256 tokens (the algorithm used by modern publishable keys). Deploying with `verify_jwt: true` causes `UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM` errors for valid sessions.
+- In-function `getUser()` provides equivalent protection: it validates the token against the Supabase Auth service and returns the authenticated user or rejects the request with 401.
+- All functions must explicitly handle the missing-auth case — this is enforced structurally, not by gateway config.
+
+**Rule:** When adding a new edge function, always deploy with `verify_jwt: false` and always include the `getUser()` auth check in the handler. Do not rely on gateway-level JWT verification.
 
 ## CI strategy
 
