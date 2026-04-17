@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
@@ -9,6 +9,7 @@ import {
 import { createMobileSupabaseAuthSessionProvider } from './mobileSupabaseAuth.ts';
 import LoginScreen from './LoginScreen.tsx';
 import MinimumSliceScreen from './MinimumSliceScreen.tsx';
+import WearableSyncScreen from './WearableSyncScreen.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
 
@@ -20,16 +21,16 @@ const controller = createMinimumSliceScreenController({
   functionPath: process.env.EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH,
 });
 
+type ActiveScreen = 'minimum-slice' | 'wearable-sync';
+
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
 
-  // onSignedIn is kept for LoginScreen prop contract; auth state managed by useAuthSession
   const handleSignedIn = React.useCallback(() => {}, []);
 
   if (authState === 'loading') {
-    return (
-      <SafeAreaView style={styles.centered} />
-    );
+    return <SafeAreaView style={styles.centered} />;
   }
 
   if (authState === 'signed-out' || authState === 'config-error') {
@@ -43,23 +44,36 @@ export default function App(): React.JSX.Element {
         {user !== undefined ? (
           <SessionBar email={user.email} userId={user.id} onSignOut={signOut} />
         ) : null}
-        <MinimumSliceScreen controller={controller} />
+        <View style={styles.tabBar}>
+          {(['minimum-slice', 'wearable-sync'] as const).map((screen) => (
+            <Pressable
+              key={screen}
+              onPress={() => setActiveScreen(screen)}
+              style={[styles.tab, activeScreen === screen && styles.tabActive]}
+            >
+              <Text style={[styles.tabText, activeScreen === screen && styles.tabTextActive]}>
+                {screen === 'minimum-slice' ? 'Blood Panel' : 'Wearable Sync'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        {activeScreen === 'minimum-slice' ? (
+          <MinimumSliceScreen controller={controller} />
+        ) : (
+          <WearableSyncScreen />
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f4f7fb',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  appShell: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: '#f4f7fb' },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  appShell: { flex: 1 },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#d9e2f2', backgroundColor: '#ffffff' },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: '#4263eb' },
+  tabText: { fontSize: 14, fontWeight: '600', color: '#52607a' },
+  tabTextActive: { color: '#4263eb' },
 });
