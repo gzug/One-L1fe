@@ -28,14 +28,12 @@ export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
 
-  const handleSignedIn = React.useCallback(() => {}, []);
-
   if (authState === 'loading') {
     return <SafeAreaView style={styles.centered} />;
   }
 
   if (authState === 'signed-out' || authState === 'config-error') {
-    return <LoginScreen onSignedIn={handleSignedIn} initialError={error} />;
+    return <LoginScreen initialError={error} />;
   }
 
   return (
