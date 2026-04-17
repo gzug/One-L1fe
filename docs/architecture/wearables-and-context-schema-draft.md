@@ -363,7 +363,7 @@ If ingested at all, store them with:
 
 ## Recommended first V1 metric keys
 
-Best first candidates:
+Best first candidates already present in seeded `wearable_metric_definitions`:
 - `steps_total`
 - `active_minutes`
 - `workout_session`
@@ -378,14 +378,101 @@ Best first candidates:
 - `temperature_deviation`
 
 Not all need to be supported on day one.
-The best first cut is:
-- steps
-- workouts
-- heart rate
-- resting heart rate
-- HRV with stored method metadata
-- sleep session timing
-- sleep duration
+The best first Garmin-first cut is:
+- `resting_heart_rate`
+- `sleep_duration`
+- `steps_total`
+- `hrv` with explicit stored method metadata
+- `subjective_energy` as a parallel self-report anchor, not as a Garmin metric
+
+### V1 must-have field priority
+
+1. `resting_heart_rate`
+   - strong cardiovascular baseline
+   - low error risk because trends matter more than one absolute reading
+   - manually estimable if sync is absent
+   - native Garmin fit
+
+2. `sleep_duration`
+   - core recovery signal and directly actionable
+   - medium risk if wrong because recovery logic can drift
+   - manually estimable
+   - reliable Garmin fit
+
+3. `steps_total`
+   - stable activity baseline and strong engagement anchor
+   - low error risk because directional value still helps
+   - easy manual fallback
+   - reliable Garmin fit
+
+4. `hrv`
+   - recovery-critical but method-sensitive
+   - high misuse risk if SDNN / RMSSD are conflated
+   - poor manual fallback
+   - usable from Garmin only when method stays explicit
+
+5. `subjective_energy`
+   - valuable calibrator for device data and user trust
+   - should be modeled as self-report first, not as wearable ingest
+   - no Garmin dependency
+
+### V1.5 candidates
+
+- `active_minutes`
+- `sleep_session` / sleep onset timing
+- `weight` (better manual-first unless a scale integration exists)
+- vendor `stress score` only with clear black-box posture and no early hard-engine dependence
+
+### Later / cautious metrics
+
+Keep these later unless there is a strong reason and an explicit confidence downgrade:
+- `spo2`
+- `temperature_deviation`
+- `respiratory_rate`
+
+These are useful context signals, but early over-trust would be risky.
+
+### HRV method policy for V1
+
+Verdict:
+- store HRV with explicit method metadata,
+- never merge or trend RMSSD and SDNN together,
+- always display the method label,
+- keep `unknown` method out of engine input.
+
+Working rules:
+- `measurement_method` is application-required for `metric_key = 'hrv'`
+- allowed methods remain `sdnn` and `rmssd` for active use
+- `unknown` may be retained only as a reference-only bucket if a later ingest path explicitly decides to keep it, but it must not feed engine logic or cross-method trend views
+- same method + same source: normal trend path allowed
+- same method + different source: only with explicit source labeling
+- different methods: store separately, display separately, never aggregate together
+
+Implementation posture:
+- `wearable_observations.measurement_method` already exists and should be treated as mandatory in application validation for HRV even though the column itself is nullable
+- nightly Garmin HRV should not be assumed to be raw-sample equivalent until the real payload shape is verified
+- if Garmin or another source only yields nightly derived HRV, preserve that provenance via `vendor_signal_class`
+- UI should always render the HRV method label when a value is shown
+- if the active HRV source/method changes, trend comparison should pause rather than silently stitching lines together
+- if multiple HRV sources are active, show them per source and never merged
+
+Important repo-specific note:
+- current `wearables-sync` validation already rejects `unknown` for new HRV observations. That is stricter than a "store but engine-exclude" fallback and is the safer current default until a deliberate exception path is designed.
+- because of that current repo posture, UI should not offer an `unknown` HRV method path for active V1 entry flows unless backend policy is deliberately loosened later.
+
+### Modeling note: subjective energy
+
+`subjective_energy` should not be introduced as a fake Garmin-style metric just to keep one table shape.
+Prefer one of these paths:
+- add it to `weekly_checkins` / adjacent self-report surfaces first, or
+- add a later dedicated self-report field if product cadence needs it more often than weekly.
+
+Do not pretend it is device-observed.
+
+Recommended rollout:
+- V1: extend `weekly_checkins` with an `energy_score`-style self-report field if/when the weekly check-in flow is activated
+- V1.5: add a daily or on-demand self-report surface only if finer recovery/context resolution becomes product-critical
+- Never derive `subjective_energy` from HRV, steps, or sleep and then present it as if the user reported it
 
 ## RLS posture
 
