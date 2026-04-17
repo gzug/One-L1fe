@@ -10,6 +10,7 @@ import { createMobileSupabaseAuthSessionProvider } from './mobileSupabaseAuth.ts
 import LoginScreen from './LoginScreen.tsx';
 import MinimumSliceScreen from './MinimumSliceScreen.tsx';
 import WearableSyncScreen from './WearableSyncScreen.tsx';
+import HealthConnectPermissionGate from './HealthConnectPermissionGate.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
 
@@ -60,7 +61,9 @@ export default function App(): React.JSX.Element {
         {activeScreen === 'minimum-slice' ? (
           <MinimumSliceScreen controller={controller} />
         ) : (
-          <WearableSyncScreen />
+          <HealthConnectPermissionGate>
+            <WearableSyncScreen />
+          </HealthConnectPermissionGate>
         )}
       </View>
     </SafeAreaView>
