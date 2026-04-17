@@ -1,0 +1,65 @@
+{
+  "wearable_source_id": "{{source_uuid}}",
+  "platform": "health_connect",
+  "sync_mode": "foreground_refresh",
+  "started_at": "2026-04-14T07:15:00.000Z",
+  "source_cursor": null,
+  "observations": [
+    {
+      "metric_key": "resting_heart_rate",
+      "source_record_id": "garmin-rhr-20260414",
+      "raw_type": "GarminRestingHeartRateSummary",
+      "observed_at": "2026-04-14T06:00:00.000Z",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 52,
+      "value_text": null,
+      "value_json": null,
+      "unit": "bpm",
+      "measurement_method": "vendor_derived_daily_min",
+      "source_payload": { "garmin_type": "DAILY_SUMMARY", "confidence_hint": "high" }
+    },
+    {
+      "metric_key": "sleep_duration",
+      "source_record_id": "garmin-sleep-duration-20260414",
+      "raw_type": "GarminSleepDurationSummary",
+      "observed_at": "2026-04-14T06:48:00.000Z",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 463,
+      "value_text": null,
+      "value_json": null,
+      "unit": "min",
+      "measurement_method": "garmin_sleep_algorithm",
+      "source_payload": { "garmin_type": "SLEEP", "deep_min": 95, "rem_min": 112 }
+    },
+    {
+      "metric_key": "steps_total",
+      "source_record_id": "garmin-steps-20260414",
+      "raw_type": "GarminDailySteps",
+      "observed_at": "2026-04-14T23:59:00.000Z",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 9840,
+      "value_text": null,
+      "value_json": null,
+      "unit": "count",
+      "measurement_method": null,
+      "source_payload": { "garmin_type": "DAILY_SUMMARY" }
+    },
+    {
+      "metric_key": "hrv",
+      "source_record_id": "garmin-hrv-20260414",
+      "raw_type": "GarminHrvSummary",
+      "observed_at": "2026-04-14T04:30:00.000Z",
+      "observation_end_at": null,
+      "source_timezone": "Europe/Berlin",
+      "value_numeric": 58,
+      "value_text": null,
+      "value_json": null,
+      "unit": "ms",
+      "measurement_method": "rmssd",
+      "source_payload": { "garmin_type": "HRV_SUMMARY", "sample_count": 240, "window": "nightly" }
+    }
+  ]
+}

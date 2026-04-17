@@ -12,6 +12,7 @@ This is the only authorized write path for wearable data.
 
 Requires a valid Supabase JWT in the `Authorization` header.
 The function verifies that the `wearable_source_id` in the request belongs to the authenticated user.
+Inactive `wearable_sources` are rejected and must be reactivated before syncing.
 
 ## Endpoint
 
@@ -23,7 +24,12 @@ Content-Type: application/json
 
 ## Request shape
 
-See `example-request.json` and `src/lib/wearables/syncContract.ts` (`WearableSyncRequest`).
+See:
+- `example-request.json` for the current Apple Health example
+- `examples/garmin-health-connect-day1.json`
+- `examples/garmin-health-connect-day2.json`
+- `examples/garmin-health-connect-day3.json`
+- `src/lib/wearables/syncContract.ts` (`WearableSyncRequest`)
 
 ### Dedup key
 
@@ -35,10 +41,19 @@ Mobile must always pass the platform-native record ID as `source_record_id`. Nev
 
 `measurement_method` is **required** for `hrv` observations and must be `'sdnn'` or `'rmssd'`.
 `'unknown'` is rejected for new observations.
+Do not merge or trend SDNN and RMSSD together.
 
 ### Session metrics
 
 `sleep_session` and `workout_session` require `observation_end_at`.
+
+### Garmin-first device-free prep note
+
+Current contract caveats:
+- `platform` currently accepts `apple_health` or `health_connect` only.
+- Garmin-first mocks in `examples/` therefore model the near-term path as Garmin-originated data arriving through a `health_connect`-compatible ingest shape, not as a separate `platform = garmin` contract yet.
+- request payloads do **not** currently accept client-written `source_confidence` or `vendor_signal_class`; preserve extra source hints inside `source_payload` until the server-side mapping becomes explicit.
+- `steps_total` may safely leave `measurement_method = null`; HRV may not.
 
 ## Response shape
 
@@ -75,4 +90,13 @@ curl -i -X POST http://localhost:54321/functions/v1/wearables-sync \
   -H 'Authorization: Bearer <your-local-jwt>' \
   -H 'Content-Type: application/json' \
   -d @supabase/functions/wearables-sync/example-request.json
+```
+
+Garmin-first mock example:
+
+```bash
+curl -i -X POST http://localhost:54321/functions/v1/wearables-sync \
+  -H 'Authorization: Bearer <your-local-jwt>' \
+  -H 'Content-Type: application/json' \
+  -d @supabase/functions/wearables-sync/examples/garmin-health-connect-day1.json
 ```
