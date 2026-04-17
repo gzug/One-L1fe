@@ -1,5 +1,6 @@
 import { CanonicalStatus } from './biomarkers.ts';
 import { fixtureExpectations, runFixtureSet } from './fixtures.v1.ts';
+import { evaluateMinimumSlice } from './minimumSlice.ts';
 
 function assert(condition: unknown, message: string): void {
   if (!condition) {
@@ -58,4 +59,26 @@ export function runMinimumSliceAssertions(): void {
 
   const apobEntry = primary.entries.find((entry) => entry.marker === 'apob');
   assert(apobEntry?.canonicalStatus === CanonicalStatus.High, 'Primary fixture should map ApoB 118 mg/dL to high.');
+
+  const disabledOptional = evaluateMinimumSlice({
+    profileId: 'profile_disabled_optional_1',
+    panelId: 'panel_disabled_optional_1',
+    collectedAt: '2026-04-13T09:00:00.000Z',
+    entries: [
+      { marker: 'apob', value: 118, unit: 'mg/dL' },
+      { marker: 'ldl', value: 152, unit: 'mg/dL' },
+      { marker: 'hba1c', value: 5.8, unit: '%' },
+      { marker: 'glucose', value: 104, unit: 'mg/dL', fastingContext: true },
+      { marker: 'lpa', value: null, field_state: 'disabled', value_source: 'manual', state_reason: 'user_disabled' },
+    ],
+  });
+
+  assert(
+    disabledOptional.coverage.notes.some((note) => note.includes('intentionally not provided')),
+    'Disabled optional entries should appear as intentionally not provided in coverage notes.',
+  );
+  assert(
+    !disabledOptional.recommendations.some((recommendation) => recommendation.verdict.includes('Lp(a) is missing')),
+    'Disabled optional entries should not emit collect-more-data recommendations.',
+  );
 }

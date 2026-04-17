@@ -25,7 +25,7 @@ export function runMinimumSliceFunctionContractAssertions(): void {
       collectedAt: '2026-04-10T08:00:00.000Z',
       source: 'manual',
       entries: [
-        { marker: 'apob', value: 118, unit: 'mg/dL' },
+        { marker: 'apob', value: 118, unit: 'mg/dL', field_state: 'provided', value_source: 'manual' },
         { marker: 'glucose', value: 104, unit: 'mg/dL', fastingContext: true },
       ],
     },
@@ -45,6 +45,8 @@ export function runMinimumSliceFunctionContractAssertions(): void {
 
   assert(parsed.panel.panelId === 'panel_demo_1', 'Parsed contract should keep panel ids.');
   assert(parsed.panel.entries.length === 2, 'Parsed contract should keep entry count.');
+  assert(parsed.panel.entries[0]?.field_state === 'provided', 'Parsed contract should keep field_state when provided.');
+  assert(parsed.panel.entries[0]?.value_source === 'manual', 'Parsed contract should keep value_source when provided.');
   assert(parsed.persistence?.interpretedEntryLabResultEntryIds?.apob === 'entry_apob_1', 'Parsed contract should keep entry linkage maps.');
   assert(parseOptionalDateFromIso(parsed.execution?.now, 'execution.now')?.toISOString() === '2026-04-13T02:50:00.000Z', 'ISO execution timestamps should convert into Date values.');
 
@@ -61,6 +63,14 @@ export function runMinimumSliceFunctionContractAssertions(): void {
   assertThrows(
     () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', value: '118' }] } }),
     'panel.entries[0].value must be a number or null.',
+  );
+  assertThrows(
+    () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', field_state: 'disabled', value: 118 }] } }),
+    'panel.entries[0].value must be null when field_state is disabled.',
+  );
+  assertThrows(
+    () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', state_reason: 'user_disabled' }] } }),
+    'panel.entries[0].state_reason requires field_state.',
   );
   assertThrows(
     () => parseMinimumSliceFunctionRequestBody({ panel: { panelId: 'x', collectedAt: '2026-04-10T08:00:00.000Z', entries: [{ marker: 'apob', fastingContext: 'yes' }] } }),

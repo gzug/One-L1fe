@@ -1,3 +1,4 @@
+import { FieldState, FieldStateReason, FieldValueSource, requiresNullValueForFieldState } from './fieldValueState.ts';
 import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
 
 // Literal union type derived from the biomarkers array — gives compile-time
@@ -40,6 +41,8 @@ export enum RecommendationEligibilityClass {
   Blocked = 'blocked',
 }
 
+export { FieldState } from './fieldValueState.ts';
+
 export interface MarkerRuntimeConfig {
   key: BiomarkerKey;
   markerRole: MarkerRole;
@@ -53,6 +56,9 @@ export interface MarkerRuntimeConfig {
 export interface InterpretationInput {
   marker: BiomarkerKey;
   value?: number | null;
+  field_state?: FieldState;
+  value_source?: FieldValueSource;
+  state_reason?: FieldStateReason | null;
   unit?: string | null;
   assayType?: string | null;
   collectedAt?: string | Date | null;
@@ -223,6 +229,26 @@ export function assessInterpretability(
 ): InterpretabilityAssessment {
   const config = getMarkerRuntimeConfig(input.marker);
   const freshness = getFreshnessState(input.collectedAt, now);
+
+  if (input.field_state === 'disabled') {
+    return {
+      marker: input.marker,
+      state: InterpretabilityState.Missing,
+      freshness,
+      blockingReason: input.state_reason ?? 'disabled',
+      scoreBlocked: true,
+    };
+  }
+
+  if (input.field_state && requiresNullValueForFieldState(input.field_state) && input.value != null) {
+    return {
+      marker: input.marker,
+      state: InterpretabilityState.InterpretationLimited,
+      freshness,
+      blockingReason: 'invalid_field_state_value_pair',
+      scoreBlocked: true,
+    };
+  }
 
   if (input.value == null || Number.isNaN(input.value)) {
     return {
