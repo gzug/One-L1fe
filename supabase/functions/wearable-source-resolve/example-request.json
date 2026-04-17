@@ -1,0 +1,9 @@
+{
+  "source_kind": "vendor_api",
+  "vendor_name": "garmin",
+  "source_app_id": "com.garmin.android.apps.connectmobile",
+  "source_app_name": "Garmin Connect",
+  "device_hardware_id": null,
+  "device_label": null,
+  "app_install_id": "android-install-garmin-61c5f4ca-10dc-472f-a2a8-e8c8baf7d0a1"
+}
