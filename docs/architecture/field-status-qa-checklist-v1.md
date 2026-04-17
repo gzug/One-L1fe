@@ -1,5 +1,5 @@
 ---
-status: draft
+status: current
 canonical_for: field-status QA targets for minimum-slice and early wearable seams
 owner: repo
 last_verified: 2026-04-17
@@ -70,6 +70,7 @@ The highest-risk failures are:
 9. HRV without method
 - Expected ingest behavior: rejected before storage
 - Expected downstream behavior: unavailable, not partially accepted
+- **Status: enforced** — `validate.ts` rejects `measurement_method` missing or `'unknown'` for all HRV observations.
 
 10. HRV method changes between syncs
 - Expected UI: method-change warning
@@ -87,18 +88,19 @@ The highest-risk failures are:
 13. unknown `metric_key`
 - Expected behavior: reject request item / fail validation path clearly
 
-14. чужой `wearable_source_id`
+14. foreign `wearable_source_id`
 - Expected behavior: reject, no writes
 
 15. empty observations array
-- Expected behavior: accepted only if the contract deliberately allows it; otherwise reject clearly.
-- Current repo note: current `validate.ts` requires `observations` to be an array but does not enforce non-empty, so this should be verified intentionally rather than assumed.
+- Expected behavior: reject with clear error message.
+- **Status: enforced** — `validate.ts` now rejects empty observations arrays with an explicit error before any downstream processing.
 
 ## P1 next-layer tests
 
 1. `stale` display-layer state
 - Value shown with explicit freshness label
 - never silently treated as current
+- **Note:** `stale` is a derived display/recommendation concept only. `isDerivedStale()` and `getDerivedDisplayState()` in `packages/domain/fieldValueState.ts` are the shared policy. Do not persist `stale` as a `field_state` column value.
 
 2. `declined` state, if later adopted
 - blocked like missing for engine purposes
@@ -161,6 +163,6 @@ That distinction should remain covered so later refactors do not reintroduce fal
 ## Recommended next assertion additions
 
 1. add explicit assertion coverage for cross-user `wearable_source_id` rejection
-2. add explicit assertion coverage for HRV-without-method rejection at the wearable validate layer
+2. ~~add explicit assertion coverage for HRV-without-method rejection at the wearable validate layer~~ — **already enforced in `validate.ts`; add integration-level assertion once hosted proof is in place**
 3. add assertion coverage for disabled-vs-missing recommendation suppression beyond the current minimum-slice slice
 4. add a small UI/model-level test matrix once field-state rendering is centralized further
