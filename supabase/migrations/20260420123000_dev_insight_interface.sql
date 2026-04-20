@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS public.dev_error_log (
 CREATE INDEX IF NOT EXISTS dev_error_log_profile_id_created_at_idx
   ON public.dev_error_log (profile_id, created_at DESC);
 
--- Enable RLS on dev_error_log
 ALTER TABLE public.dev_error_log ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "dev_error_log_dev_user_access" ON public.dev_error_log;
 CREATE POLICY "dev_error_log_dev_user_access"
   ON public.dev_error_log
   FOR ALL
@@ -66,9 +66,9 @@ CREATE TABLE IF NOT EXISTS public.dev_feedback (
 CREATE INDEX IF NOT EXISTS dev_feedback_profile_id_created_at_idx
   ON public.dev_feedback (profile_id, created_at DESC);
 
--- Enable RLS on dev_feedback
 ALTER TABLE public.dev_feedback ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "dev_feedback_dev_user_access" ON public.dev_feedback;
 CREATE POLICY "dev_feedback_dev_user_access"
   ON public.dev_feedback
   FOR ALL
@@ -86,27 +86,3 @@ CREATE POLICY "dev_feedback_dev_user_access"
       WHERE id = (SELECT auth.uid()) AND is_dev = true
     )
   );
-
--- ----------------------------------------------------------------
--- 4. RLS for wearable_sync_runs (dev user read-only)
--- ================================================================
--- Create a policy allowing dev users to read all sync runs for metrics
--- ================================================================
-ALTER TABLE public.wearable_sync_runs ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY IF NOT EXISTS "wearable_sync_runs_dev_metrics_read"
-  ON public.wearable_sync_runs
-  FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = (SELECT auth.uid()) AND is_dev = true
-    )
-  );
-
--- Keep existing owner policy for normal users
-CREATE POLICY IF NOT EXISTS "wearable_sync_runs_owner_all"
-  ON public.wearable_sync_runs
-  FOR ALL
-  USING ((SELECT auth.uid()) = profile_id)
-  WITH CHECK ((SELECT auth.uid()) = profile_id);
