@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-18
+last_verified: 2026-04-20
 supersedes: []
 superseded_by: null
 scope: repo
@@ -54,6 +54,12 @@ Long-term operating memory for **One L1fe (OL)**.
 - Canonical ref: `docs/architecture/field-value-state-and-missingness-v1.md`
 - Field-state QA: `docs/architecture/field-status-qa-checklist-v1.md`
 - Wearable daily summaries: explicit `single_source` vs `merged` scope; timezone semantics explicit; tags over free text
+- All edge functions: `verify_jwt: false` + in-function `getUser()` auth (canonical ref: `supabase/README.md`)
+- Identity-guard migration: unique index `(profile_id, source_kind, app_install_id)` + `(profile_id, source_kind, device_hardware_id)`
+- HRV V1: store method metadata; never aggregate SDNN + RMSSD; `unknown` method rejected at `supabase/functions/wearables-sync/validate.ts`
+- Domain code vendored into `_lib/domain` via `scripts/prepare-supabase-function-domain.sh` (cross-runtime Node + Edge)
+- `isDerivedStale()` 30-day default window as lab-field starting policy
+- Severity separate from coverage
 
 ## Durable repo operations posture
 
@@ -72,8 +78,21 @@ Long-term operating memory for **One L1fe (OL)**.
 - Minimum-slice mobile seam proven when: login, submit, wrong-password, error handling, sign-out all verified in real app
 - `docs/compliance/data-handling-and-redaction.md`: canonical policy for fixtures, screenshots, logs, smoke tests
 - `docs/ops/openclaw.md`: canonical OpenClaw operating guide
+- `docs/ops/memory-system-v2.md`: canonical memory-system operating rules
+- Keep raw personal health data out of repo
+- Smoke-test user: `g.zugang@hotmail.com` (UID `523b48a4-2aa2-4e4c-97f2-8fa95141ac8b`)
 
 ## Startup rule
 
 Use `CHECKPOINT.md` for fresh-session startup. Durable truth only here.
+History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
+
+## Durable scope and distribution decisions
+
+- Private use only — two users (owner + brother). No store release planned. No GDPR obligation at current scale.
+- Distribution: no EAS/TestFlight/Play Store pipeline. Target: sideloadable APK for Android or minimal-step guide for brother to install without physical device present here.
+- iOS: personal dev-check device only. Not a target platform for brother. HealthKit prototype broken (package bundle issue) — must fix before next iOS check. No timeline for full iOS feature parity. Android is primary.
+- Observability: no external tool (Sentry etc.) planned. In-app developer/insight interface via separate dev-login — shows error logs, user feedback, feature ideas, basic Supabase metrics (active users, session counts). Not blocking V1.
+- E2E tests: no dedicated mobile E2E layer (Detox/Maestro) planned at this stage. Manual device checks on iPhone as needed. Android + Garmin focus.
+- GDPR: explicit decision — private only, no public release, no GDPR obligation until distribution scope changes.
 History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
