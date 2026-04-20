@@ -86,3 +86,13 @@ Long-term operating memory for **One L1fe (OL)**.
 
 Use `CHECKPOINT.md` for fresh-session startup. Durable truth only here.
 History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
+
+## Durable scope and distribution decisions
+
+- Private use only — two users (owner + brother). No store release planned. No GDPR obligation at current scale.
+- Distribution: no EAS/TestFlight/Play Store pipeline. Target: sideloadable APK for Android or minimal-step guide for brother to install without physical device present here.
+- iOS: personal dev-check device only. Not a target platform for brother. HealthKit prototype broken (package bundle issue) — must fix before next iOS check. No timeline for full iOS feature parity. Android is primary.
+- Observability: no external tool (Sentry etc.) planned. In-app developer/insight interface via separate dev-login — shows error logs, user feedback, feature ideas, basic Supabase metrics (active users, session counts). Not blocking V1.
+- E2E tests: no dedicated mobile E2E layer (Detox/Maestro) planned at this stage. Manual device checks on iPhone as needed. Android + Garmin focus.
+- GDPR: explicit decision — private only, no public release, no GDPR obligation until distribution scope changes.
+History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
