@@ -1,18 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
-import { Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ErrorUtils, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
   ONE_L1FE_SUPABASE_PROJECT_REF,
 } from './minimumSliceHostedConfig.ts';
-import { createMobileSupabaseAuthSessionProvider } from './mobileSupabaseAuth.ts';
+import { createMobileSupabaseAuthSessionProvider, getMobileSupabaseClient } from './mobileSupabaseAuth.ts';
 import LoginScreen from './LoginScreen.tsx';
 import MinimumSliceScreen from './MinimumSliceScreen.tsx';
 import WearableSyncScreen from './WearableSyncScreen.tsx';
 import HealthConnectPermissionGate from './HealthConnectPermissionGate.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
+import DevInsightScreen from './DevInsightScreen.tsx';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -22,11 +23,64 @@ const controller = createMinimumSliceScreenController({
   functionPath: process.env.EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH,
 });
 
-type ActiveScreen = 'minimum-slice' | 'wearable-sync';
+type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'dev-insight';
 
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
+  const [isDevUser, setIsDevUser] = useState(false);
+  const [currentScreen, setCurrentScreen] = useState<string>('MinimumSlice');
+
+  useEffect(() => {
+    if (user?.id) {
+      const fetchProfile = async (): Promise<void> => {
+        try {
+          const { data, error } = await getMobileSupabaseClient()
+            .from('profiles')
+            .select('is_dev')
+            .eq('id', user.id)
+            .single();
+
+          if (!error && data && typeof data === 'object' && 'is_dev' in data) {
+            setIsDevUser((data as { is_dev: boolean }).is_dev === true);
+          }
+        } catch (e) {
+          console.error('Error fetching profile:', e);
+        }
+      };
+      void fetchProfile();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    const defaultHandler = ErrorUtils.getGlobalHandler();
+    ErrorUtils.setGlobalHandler(async (error, isFatal) => {
+      if (user?.id && isDevUser) {
+        try {
+          await getMobileSupabaseClient().from('dev_error_log').insert({
+            profile_id: user.id,
+            error_message: error.message,
+            error_stack: error.stack,
+            screen: currentScreen,
+            app_version: undefined,
+            platform: undefined,
+          });
+        } catch (e) {
+          console.error('Error logging to dev_error_log:', e);
+        }
+      }
+
+      if (defaultHandler) {
+        defaultHandler(error, isFatal);
+      }
+    });
+
+    return () => {
+      if (defaultHandler) {
+        ErrorUtils.setGlobalHandler(defaultHandler);
+      }
+    };
+  }, [user?.id, isDevUser, currentScreen]);
 
   if (authState === 'loading') {
     return <SafeAreaView style={styles.centered} />;
@@ -36,6 +90,12 @@ export default function App(): React.JSX.Element {
     return <LoginScreen initialError={error} />;
   }
 
+  const screenTabs: ActiveScreen[] = [
+    'minimum-slice',
+    'wearable-sync',
+    ...(isDevUser ? (['dev-insight'] as const) : []),
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="auto" />
@@ -44,25 +104,40 @@ export default function App(): React.JSX.Element {
           <SessionBar email={user.email} userId={user.id} onSignOut={signOut} />
         ) : null}
         <View style={styles.tabBar}>
-          {(['minimum-slice', 'wearable-sync'] as const).map((screen) => (
+          {screenTabs.map((screen) => (
             <Pressable
               key={screen}
-              onPress={() => setActiveScreen(screen)}
+              onPress={() => {
+                setActiveScreen(screen);
+                setCurrentScreen(
+                  screen === 'minimum-slice'
+                    ? 'MinimumSlice'
+                    : screen === 'wearable-sync'
+                      ? 'WearableSync'
+                      : 'DevInsight',
+                );
+              }}
               style={[styles.tab, activeScreen === screen && styles.tabActive]}
             >
               <Text style={[styles.tabText, activeScreen === screen && styles.tabTextActive]}>
-                {screen === 'minimum-slice' ? 'Blood Panel' : 'Wearable Sync'}
+                {screen === 'minimum-slice'
+                  ? 'Blood Panel'
+                  : screen === 'wearable-sync'
+                    ? 'Wearable Sync'
+                    : 'Dev Insight'}
               </Text>
             </Pressable>
           ))}
         </View>
         {activeScreen === 'minimum-slice' ? (
           <MinimumSliceScreen controller={controller} />
-        ) : (
+        ) : activeScreen === 'wearable-sync' ? (
           <HealthConnectPermissionGate>
             <WearableSyncScreen />
           </HealthConnectPermissionGate>
-        )}
+        ) : activeScreen === 'dev-insight' && user ? (
+          <DevInsightScreen profileId={user.id} />
+        ) : null}
       </View>
     </SafeAreaView>
   );

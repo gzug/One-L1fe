@@ -255,6 +255,44 @@ export function aggregateTotalPriorityScore(
   }, 0);
 }
 
+export function aggregateTotalPriorityScoreWithEvidence(
+  biomarkerValues: Record<string, number | null | undefined>,
+  anchors: Array<{ sourceId: string; tier: number; bucket: string }>,
+): {
+  score: number;
+  product_evidence_class: 'strong' | 'moderate' | 'limited' | 'unanchored';
+  anchor_count: number;
+} {
+  if (anchors.length === 0) {
+    throw new Error('Priority score cannot be calculated without evidence anchors');
+  }
+
+  const rawScore = biomarkers.reduce((total, biomarker) => {
+    const value = biomarkerValues[biomarker.key];
+    return total + calculateWeightedScore(biomarker, value);
+  }, 0);
+
+  const tier1Anchors = anchors.filter((a) => a.tier === 1);
+  const strongBucketCount = anchors.filter((a) => a.bucket === 'strong').length;
+
+  let classification: 'strong' | 'moderate' | 'limited' | 'unanchored';
+  if (tier1Anchors.length > 0 && strongBucketCount >= 2) {
+    classification = 'strong';
+  } else if (tier1Anchors.length > 0 && strongBucketCount >= 1) {
+    classification = 'moderate';
+  } else if (strongBucketCount >= 1) {
+    classification = 'moderate';
+  } else {
+    classification = 'limited';
+  }
+
+  return {
+    score: rawScore,
+    product_evidence_class: classification,
+    anchor_count: anchors.length,
+  };
+}
+
 export function determinePrimaryFocus(
   biomarkerValues: Record<string, number | null | undefined>,
 ): BiomarkerDefinition | undefined {
