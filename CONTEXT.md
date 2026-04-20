@@ -13,7 +13,14 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
-## 2026-04-20 — Perplexity
+## 2026-04-20 — Perplexity (session 2)
+- Ran full session closeout audit: H-B migration ordering, H-C evidence registry consistency, H-D dead code check, H-E SQL constraint validation
+- Migration order: 9 files, strictly ascending, no duplicates or gaps — PASS
+- Evidence registry: all anchorSourceIds valid, all threshold rule IDs covered — PASS; CTX-001/CTX-002 have no evaluate*() in thresholds.ts (expected, draft/context-only)
+- Dead code: `MOCK_APP_INSTALL_ID = 'dev-install-001'` still present in `WearableSyncScreen.tsx` — PR `claude/real-app-install-id` pending merge
+- New migration `20260420091500` all constraint values PASS (source_type, bio_class, authority, bucket, origin, product_class)
+
+## 2026-04-20 — Perplexity (session 1)
 - Introduced memory-system-v2: CONTEXT.md, daily note full lifecycle, promotion rules, 7-step session-end checklist, universal closeout command
 - Archived memory/2026-04-17.md to docs/archive/memory/
 - Defined no-local-memory-layer rule: repo is sole source of truth
