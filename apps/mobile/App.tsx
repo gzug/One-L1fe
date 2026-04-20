@@ -90,9 +90,11 @@ export default function App(): React.JSX.Element {
     return <LoginScreen initialError={error} />;
   }
 
-  const screenTabs = (['minimum-slice', 'wearable-sync'] as const).concat(
-    isDevUser ? (['dev-insight'] as const) : [],
-  );
+  const screenTabs: ActiveScreen[] = [
+    'minimum-slice',
+    'wearable-sync',
+    ...(isDevUser ? (['dev-insight'] as const) : []),
+  ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
