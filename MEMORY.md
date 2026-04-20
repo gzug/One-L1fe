@@ -29,6 +29,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - Keep core health/domain logic in shared domain/backend code
 - ApoB primary, LDL fallback/secondary; weak markers out of hard core score unless clearly justified
 - Priority Score: bounded prioritization aid, not a clinical risk score
+- Evidence registry: schema + seed live (`evidence_sources`, `rule_evidence_links`; 7 sources, 11 rules, migration `20260413021500`). Runtime consumer **not wired** — Priority Score currently does not read from `rule_evidence_links` at calculation time. Acceptable for private-use V1; must be wired before any external claim or distribution scope change.
 - Keep shared domain imports cross-runtime safe (Node tests + Supabase Edge Functions)
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
@@ -85,4 +86,14 @@ Long-term operating memory for **One L1fe (OL)**.
 ## Startup rule
 
 Use `CHECKPOINT.md` for fresh-session startup. Durable truth only here.
+History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
+
+## Durable scope and distribution decisions
+
+- Private use only — two users (owner + brother). No store release planned. No GDPR obligation at current scale.
+- Distribution: no EAS/TestFlight/Play Store pipeline. Target: sideloadable APK for Android or minimal-step guide for brother to install without physical device present here.
+- iOS: personal dev-check device only. Not a target platform for brother. HealthKit prototype broken (package bundle issue) — must fix before next iOS check. No timeline for full iOS feature parity. Android is primary.
+- Observability: no external tool (Sentry etc.) planned. In-app developer/insight interface via separate dev-login — shows error logs, user feedback, feature ideas, basic Supabase metrics (active users, session counts). Not blocking V1.
+- E2E tests: no dedicated mobile E2E layer (Detox/Maestro) planned at this stage. Manual device checks on iPhone as needed. Android + Garmin focus.
+- GDPR: explicit decision — private only, no public release, no GDPR obligation until distribution scope changes.
 History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
