@@ -2,7 +2,7 @@
 status: current
 canonical_for: project entry point
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-20
 supersedes: []
 superseded_by: null
 scope: repo
@@ -52,7 +52,7 @@ One-L1fe/
 ├── memory/                    # Short-term working memory and daily notes
 ├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
 ├── MEMORY.md
-├── GLOSSARY.md
+├── CONTEXT.md
 ├── AGENTS.md
 └── CONTRIBUTING.md
 ```
@@ -64,8 +64,9 @@ Use each file layer for one job:
 - [README.md](./README.md) = broad project entry point and orientation
 - [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
 - [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions
-- [`memory/`](./memory/) = short-term working notes and handoff continuity
-- [`docs/ops/`](./docs/ops/) = OpenClaw and session workflow guidance
+- [CONTEXT.md](./CONTEXT.md) = rolling 2–3 session summary for fast agent startup
+- [`memory/`](./memory/) = short-term working notes and daily notes (scratch only)
+- [`docs/ops/`](./docs/ops/) = session workflow and operating guidance
 - [`docs/architecture/`](./docs/architecture/) = technical decisions that should stay true over time
 - [`docs/planning/`](./docs/planning/) = backlog and next work
 - [`docs/research/`](./docs/research/) = evidence gathering and unresolved questions
@@ -110,7 +111,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
 ### Orientation
 - [CHECKPOINT.md](./CHECKPOINT.md)
 - [MEMORY.md](./MEMORY.md)
-- [GLOSSARY.md](./GLOSSARY.md)
+- [CONTEXT.md](./CONTEXT.md)
 - [AGENTS.md](./AGENTS.md)
 - [docs/README.md](./docs/README.md)
 
@@ -147,6 +148,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
 - [docs/compliance/data-handling-and-redaction.md](./docs/compliance/data-handling-and-redaction.md)
 - [docs/ops/openclaw.md](./docs/ops/openclaw.md)
 - [docs/ops/session-workflow.md](./docs/ops/session-workflow.md)
+- [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)
 
 ## Working constraints
 
