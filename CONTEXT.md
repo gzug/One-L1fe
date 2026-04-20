@@ -19,3 +19,6 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Defined no-local-memory-layer rule: repo is sole source of truth
 - Daily notes are scratch-only — archived end of session, never loaded at agent startup
 - Deferred: CONTEXT.md entry for 2026-04-18 session (user to provide Claude task summary to backfill)
+- Archived: docs/archive/memory/2026-04-17.md — UNRESOLVED items (Android HC, MOCK_APP_INSTALL_ID, branch pruning)
+- Archived: docs/archive/memory/2026-04-13.md — fully resolved, kept for history
+- memory/ folder now clean — only README.md remains
