@@ -11,8 +11,7 @@ import { useWearableSource } from './useWearableSource';
 import { useWearableSync } from './useWearableSync';
 import { useComputeDailySummaries } from './useComputeDailySummaries';
 import { createGarminProvisioningRequest } from './wearableSourceProvisioning';
-
-const MOCK_APP_INSTALL_ID = 'dev-install-001';
+import { getOrCreateAppInstallId } from './appInstallIdentity';
 
 // Returns today and yesterday as ISO date strings (YYYY-MM-DD)
 function getSyncDateRange(): { date_from: string; date_to: string } {
@@ -29,8 +28,9 @@ export default function WearableSyncScreen(): React.JSX.Element {
   const { state: computeState, result: computeResult, error: computeError, submitCompute, reset: resetCompute } = useComputeDailySummaries();
 
   const handleProvision = useCallback(async () => {
+    const appInstallId = await getOrCreateAppInstallId();
     const request = createGarminProvisioningRequest({
-      app_install_id: MOCK_APP_INSTALL_ID,
+      app_install_id: appInstallId,
     });
     await provision(request);
   }, [provision]);
