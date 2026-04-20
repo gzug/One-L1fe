@@ -1,103 +1,73 @@
 import { aggregateTotalPriorityScoreWithEvidence } from './biomarkers.ts';
 
-describe('biomarkersEvidence', () => {
-  describe('aggregateTotalPriorityScoreWithEvidence', () => {
-    const mockAnchors = [
-      { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
-      { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
-    ];
+function assert(condition: unknown, message: string): void {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
 
-    const mockBiomarkerValues = {
-      apob: 150,
-      ldl: 120,
-      triglycerides: 200,
-      lpa: 50,
-      hba1c: 6.0,
-      glucose: 110,
-      crp: 2.5,
-      vitamin_d: 25,
-      ferritin: 150,
-      b12: 600,
-      magnesium: 2.1,
-      dao: 15,
-    };
+export function runBiomarkersEvidenceAssertions(): void {
+  const mockAnchors = [
+    { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
+    { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
+  ];
 
-    it('should return PriorityScoreResult with strong classification for valid anchors', () => {
-      const result = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, mockAnchors);
+  const mockBiomarkerValues = {
+    apob: 150,
+    ldl: 120,
+    triglycerides: 200,
+    lpa: 50,
+    hba1c: 6.0,
+    glucose: 110,
+    crp: 2.5,
+    vitamin_d: 25,
+    ferritin: 150,
+    b12: 600,
+    magnesium: 2.1,
+    dao: 15,
+  };
 
-      if (typeof result.score !== 'number') {
-        throw new Error(`Expected score to be a number, got ${typeof result.score}`);
-      }
+  const result = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, mockAnchors);
 
-      if (result.product_evidence_class !== 'strong') {
-        throw new Error(
-          `Expected product_evidence_class to be 'strong', got '${result.product_evidence_class}'`,
-        );
-      }
+  assert(typeof result.score === 'number', `Expected score to be a number, got ${typeof result.score}`);
+  assert(
+    result.product_evidence_class === 'strong',
+    `Expected product_evidence_class 'strong', got '${result.product_evidence_class}'`,
+  );
+  assert(result.anchor_count === 2, `Expected anchor_count 2, got ${result.anchor_count}`);
 
-      if (result.anchor_count !== 2) {
-        throw new Error(`Expected anchor_count to be 2, got ${result.anchor_count}`);
-      }
-    });
+  let errorThrown = false;
+  let errorMessage = '';
 
-    it('should throw UnanchoredScoreError for empty anchors', () => {
-      let errorThrown = false;
-      let errorMessage = '';
+  try {
+    aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, []);
+  } catch (e) {
+    errorThrown = true;
+    errorMessage = e instanceof Error ? e.message : String(e);
+  }
 
-      try {
-        aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, []);
-      } catch (e) {
-        errorThrown = true;
-        errorMessage = e instanceof Error ? e.message : String(e);
-      }
+  assert(errorThrown, 'Expected error to be thrown for empty anchors');
+  assert(
+    errorMessage.includes('without evidence anchors'),
+    `Expected error message to contain 'without evidence anchors', got '${errorMessage}'`,
+  );
 
-      if (!errorThrown) {
-        throw new Error('Expected UnanchoredScoreError to be thrown for empty anchors');
-      }
+  assert(result.score > 0, `Expected score > 0, got ${result.score}`);
+  assert(result.score <= 100, `Expected score <= 100, got ${result.score}`);
 
-      if (!errorMessage.includes('without evidence anchors')) {
-        throw new Error(
-          `Expected error message to contain 'without evidence anchors', got '${errorMessage}'`,
-        );
-      }
-    });
+  const singleAnchor = [{ sourceId: 'src1', tier: 1, bucket: 'strong' as const }];
+  const singleResult = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, singleAnchor);
+  assert(
+    singleResult.product_evidence_class === 'moderate',
+    `Expected 'moderate' for single anchor, got '${singleResult.product_evidence_class}'`,
+  );
 
-    it('should calculate correct score value', () => {
-      const result = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, mockAnchors);
+  const multipleAnchors = [
+    { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
+    { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
+    { sourceId: 'src3', tier: 2, bucket: 'secondary' as const },
+  ];
 
-      if (result.score <= 0) {
-        throw new Error(`Expected score to be greater than 0, got ${result.score}`);
-      }
-
-      if (result.score > 100) {
-        throw new Error(`Expected score to be reasonable (<=100), got ${result.score}`);
-      }
-    });
-
-    it('should classify as moderate for single strong anchor', () => {
-      const singleAnchor = [{ sourceId: 'src1', tier: 1, bucket: 'strong' as const }];
-
-      const result = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, singleAnchor);
-
-      if (result.product_evidence_class !== 'moderate') {
-        throw new Error(
-          `Expected product_evidence_class to be 'moderate', got '${result.product_evidence_class}'`,
-        );
-      }
-    });
-
-    it('should preserve anchor_count in result', () => {
-      const multipleAnchors = [
-        { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
-        { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
-        { sourceId: 'src3', tier: 2, bucket: 'secondary' as const },
-      ];
-
-      const result = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, multipleAnchors);
-
-      if (result.anchor_count !== 3) {
-        throw new Error(`Expected anchor_count to be 3, got ${result.anchor_count}`);
-      }
-    });
-  });
-});
+  const multiResult = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, multipleAnchors);
+  assert(multiResult.anchor_count === 3, `Expected anchor_count 3, got ${multiResult.anchor_count}`);
+}

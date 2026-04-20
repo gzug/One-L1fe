@@ -4,107 +4,62 @@ import {
   getProductEvidenceUICopy,
 } from './evidenceRegistry.ts';
 
-describe('evidenceRegistry', () => {
-  describe('UnanchoredScoreError', () => {
-    it('should create error with default message', () => {
-      const error = new UnanchoredScoreError();
-      if (!(error instanceof UnanchoredScoreError)) {
-        throw new Error('Expected UnanchoredScoreError instance');
-      }
-      if (error.name !== 'UnanchoredScoreError') {
-        throw new Error(`Expected name 'UnanchoredScoreError', got '${error.name}'`);
-      }
-      if (!error.message.includes('without evidence anchors')) {
-        throw new Error(`Expected message to contain 'without evidence anchors', got '${error.message}'`);
-      }
-    });
+function assert(condition: unknown, message: string): void {
+  if (!condition) {
+    throw new Error(message);
+  }
+}
 
-    it('should create error with custom message', () => {
-      const customMsg = 'Custom error message';
-      const error = new UnanchoredScoreError(customMsg);
-      if (error.message !== customMsg) {
-        throw new Error(`Expected message '${customMsg}', got '${error.message}'`);
-      }
-    });
-  });
+export function runEvidenceRegistryAssertions(): void {
+  const error = new UnanchoredScoreError();
+  assert(error instanceof UnanchoredScoreError, 'Should create UnanchoredScoreError instance');
+  assert(error.name === 'UnanchoredScoreError', `Expected name 'UnanchoredScoreError', got '${error.name}'`);
+  assert(
+    error.message.includes('without evidence anchors'),
+    `Expected message to contain 'without evidence anchors', got '${error.message}'`,
+  );
 
-  describe('classifyProductEvidence', () => {
-    it('should return unanchored for empty anchors', () => {
-      const result = classifyProductEvidence([]);
-      if (result !== 'unanchored') {
-        throw new Error(`Expected 'unanchored', got '${result}'`);
-      }
-    });
+  const customMsg = 'Custom error message';
+  const customError = new UnanchoredScoreError(customMsg);
+  assert(customError.message === customMsg, `Expected message '${customMsg}', got '${customError.message}'`);
 
-    it('should return strong for tier-1 anchor with strong bucket and supporting strong anchors', () => {
-      const anchors = [
-        { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
-        { sourceId: 'src2', name: 'Source 2', tier: 2, bucket: 'strong' as const },
-      ];
-      const result = classifyProductEvidence(anchors);
-      if (result !== 'strong') {
-        throw new Error(`Expected 'strong', got '${result}'`);
-      }
-    });
+  const emptyResult = classifyProductEvidence([]);
+  assert(emptyResult === 'unanchored', `Expected 'unanchored' for empty anchors, got '${emptyResult}'`);
 
-    it('should return moderate for tier-1 anchor with single strong bucket', () => {
-      const anchors = [
-        { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
-      ];
-      const result = classifyProductEvidence(anchors);
-      if (result !== 'moderate') {
-        throw new Error(`Expected 'moderate', got '${result}'`);
-      }
-    });
+  const strongAnchors = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
+    { sourceId: 'src2', name: 'Source 2', tier: 2, bucket: 'strong' as const },
+  ];
+  const strongResult = classifyProductEvidence(strongAnchors);
+  assert(strongResult === 'strong', `Expected 'strong' for tier-1 + 2 strong, got '${strongResult}'`);
 
-    it('should return limited for supporting strong anchors only', () => {
-      const anchors = [
-        { sourceId: 'src1', name: 'Source 1', tier: 2, bucket: 'strong' as const },
-      ];
-      const result = classifyProductEvidence(anchors);
-      if (result !== 'limited') {
-        throw new Error(`Expected 'limited', got '${result}'`);
-      }
-    });
+  const moderateAnchors = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
+  ];
+  const moderateResult = classifyProductEvidence(moderateAnchors);
+  assert(moderateResult === 'moderate', `Expected 'moderate' for single tier-1, got '${moderateResult}'`);
 
-    it('should return limited for non-strong anchors', () => {
-      const anchors = [
-        { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'secondary' as const },
-      ];
-      const result = classifyProductEvidence(anchors);
-      if (result !== 'limited') {
-        throw new Error(`Expected 'limited', got '${result}'`);
-      }
-    });
-  });
+  const supportingOnlyAnchors = [
+    { sourceId: 'src1', name: 'Source 1', tier: 2, bucket: 'strong' as const },
+  ];
+  const supportingResult = classifyProductEvidence(supportingOnlyAnchors);
+  assert(supportingResult === 'limited', `Expected 'limited' for supporting only, got '${supportingResult}'`);
 
-  describe('getProductEvidenceUICopy', () => {
-    it('should return strong evidence copy', () => {
-      const copy = getProductEvidenceUICopy('strong');
-      if (!copy.includes('peer-reviewed')) {
-        throw new Error(`Expected 'peer-reviewed' in copy, got '${copy}'`);
-      }
-    });
+  const nonStrongAnchors = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'secondary' as const },
+  ];
+  const nonStrongResult = classifyProductEvidence(nonStrongAnchors);
+  assert(nonStrongResult === 'limited', `Expected 'limited' for non-strong, got '${nonStrongResult}'`);
 
-    it('should return moderate evidence copy', () => {
-      const copy = getProductEvidenceUICopy('moderate');
-      if (!copy.includes('observational')) {
-        throw new Error(`Expected 'observational' in copy, got '${copy}'`);
-      }
-    });
+  const strongCopy = getProductEvidenceUICopy('strong');
+  assert(strongCopy.includes('peer-reviewed'), `Expected 'peer-reviewed' in strong copy, got '${strongCopy}'`);
 
-    it('should return limited evidence copy', () => {
-      const copy = getProductEvidenceUICopy('limited');
-      if (!copy.includes('Limited evidence')) {
-        throw new Error(`Expected 'Limited evidence' in copy, got '${copy}'`);
-      }
-    });
+  const moderateCopy = getProductEvidenceUICopy('moderate');
+  assert(moderateCopy.includes('observational'), `Expected 'observational' in moderate copy, got '${moderateCopy}'`);
 
-    it('should return empty string for unanchored', () => {
-      const copy = getProductEvidenceUICopy('unanchored');
-      if (copy !== '') {
-        throw new Error(`Expected empty string for 'unanchored', got '${copy}'`);
-      }
-    });
-  });
-});
+  const limitedCopy = getProductEvidenceUICopy('limited');
+  assert(limitedCopy.includes('Limited evidence'), `Expected 'Limited evidence' in copy, got '${limitedCopy}'`);
+
+  const unanchoredCopy = getProductEvidenceUICopy('unanchored');
+  assert(unanchoredCopy === '', `Expected empty string for unanchored, got '${unanchoredCopy}'`);
+}
