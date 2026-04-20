@@ -267,3 +267,130 @@ export function getEvidenceSource(sourceId: string): EvidenceSource | undefined 
 export function getRuleEvidenceLink(ruleId: string): RuleEvidenceLink | undefined {
   return ruleEvidenceLinks[ruleId];
 }
+
+export class UnanchoredScoreError extends Error {
+  constructor(message: string = 'Priority score cannot be calculated without evidence anchors') {
+    super(message);
+    this.name = 'UnanchoredScoreError';
+  }
+}
+
+export interface EvidenceAnchor {
+  sourceId: string;
+  name: string;
+  tier: number;
+  bucket: SourceBucket;
+}
+
+export type ProductEvidenceClassification = 'strong' | 'moderate' | 'limited' | 'unanchored';
+
+export interface PriorityScoreResult {
+  score: number;
+  product_evidence_class: ProductEvidenceClassification;
+  anchors: EvidenceAnchor[];
+  anchor_count: number;
+}
+
+export async function loadEvidenceForRules(
+  supabase: any,
+  ruleIds: string[],
+): Promise<Record<string, EvidenceAnchor[]>> {
+  if (ruleIds.length === 0) {
+    return {};
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('rule_evidence_links')
+      .select(`
+        rule_id,
+        anchor_source_id,
+        supporting_source_ids
+      `)
+      .in('rule_id', ruleIds);
+
+    if (error) {
+      console.error('Error loading evidence for rules:', error);
+      return {};
+    }
+
+    const evidenceMap: Record<string, EvidenceAnchor[]> = {};
+
+    if (Array.isArray(data)) {
+      for (const row of data) {
+        const ruleId = row.rule_id;
+        const anchors: EvidenceAnchor[] = [];
+
+        const anchorSource = getEvidenceSource(row.anchor_source_id);
+        if (anchorSource) {
+          anchors.push({
+            sourceId: row.anchor_source_id,
+            name: anchorSource.title,
+            tier: 1,
+            bucket: anchorSource.bucket,
+          });
+        }
+
+        const supportingIds = Array.isArray(row.supporting_source_ids) ? row.supporting_source_ids : [];
+        for (const supportingId of supportingIds) {
+          const supportingSource = getEvidenceSource(supportingId);
+          if (supportingSource) {
+            anchors.push({
+              sourceId: supportingId,
+              name: supportingSource.title,
+              tier: 2,
+              bucket: supportingSource.bucket,
+            });
+          }
+        }
+
+        if (anchors.length > 0) {
+          evidenceMap[ruleId] = anchors;
+        }
+      }
+    }
+
+    return evidenceMap;
+  } catch (e) {
+    console.error('Exception loading evidence for rules:', e);
+    return {};
+  }
+}
+
+export function classifyProductEvidence(anchors: EvidenceAnchor[]): ProductEvidenceClassification {
+  if (anchors.length === 0) {
+    return 'unanchored';
+  }
+
+  const tier1Anchors = anchors.filter((a) => a.tier === 1);
+  const strongBucketCount = anchors.filter((a) => a.bucket === 'strong').length;
+
+  if (tier1Anchors.length > 0 && strongBucketCount >= 2) {
+    return 'strong';
+  }
+
+  if (tier1Anchors.length > 0 && strongBucketCount >= 1) {
+    return 'moderate';
+  }
+
+  if (strongBucketCount >= 1) {
+    return 'moderate';
+  }
+
+  return 'limited';
+}
+
+export function getProductEvidenceUICopy(
+  classification: ProductEvidenceClassification,
+): string {
+  switch (classification) {
+    case 'strong':
+      return 'Based on peer-reviewed evidence';
+    case 'moderate':
+      return 'Based on observational data';
+    case 'limited':
+      return 'Limited evidence — use as orientation only';
+    case 'unanchored':
+      return '';
+  }
+}
