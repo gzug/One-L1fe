@@ -55,6 +55,25 @@ Those are scratch archives — not active memory.
 
 ---
 
+## Doc index — read on demand
+
+These are never loaded by default. Load only when the task explicitly touches the topic.
+
+- `docs/compliance/intended-use.md` — health copy, recommendation wording, compliance
+- `docs/compliance/data-handling-and-redaction.md` — fixtures, screenshots, logs, smoke tests policy
+- `docs/architecture/evidence-registry-and-rule-governance-v1.md` — provenance/evidence logic
+- `docs/architecture/wearables-and-context-schema-draft.md` — wearable seam work
+- `docs/architecture/field-value-state-and-missingness-v1.md` — overrides, disabled/not-provided fields
+- `docs/architecture/field-status-qa-checklist-v1.md` — QA priorities, release-blocking failures
+- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` — planning next seam
+- `docs/ops/openclaw.md` — OpenClaw operating guide
+- `README.md` — broad repo orientation
+- `supabase/README.md` — workflow, CI, secrets, deploy, edge function conventions
+- `supabase/functions/wearable-source-resolve/README.md` — provisioning detail
+- `apps/mobile/docs/health-connect-native-setup.md` — native Android Health Connect wiring
+
+---
+
 ## CONTEXT.md — rules
 
 - Always contains exactly the last 2–3 sessions, compressed
@@ -62,6 +81,14 @@ Those are scratch archives — not active memory.
 - Hard cap: 60 lines total
 - When a new session ends: prepend new entry, drop oldest if >3 sessions present
 - CONTEXT.md is narrative — it does NOT replace CHECKPOINT.md which holds exact execution state
+
+### Boundary vs CHECKPOINT.md
+
+CHECKPOINT = what the next agent must know to execute right now.
+CONTEXT = what previous agents did that a new agent may reference but does not need to execute.
+
+If a line is needed to take the next action: CHECKPOINT.
+If a line is historical narrative: CONTEXT.
 
 ### Entry template
 
