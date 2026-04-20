@@ -63,6 +63,31 @@ function getWearablesSyncUrl(options?: WearableSyncClientOptions): string {
   return `${supabaseUrl}/functions/v1/${functionPath}`;
 }
 
+function assertSyncResponse(value: unknown): WearableSyncResponse {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('wearables-sync returned a non-object response.');
+  }
+  const candidate = value as Record<string, unknown>;
+  if (
+    typeof candidate.sync_run_id !== 'string' ||
+    typeof candidate.status !== 'string' ||
+    typeof candidate.records_seen !== 'number' ||
+    typeof candidate.records_inserted !== 'number' ||
+    typeof candidate.records_updated !== 'number'
+  ) {
+    throw new Error('wearables-sync returned an unexpected response shape.');
+  }
+  return {
+    sync_run_id: candidate.sync_run_id,
+    status: candidate.status,
+    records_seen: candidate.records_seen,
+    records_inserted: candidate.records_inserted,
+    records_updated: candidate.records_updated,
+    next_cursor: typeof candidate.next_cursor === 'string' ? candidate.next_cursor : null,
+    error_summary: candidate.error_summary ?? null,
+  };
+}
+
 export async function submitWearableSync(
   request: WearableSyncRequest,
   options?: WearableSyncClientOptions,
@@ -101,8 +126,8 @@ export async function submitWearableSync(
       parsedBody !== null &&
       typeof parsedBody === 'object' &&
       'error' in parsedBody &&
-      typeof parsedBody.error === 'string'
-        ? parsedBody.error
+      typeof (parsedBody as Record<string, unknown>).error === 'string'
+        ? (parsedBody as Record<string, string>).error
         : `Wearable sync failed with HTTP ${response.status}.`;
 
     return {
@@ -114,7 +139,7 @@ export async function submitWearableSync(
 
   return {
     kind: 'success',
-    response: parsedBody as WearableSyncResponse,
+    response: assertSyncResponse(parsedBody),
   };
 }
 
