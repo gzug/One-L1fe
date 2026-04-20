@@ -7,15 +7,11 @@
 --   4. RLS policies gating access by is_dev flag
 -- ============================================================
 
--- ----------------------------------------------------------------
--- 1. Add is_dev column to profiles
--- ----------------------------------------------------------------
+-- Add is_dev column to profiles
 ALTER TABLE public.profiles
 ADD COLUMN IF NOT EXISTS is_dev boolean DEFAULT false;
 
--- ----------------------------------------------------------------
--- 2. dev_error_log table
--- ----------------------------------------------------------------
+-- dev_error_log table
 CREATE TABLE IF NOT EXISTS public.dev_error_log (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -30,30 +26,7 @@ CREATE TABLE IF NOT EXISTS public.dev_error_log (
 CREATE INDEX IF NOT EXISTS dev_error_log_profile_id_created_at_idx
   ON public.dev_error_log (profile_id, created_at DESC);
 
-ALTER TABLE public.dev_error_log ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "dev_error_log_dev_user_access" ON public.dev_error_log;
-CREATE POLICY "dev_error_log_dev_user_access"
-  ON public.dev_error_log
-  FOR ALL
-  USING (
-    (SELECT auth.uid()) = profile_id
-    AND EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = (SELECT auth.uid()) AND is_dev = true
-    )
-  )
-  WITH CHECK (
-    (SELECT auth.uid()) = profile_id
-    AND EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = (SELECT auth.uid()) AND is_dev = true
-    )
-  );
-
--- ----------------------------------------------------------------
--- 3. dev_feedback table
--- ----------------------------------------------------------------
+-- dev_feedback table
 CREATE TABLE IF NOT EXISTS public.dev_feedback (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   profile_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -66,23 +39,30 @@ CREATE TABLE IF NOT EXISTS public.dev_feedback (
 CREATE INDEX IF NOT EXISTS dev_feedback_profile_id_created_at_idx
   ON public.dev_feedback (profile_id, created_at DESC);
 
+-- Enable RLS on both dev tables
+ALTER TABLE public.dev_error_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.dev_feedback ENABLE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS "dev_feedback_dev_user_access" ON public.dev_feedback;
-CREATE POLICY "dev_feedback_dev_user_access"
-  ON public.dev_feedback
+-- RLS policy for dev_error_log: only dev users can access their own errors
+CREATE POLICY dev_error_log_dev_user_all ON public.dev_error_log
   FOR ALL
   USING (
     (SELECT auth.uid()) = profile_id
-    AND EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = (SELECT auth.uid()) AND is_dev = true
-    )
+    AND EXISTS (SELECT 1 FROM public.profiles WHERE id = (SELECT auth.uid()) AND is_dev = true)
   )
   WITH CHECK (
     (SELECT auth.uid()) = profile_id
-    AND EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = (SELECT auth.uid()) AND is_dev = true
-    )
+    AND EXISTS (SELECT 1 FROM public.profiles WHERE id = (SELECT auth.uid()) AND is_dev = true)
+  );
+
+-- RLS policy for dev_feedback: only dev users can access their own feedback
+CREATE POLICY dev_feedback_dev_user_all ON public.dev_feedback
+  FOR ALL
+  USING (
+    (SELECT auth.uid()) = profile_id
+    AND EXISTS (SELECT 1 FROM public.profiles WHERE id = (SELECT auth.uid()) AND is_dev = true)
+  )
+  WITH CHECK (
+    (SELECT auth.uid()) = profile_id
+    AND EXISTS (SELECT 1 FROM public.profiles WHERE id = (SELECT auth.uid()) AND is_dev = true)
   );
