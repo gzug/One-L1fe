@@ -13,6 +13,7 @@ import WearableSyncScreen from './WearableSyncScreen.tsx';
 import HealthConnectPermissionGate from './HealthConnectPermissionGate.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
+import { useWearablePermissions } from './useWearablePermissions';
 import DevInsightScreen from './DevInsightScreen.tsx';
 
 const controller = createMinimumSliceScreenController({
@@ -30,6 +31,11 @@ export default function App(): React.JSX.Element {
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
   const [isDevUser, setIsDevUser] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<string>('MinimumSlice');
+
+  // Resolve HC permission status at App level so the tab bar can reflect
+  // the gate state without mounting a second hook instance inside the tab.
+  const { status: hcStatus } = useWearablePermissions();
+  const hcBlocked = hcStatus === 'denied' || hcStatus === 'unavailable';
 
   useEffect(() => {
     if (user?.id) {
@@ -104,30 +110,50 @@ export default function App(): React.JSX.Element {
           <SessionBar email={user.email} userId={user.id} onSignOut={signOut} />
         ) : null}
         <View style={styles.tabBar}>
-          {screenTabs.map((screen) => (
-            <Pressable
-              key={screen}
-              onPress={() => {
-                setActiveScreen(screen);
-                setCurrentScreen(
-                  screen === 'minimum-slice'
-                    ? 'MinimumSlice'
-                    : screen === 'wearable-sync'
-                      ? 'WearableSync'
-                      : 'DevInsight',
-                );
-              }}
-              style={[styles.tab, activeScreen === screen && styles.tabActive]}
-            >
-              <Text style={[styles.tabText, activeScreen === screen && styles.tabTextActive]}>
-                {screen === 'minimum-slice'
-                  ? 'Blood Panel'
-                  : screen === 'wearable-sync'
-                    ? 'Wearable Sync'
-                    : 'Dev Insight'}
-              </Text>
-            </Pressable>
-          ))}
+          {screenTabs.map((screen) => {
+            const isWearable = screen === 'wearable-sync';
+            const isActive = activeScreen === screen;
+            const showLock = isWearable && hcBlocked;
+
+            const label =
+              screen === 'minimum-slice'
+                ? 'Blood Panel'
+                : screen === 'wearable-sync'
+                  ? showLock
+                    ? 'Wearable Sync 🔒'
+                    : 'Wearable Sync'
+                  : 'Dev Insight';
+
+            return (
+              <Pressable
+                key={screen}
+                onPress={() => {
+                  setActiveScreen(screen);
+                  setCurrentScreen(
+                    screen === 'minimum-slice'
+                      ? 'MinimumSlice'
+                      : screen === 'wearable-sync'
+                        ? 'WearableSync'
+                        : 'DevInsight',
+                  );
+                }}
+                style={[
+                  styles.tab,
+                  isActive && styles.tabActive,
+                  showLock && styles.tabLocked,
+                ]}
+                accessibilityLabel={
+                  showLock
+                    ? 'Wearable Sync — Health Connect permission required'
+                    : label
+                }
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive, showLock && styles.tabTextLocked]}>
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
         {activeScreen === 'minimum-slice' ? (
           <MinimumSliceScreen controller={controller} />
@@ -150,6 +176,8 @@ const styles = StyleSheet.create({
   tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#d9e2f2', backgroundColor: '#ffffff' },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   tabActive: { borderBottomWidth: 2, borderBottomColor: '#4263eb' },
+  tabLocked: { opacity: 0.55 },
   tabText: { fontSize: 14, fontWeight: '600', color: '#52607a' },
   tabTextActive: { color: '#4263eb' },
+  tabTextLocked: { color: '#a0aabb' },
 });
