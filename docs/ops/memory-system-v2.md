@@ -134,6 +134,46 @@ Premature promotion to MEMORY.md causes drift.
 
 ---
 
+## MEMORY.md — size and archival policy
+
+### Size limit
+
+`MEMORY.md` has a **hard cap of 120 lines**.
+
+When a proposed addition would push MEMORY.md above 120 lines,
+the agent must archive at least one existing section before adding the new content.
+Never exceed the cap — compress or archive first, then add.
+
+### Archival trigger
+
+Archive a MEMORY.md section when **any** of the following are true:
+- The section describes a decision that is fully implemented and stable in `main`
+- The section has not changed in 3+ months
+- The content is better captured in a `docs/` reference file
+
+### Archival process
+
+1. Copy the section to `docs/archive/memory/memory-YYYY-MM-DD-[topic].md`
+2. Replace the section in MEMORY.md with a one-line pointer:
+   `<!-- archived: docs/archive/memory/memory-YYYY-MM-DD-[topic].md -->`
+3. Commit together with any new content being added
+
+### What must never be archived
+
+- Active product boundaries (what this is / is not)
+- Architecture invariants that an agent would violate if unaware
+- The Priority Score bounded-aid constraint
+- Any item tagged `# DO NOT ARCHIVE` by the owner
+
+### Candidate sections for next archival pass
+
+Review these when MEMORY.md next approaches 120 lines:
+- `## Durable architecture posture` bullets for fully-shipped features
+- Field-state decisions already reflected in schema migrations
+- Early infrastructure decisions superseded by current setup
+
+---
+
 ## End-of-session checklist — all agents
 
 Execute in this order before ending or resetting any session:
@@ -141,13 +181,14 @@ Execute in this order before ending or resetting any session:
 1. **Update `CHECKPOINT.md`** — current branch + HEAD SHA, last confirmed state, next steps, resolved/new blockers
 2. **Update `CONTEXT.md`** — prepend session entry (max 5 bullets), drop oldest if >3 entries, enforce 60-line cap
 3. **Promote to `MEMORY.md`** if anything durable was decided this session
-4. **Write or finalise `memory/YYYY-MM-DD.md`** — raw session notes
-5. **Archive daily note** — move to `docs/archive/memory/YYYY-MM-DD.md`
-6. **Single commit** — all changed files together, message: `memory: session closeout YYYY-MM-DD`
-7. **Push to `main`** (via PR if branch protection requires it)
+4. **Check MEMORY.md line count** — if >120 lines, archive before adding
+5. **Write or finalise `memory/YYYY-MM-DD.md`** — raw session notes
+6. **Archive daily note** — move to `docs/archive/memory/YYYY-MM-DD.md`
+7. **Single commit** — all changed files together, message: `memory: session closeout YYYY-MM-DD`
+8. **Push to `main`** (via PR if branch protection requires it)
 
 Steps 1 and 2 are mandatory every session.
-Steps 3–5 required unless the session produced no meaningful work.
+Steps 3–6 required unless the session produced no meaningful work.
 Never push partial closeouts — all steps in one commit.
 
 ---
@@ -161,10 +202,11 @@ SESSION CLOSEOUT — execute memory-system-v2 end-of-session checklist:
 1. Update CHECKPOINT.md with current state, next steps, resolved/new blockers
 2. Prepend session entry to CONTEXT.md (max 5 bullets), drop oldest if >3, enforce 60-line cap
 3. Promote anything durable to MEMORY.md
-4. Write memory/YYYY-MM-DD.md with raw session notes
-5. Archive memory/YYYY-MM-DD.md to docs/archive/memory/YYYY-MM-DD.md
-6. Commit all changes: "memory: session closeout YYYY-MM-DD"
-7. Push to main (via PR if branch protection is active)
+4. Check MEMORY.md line count — if >120 lines, archive before adding (see archival policy)
+5. Write memory/YYYY-MM-DD.md with raw session notes
+6. Archive memory/YYYY-MM-DD.md to docs/archive/memory/YYYY-MM-DD.md
+7. Commit all changes: "memory: session closeout YYYY-MM-DD"
+8. Push to main (via PR if branch protection is active)
 Reference: docs/ops/memory-system-v2.md
 ```
 
@@ -190,9 +232,9 @@ Start minimal — load more only if the task explicitly requires it.
 |---|---|
 | No quick-context layer — agents loaded full MEMORY.md | `CONTEXT.md` as fast startup layer |
 | Daily notes unresolved indefinitely | Archived within 14 days, same-session preferred |
-| No end-of-session checklist | Explicit 7-step checklist |
+| No end-of-session checklist | Explicit 8-step checklist (added archival check) |
 | No universal session-end command | Single paste command works across all agents |
-| No max-length rule | `CONTEXT.md` hard cap: 60 lines |
+| No max-length rule for MEMORY.md | Hard cap: 120 lines with archival process |
 | Local files undefined | No local memory layer — repo only |
 
 `MEMORY.md`, `CHECKPOINT.md`, and `docs/` structure are unchanged.
