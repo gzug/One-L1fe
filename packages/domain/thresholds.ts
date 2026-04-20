@@ -204,6 +204,91 @@ export function evaluateVitaminD(value: number, unit: string): ThresholdEvaluati
   return null;
 }
 
+/**
+ * Ferritin: context-gated interpretation (CTX-001 / CTX-002).
+ *
+ * Low ferritin is directly interpretable.
+ * Elevated ferritin without context → Borderline + context-gate note (CTX-001).
+ * Elevated ferritin with inflammation/liver/iron-transport context → escalated (CTX-002, draft).
+ *
+ * Units: ng/mL (= µg/L, numerically identical).
+ * Sex-specific lower bound: female < 15, male < 30 → Low / Critical.
+ * Upper escalation thresholds are population-level (not sex-specific in V1).
+ *
+ * TODO(CTX-002): wire `hasInflammationContext` signal from slice layer once
+ * context-field collection is implemented. Until then CTX-002 remains draft.
+ */
+export function evaluateFerritin(
+  value: number,
+  unit: string,
+  opts: { sex?: 'male' | 'female'; hasInflammationContext?: boolean } = {},
+): ThresholdEvaluation | null {
+  if (unit !== 'ng/mL' && unit !== 'µg/L') return null;
+
+  const { sex, hasInflammationContext = false } = opts;
+
+  // --- Low end (directly interpretable, sex-specific lower bound) ---
+  const lowCriticalThreshold = sex === 'female' ? 7 : 10;
+  const lowThreshold = sex === 'female' ? 15 : 30;
+
+  if (value < lowCriticalThreshold) {
+    return {
+      canonicalStatus: CanonicalStatus.Critical,
+      ruleIds: ['CTX-001'],
+      notes: ['Critically low ferritin — iron depletion likely.'],
+    };
+  }
+
+  if (value < lowThreshold) {
+    return {
+      canonicalStatus: CanonicalStatus.High, // repurposed: Low severity maps to High concern
+      ruleIds: ['CTX-001'],
+      notes: ['Low ferritin — iron stores depleted or borderline.'],
+    };
+  }
+
+  // --- Optimal / Good band ---
+  const optimalMax = sex === 'female' ? 150 : 200;
+  const goodMax = sex === 'female' ? 200 : 300;
+
+  if (value <= optimalMax) {
+    return {
+      canonicalStatus: CanonicalStatus.Optimal,
+      ruleIds: ['CTX-001'],
+    };
+  }
+
+  if (value <= goodMax) {
+    return {
+      canonicalStatus: CanonicalStatus.Good,
+      ruleIds: ['CTX-001'],
+    };
+  }
+
+  // --- Elevated band (context-gated) ---
+  // CTX-002 (draft): escalate only when inflammation/liver/iron-transport context is present.
+  if (hasInflammationContext) {
+    return {
+      canonicalStatus: value > 500 ? CanonicalStatus.Critical : CanonicalStatus.High,
+      ruleIds: ['CTX-001', 'CTX-002'],
+      notes: [
+        'Elevated ferritin with supporting context (inflammation / liver / iron-transport) — bounded escalation applied.',
+        'CTX-002 is draft; context-field wiring pending.',
+      ],
+    };
+  }
+
+  // Without context: request context collection, hold at Borderline.
+  return {
+    canonicalStatus: CanonicalStatus.Borderline,
+    ruleIds: ['CTX-001'],
+    notes: [
+      'Elevated ferritin without inflammation, liver, or iron-transport context.',
+      'Context collection required before escalation (CTX-001).',
+    ],
+  };
+}
+
 export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation | null {
   switch (input.marker) {
     case 'apob':
@@ -220,6 +305,8 @@ export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation 
       return evaluateCRP(input.value, input.unit);
     case 'vitamin_d':
       return evaluateVitaminD(input.value, input.unit);
+    case 'ferritin':
+      return evaluateFerritin(input.value, input.unit);
     default:
       return null;
   }

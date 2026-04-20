@@ -92,7 +92,7 @@ export interface MinimumSliceEvaluation {
 }
 
 const REQUIRED_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['apob', 'hba1c', 'glucose', 'ldl'];
-const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp'];
+const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp', 'ferritin'];
 
 function dedupeRecommendations(recommendations: Recommendation[]): Recommendation[] {
   const seen = new Set<string>();
@@ -264,6 +264,52 @@ function buildInterpretationRecommendation(entry: EvaluatedEntry): Recommendatio
       ruleOrigin: undefined,
       productEvidenceClass: undefined,
     };
+  }
+
+  if (entry.marker === 'ferritin') {
+    // Low ferritin: directly actionable.
+    if (
+      entry.canonicalStatus === CanonicalStatus.High ||
+      entry.canonicalStatus === CanonicalStatus.Critical
+    ) {
+      return {
+        type: entry.canonicalStatus === CanonicalStatus.Critical ? 'clinician_clarification' : 'monitor',
+        verdict: 'Low ferritin — iron stores need attention',
+        text:
+          entry.canonicalStatus === CanonicalStatus.Critical
+            ? 'Critically low ferritin warrants clinician review before any supplementation.'
+            : 'Ferritin is below the adequate range. Revisit dietary iron intake and track trend over the next panel.',
+        evidenceSummary: `Ferritin is interpretable and currently maps to ${entry.canonicalStatus} (low iron stores).`,
+        confidence: 'medium',
+        scope: 'iron-status context only — not a diagnosis of iron-deficiency anaemia',
+        handoffRequired: entry.canonicalStatus === CanonicalStatus.Critical,
+        ruleId: 'CTX-001',
+        anchorSourceId: undefined,
+        ruleOrigin: undefined,
+        productEvidenceClass: undefined,
+      };
+    }
+
+    // Elevated ferritin: context gate — always Borderline until context is collected.
+    if (entry.canonicalStatus === CanonicalStatus.Borderline) {
+      return {
+        type: 'collect_more_data',
+        verdict: 'Elevated ferritin — context needed before escalation',
+        text:
+          'Ferritin is above the good range but context (inflammation markers, liver function, iron-transport panel) is not yet captured. Collect context before treating this as a severity signal.',
+        evidenceSummary:
+          'Elevated ferritin without inflammation / liver / iron-transport context. CTX-001 holds interpretation at Borderline.',
+        confidence: 'medium',
+        scope: 'iron-storage context only — not a severity conclusion without supporting data',
+        handoffRequired: false,
+        ruleId: 'CTX-001',
+        anchorSourceId: undefined,
+        ruleOrigin: undefined,
+        productEvidenceClass: undefined,
+      };
+    }
+
+    return null;
   }
 
   return null;
