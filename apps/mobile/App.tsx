@@ -1,8 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { ErrorUtils, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import * as Application from 'expo-application';
-import * as Device from 'expo-device';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
@@ -16,7 +14,6 @@ import HealthConnectPermissionGate from './HealthConnectPermissionGate.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
 import DevInsightScreen from './DevInsightScreen.tsx';
-import { isDevUser } from '../../packages/domain/devAccess.ts';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -31,7 +28,7 @@ type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'dev-insight';
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
-  const [profile, setProfile] = useState<{ is_dev: boolean } | null>(null);
+  const [isDevUser, setIsDevUser] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<string>('MinimumSlice');
 
   useEffect(() => {
@@ -44,8 +41,8 @@ export default function App(): React.JSX.Element {
             .eq('id', user.id)
             .single();
 
-          if (!error && data) {
-            setProfile(data);
+          if (!error && data && typeof data === 'object' && 'is_dev' in data) {
+            setIsDevUser((data as { is_dev: boolean }).is_dev === true);
           }
         } catch (e) {
           console.error('Error fetching profile:', e);
@@ -58,15 +55,15 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     const defaultHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error, isFatal) => {
-      if (user?.id && isDevUser(profile)) {
+      if (user?.id && isDevUser) {
         try {
           await getMobileSupabaseClient().from('dev_error_log').insert({
             profile_id: user.id,
             error_message: error.message,
             error_stack: error.stack,
             screen: currentScreen,
-            app_version: Application.nativeApplicationVersion,
-            platform: Device.osName === 'iOS' ? 'ios' : 'android',
+            app_version: undefined,
+            platform: undefined,
           });
         } catch (e) {
           console.error('Error logging to dev_error_log:', e);
@@ -83,7 +80,7 @@ export default function App(): React.JSX.Element {
         ErrorUtils.setGlobalHandler(defaultHandler);
       }
     };
-  }, [user?.id, profile, currentScreen]);
+  }, [user?.id, isDevUser, currentScreen]);
 
   if (authState === 'loading') {
     return <SafeAreaView style={styles.centered} />;
@@ -94,7 +91,7 @@ export default function App(): React.JSX.Element {
   }
 
   const screenTabs = (['minimum-slice', 'wearable-sync'] as const).concat(
-    isDevUser(profile) ? (['dev-insight'] as const) : [],
+    isDevUser ? (['dev-insight'] as const) : [],
   );
 
   return (
