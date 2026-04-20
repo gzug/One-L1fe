@@ -29,7 +29,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - Keep core health/domain logic in shared domain/backend code
 - ApoB primary, LDL fallback/secondary; weak markers out of hard core score unless clearly justified
 - Priority Score: bounded prioritization aid, not a clinical risk score
-- Evidence registry: schema + seed live (`evidence_sources`, `rule_evidence_links`; 7 sources, 11 rules, migration `20260413021500`). Runtime consumer **not wired** — Priority Score currently does not read from `rule_evidence_links` at calculation time. Acceptable for private-use V1; must be wired before any external claim or distribution scope change.
+- Evidence registry: schema + seed live (`evidence_sources`, `rule_evidence_links`; 9 sources, 15 rules, migrations `20260413021500` + `20260420091500` + `20260420190000`). Covered: Vitamin D, Ferritin, CRP, ApoB/LDL. Runtime consumer **not wired** — Priority Score currently does not read from `rule_evidence_links` at calculation time. Acceptable for private-use V1; must be wired before any external claim or distribution scope change. See Issue #94.
 - Keep shared domain imports cross-runtime safe (Node tests + Supabase Edge Functions)
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
@@ -38,6 +38,8 @@ Long-term operating memory for **One L1fe (OL)**.
 - Signed-out states vs operational auth errors treated separately in `getFreshAccessToken()`
 - Wearable work: reuse `apps/mobile/mobileSupabaseAuth.ts`, no second Supabase client
 - Mobile wearable path on `main`: `useWearableSource`, `useWearableSync`, `WearableSyncScreen`, Android-first Health Connect permission gate
+- `HealthConnectPermissionGate` wired into tab navigation: `useWearablePermissions()` lifted to `App` level; Wearable Sync tab shows lock badge + reduced opacity when `hcStatus` is `denied` or `unavailable`. Gate still renders inline when tab is opened.
+- `WearableSyncScreen` shows `SyncStatus` feedback after sync: success banner (timestamp + `records_inserted`), error banner, disabled button during run. `SyncStatus` type: `idle | running | success | error`.
 - Android: `react-native-health-connect`; iOS explicit stub until HealthKit adapter added
 - Early seams: device-free + mockable; readiness docs must distinguish hosted-proof from real device proof
 - Garmin: first provisioning target; still device-free/hosted
@@ -51,6 +53,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - V1: `provided` is display-layer umbrella, not required persisted state
 - `declined` out of V1 unless real settings/preferences flow exists
 - `stale`: derived from `isDerivedStale()` in `packages/domain/fieldValueState.ts`; never persisted as `field_state`
+- `isDerivedStale()` staleness thresholds extracted as named constants in `packages/domain/v1.ts`: `STALE_THRESHOLD_DAYS_LAB` (30), `STALE_THRESHOLD_DAYS_WEARABLE` (1), `STALE_THRESHOLD_DAYS_SUBJECTIVE` (1). Per-biomarker override via `StalenessConfig` type. Lab fields and wearable fields intentionally have different windows.
 - HRV no-method render guard: explicit impossible-state WARN path in reusable component contract
 - Canonical ref: `docs/architecture/field-value-state-and-missingness-v1.md`
 - Field-state QA: `docs/architecture/field-status-qa-checklist-v1.md`
@@ -59,7 +62,6 @@ Long-term operating memory for **One L1fe (OL)**.
 - Identity-guard migration: unique index `(profile_id, source_kind, app_install_id)` + `(profile_id, source_kind, device_hardware_id)`
 - HRV V1: store method metadata; never aggregate SDNN + RMSSD; `unknown` method rejected at `supabase/functions/wearables-sync/validate.ts`
 - Domain code vendored into `_lib/domain` via `scripts/prepare-supabase-function-domain.sh` (cross-runtime Node + Edge)
-- `isDerivedStale()` 30-day default window as lab-field starting policy
 - Severity separate from coverage
 
 ## Durable repo operations posture
