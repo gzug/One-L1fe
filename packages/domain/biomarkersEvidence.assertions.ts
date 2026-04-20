@@ -7,9 +7,9 @@ function assert(condition: unknown, message: string): void {
 }
 
 export function runBiomarkersEvidenceAssertions(): void {
-  const mockAnchors = [
-    { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
-    { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
+  const mockAnchors: Array<{ sourceId: string; tier: number; bucket: string }> = [
+    { sourceId: 'src1', tier: 1, bucket: 'strong' },
+    { sourceId: 'src2', tier: 2, bucket: 'strong' },
   ];
 
   const mockBiomarkerValues = {
@@ -55,17 +55,19 @@ export function runBiomarkersEvidenceAssertions(): void {
   assert(result.score > 0, `Expected score > 0, got ${result.score}`);
   assert(result.score <= 100, `Expected score <= 100, got ${result.score}`);
 
-  const singleAnchor = [{ sourceId: 'src1', tier: 1, bucket: 'strong' as const }];
+  const singleAnchor: Array<{ sourceId: string; tier: number; bucket: string }> = [
+    { sourceId: 'src1', tier: 1, bucket: 'strong' },
+  ];
   const singleResult = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, singleAnchor);
   assert(
     singleResult.product_evidence_class === 'moderate',
     `Expected 'moderate' for single anchor, got '${singleResult.product_evidence_class}'`,
   );
 
-  const multipleAnchors = [
-    { sourceId: 'src1', tier: 1, bucket: 'strong' as const },
-    { sourceId: 'src2', tier: 2, bucket: 'strong' as const },
-    { sourceId: 'src3', tier: 2, bucket: 'secondary' as const },
+  const multipleAnchors: Array<{ sourceId: string; tier: number; bucket: string }> = [
+    { sourceId: 'src1', tier: 1, bucket: 'strong' },
+    { sourceId: 'src2', tier: 2, bucket: 'strong' },
+    { sourceId: 'src3', tier: 2, bucket: 'secondary' },
   ];
 
   const multiResult = aggregateTotalPriorityScoreWithEvidence(mockBiomarkerValues, multipleAnchors);

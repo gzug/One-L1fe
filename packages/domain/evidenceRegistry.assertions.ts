@@ -2,6 +2,7 @@ import {
   UnanchoredScoreError,
   classifyProductEvidence,
   getProductEvidenceUICopy,
+  EvidenceAnchor,
 } from './evidenceRegistry.ts';
 
 function assert(condition: unknown, message: string): void {
@@ -26,27 +27,27 @@ export function runEvidenceRegistryAssertions(): void {
   const emptyResult = classifyProductEvidence([]);
   assert(emptyResult === 'unanchored', `Expected 'unanchored' for empty anchors, got '${emptyResult}'`);
 
-  const strongAnchors = [
-    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
-    { sourceId: 'src2', name: 'Source 2', tier: 2, bucket: 'strong' as const },
+  const strongAnchors: EvidenceAnchor[] = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' },
+    { sourceId: 'src2', name: 'Source 2', tier: 2, bucket: 'strong' },
   ];
   const strongResult = classifyProductEvidence(strongAnchors);
   assert(strongResult === 'strong', `Expected 'strong' for tier-1 + 2 strong, got '${strongResult}'`);
 
-  const moderateAnchors = [
-    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' as const },
+  const moderateAnchors: EvidenceAnchor[] = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'strong' },
   ];
   const moderateResult = classifyProductEvidence(moderateAnchors);
   assert(moderateResult === 'moderate', `Expected 'moderate' for single tier-1, got '${moderateResult}'`);
 
-  const supportingOnlyAnchors = [
-    { sourceId: 'src1', name: 'Source 1', tier: 2, bucket: 'strong' as const },
+  const supportingOnlyAnchors: EvidenceAnchor[] = [
+    { sourceId: 'src1', name: 'Source 1', tier: 2, bucket: 'strong' },
   ];
   const supportingResult = classifyProductEvidence(supportingOnlyAnchors);
   assert(supportingResult === 'limited', `Expected 'limited' for supporting only, got '${supportingResult}'`);
 
-  const nonStrongAnchors = [
-    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'secondary' as const },
+  const nonStrongAnchors: EvidenceAnchor[] = [
+    { sourceId: 'src1', name: 'Source 1', tier: 1, bucket: 'secondary' },
   ];
   const nonStrongResult = classifyProductEvidence(nonStrongAnchors);
   assert(nonStrongResult === 'limited', `Expected 'limited' for non-strong, got '${nonStrongResult}'`);
