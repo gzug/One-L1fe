@@ -12,7 +12,7 @@ export function runBiomarkersEvidenceAssertions(): void {
     { sourceId: 'src2', tier: 2, bucket: 'strong' },
   ];
 
-  const mockBiomarkerValues = {
+  const mockBiomarkerValues: Record<string, number | null | undefined> = {
     apob: 150,
     ldl: 120,
     triglycerides: 200,
