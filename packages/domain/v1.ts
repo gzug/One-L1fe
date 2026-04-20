@@ -43,6 +43,27 @@ export enum RecommendationEligibilityClass {
 
 export { FieldState } from './fieldValueState.ts';
 
+// ---------------------------------------------------------------------------
+// Staleness thresholds
+// Default windows apply to lab biomarkers. Wearable-derived fields use
+// shorter windows and should pass a StalenessConfig override.
+// ---------------------------------------------------------------------------
+
+/** Upper boundary (inclusive) in days for FreshnessState.Current. */
+export const STALE_THRESHOLD_DAYS_CURRENT = 30;
+/** Upper boundary (inclusive) in days for FreshnessState.Recent. */
+export const STALE_THRESHOLD_DAYS_RECENT = 90;
+/** Upper boundary (inclusive) in days for FreshnessState.Aging. */
+export const STALE_THRESHOLD_DAYS_AGING = 180;
+
+/** Per-call override for staleness windows. All fields are optional;
+ *  missing fields fall back to the module-level defaults above. */
+export interface StalenessConfig {
+  currentDays?: number;
+  recentDays?: number;
+  agingDays?: number;
+}
+
 export interface MarkerRuntimeConfig {
   key: BiomarkerKey;
   markerRole: MarkerRole;
@@ -212,6 +233,7 @@ export function getMarkerRuntimeConfig(key: BiomarkerKey): MarkerRuntimeConfig {
 export function getFreshnessState(
   collectedAt?: string | Date | null,
   now: Date = new Date(),
+  overrides?: StalenessConfig,
 ): FreshnessState {
   if (!collectedAt) return FreshnessState.Unknown;
 
@@ -220,9 +242,13 @@ export function getFreshnessState(
 
   const ageDays = Math.floor((now.getTime() - collected.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (ageDays <= 30) return FreshnessState.Current;
-  if (ageDays <= 90) return FreshnessState.Recent;
-  if (ageDays <= 180) return FreshnessState.Aging;
+  const currentDays = overrides?.currentDays ?? STALE_THRESHOLD_DAYS_CURRENT;
+  const recentDays = overrides?.recentDays ?? STALE_THRESHOLD_DAYS_RECENT;
+  const agingDays = overrides?.agingDays ?? STALE_THRESHOLD_DAYS_AGING;
+
+  if (ageDays <= currentDays) return FreshnessState.Current;
+  if (ageDays <= recentDays) return FreshnessState.Recent;
+  if (ageDays <= agingDays) return FreshnessState.Aging;
   return FreshnessState.Stale;
 }
 
