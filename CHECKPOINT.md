@@ -12,7 +12,7 @@ scope: repo
 
 ## Verdict
 
-The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. The wearable backend seam is hosted-proof complete, and the first app-side wearable sync UI path is now merged on `main`. The remaining gaps are native Android Health Connect wiring outside the current repo, replacement of the temporary dev install identifier, and first real device-backed ingest proof.
+The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. The wearable backend seam is hosted-proof complete, and the first app-side wearable sync UI path is now merged on `main`. The current active seam is Health Connect native wiring through Expo prebuild plus OxygenOS 15 operator verification for the OnePlus 13R.
 
 ## Current state
 
@@ -21,14 +21,15 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
   - new threshold evaluators exist for triglycerides, B12, magnesium, DAO, and ferritin
   - biomarker scoring metadata now carries `evidenceConfidenceModifier` and `scoringClass`
 - Domain assertions now cover the revised thresholds and the new marker dispatch paths
+- Health Connect native wiring is now implemented on branch `fix/health-connect-native-wiring` with an Expo config plugin, dev-only diagnostic screen, and OxygenOS setup docs
 - Branch: `main` at `243a116`, aligned with `origin/main`
 - PRs #48 through #64 merged, including provisioning, ingest guardrails, field-state, docs, wearable mobile hooks/UI, Health Connect permission gate, and follow-up cleanup/fixes
 - Active seam: real device-backed wearable ingest proof and native Android completion
 - Source of truth repo: `gzug/One-L1fe`
 - Current blockers:
   - no physical Garmin device / Health Connect data source proof yet
-  - Android native Health Connect setup is documented but still requires manual `MainActivity.kt` and `AndroidManifest.xml` changes outside the current repo state
-  - `WearableSyncScreen.tsx` still uses a temporary `MOCK_APP_INSTALL_ID` and should switch to a real install/device identity once the device seam is available
+  - on-device OxygenOS 15 verification is still pending
+  - APK-install proof and Health Connect permission-grant screenshot are still pending
   - branch protection for `main` still needs explicit verification/enforcement
 - Key confirmed facts:
   - hosted migrations applied and local chain aligned (all migrations through `20260417093000_wearable_source_identity_guards.sql`)
@@ -61,7 +62,9 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
     - `apps/mobile/wearablePermissions.ts`
     - `apps/mobile/useWearablePermissions.ts`
     - `apps/mobile/HealthConnectPermissionGate.tsx`
-  - Health Connect native setup steps are documented in `apps/mobile/docs/health-connect-native-setup.md`
+  - Health Connect native setup is now documented in `apps/mobile/docs/health-connect-native-setup.md` and automated through `apps/mobile/plugins/with-health-connect.ts`
+  - OxygenOS 15 runbook lives in `apps/mobile/docs/oneplus-oxygenos-setup.md`
+  - Health Connect diagnostic screen lives at `apps/mobile/src/screens/HealthConnectDiagnosticScreen.tsx`
   - current platform posture is Android-first via `react-native-health-connect`; iOS remains an explicit stub until a separate HealthKit adapter slice is added
   - provisioning identity stays anchored to instance-level identifiers: `app_install_id` first, `device_hardware_id` later
   - `source_app_id` is connector metadata, not a sole ownership key
@@ -87,11 +90,11 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
 ## Current next step
 
 In order:
-1. **Complete native Android Health Connect wiring** — apply the documented `MainActivity.kt` and `AndroidManifest.xml` changes from `apps/mobile/docs/health-connect-native-setup.md`
-2. **Replace the temporary dev identity path** — remove `MOCK_APP_INSTALL_ID` in `apps/mobile/WearableSyncScreen.tsx` once a real install/device identity source is available
+1. **Run B1/B2 mobile build proof** — prebuild the Android app with the new Health Connect config plugin and verify the manifest/native output
+2. **Complete real-device OxygenOS verification** — install the APK on the OnePlus 13R, grant Health Connect permissions, and confirm the diagnostic screen returns real timestamps
 3. **Run first real Health Connect ingest proof** — provision with a real app/device identity, request permissions, and pass real observations into `wearables-sync`
 4. **Verify physical Garmin path** — once hardware/app access exists, confirm real end-to-end Garmin-backed flow
-5. **Clean small follow-ups** — resolve `memory/2026-04-17.md`, verify branch protection on `main`, and address remaining typed cleanup like the `as any` follow-up when the result type stabilizes
+5. **Clean small follow-ups** — verify branch protection on `main` and prune any stale branches after review
 
 Near-term simplifications to keep:
 - keep `declined` out of V1 unless a real settings/preferences flow exists

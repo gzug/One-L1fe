@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { theme } from './ui/theme';
 
 interface SessionBarProps {
   email?: string;
@@ -66,8 +67,8 @@ export default function SessionBar({
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: '#ffffff',
-    borderBottomColor: '#d9e2f2',
+    backgroundColor: theme.colors.surface,
+    borderBottomColor: theme.colors.border,
     borderBottomWidth: 1,
     gap: 8,
     paddingHorizontal: 20,
@@ -84,21 +85,21 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   label: {
-    color: '#52607a',
+    color: theme.colors.textMuted,
     fontSize: 12,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
   identity: {
-    color: '#152033',
+    color: theme.colors.text,
     fontSize: 15,
     fontWeight: '600',
   },
   button: {
     alignItems: 'center',
-    backgroundColor: '#eef2ff',
-    borderColor: '#c8d3e1',
-    borderRadius: 10,
+    backgroundColor: theme.colors.primarySurface,
+    borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
     justifyContent: 'center',
     minHeight: 40,
@@ -109,12 +110,12 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#24324a',
+    color: theme.colors.textLabel,
     fontSize: 14,
     fontWeight: '600',
   },
   error: {
-    color: '#b42318',
+    color: theme.colors.danger,
     fontSize: 13,
     lineHeight: 18,
   },

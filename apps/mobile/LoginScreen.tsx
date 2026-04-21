@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -11,6 +10,8 @@ import {
   View,
 } from 'react-native';
 import { getMobileSupabaseClient } from './mobileSupabaseAuth.ts';
+import { Card, PrimaryButton, ScreenHeader } from './ui/components';
+import { theme } from './ui/theme';
 
 interface LoginScreenProps {
   initialError?: string;
@@ -63,13 +64,13 @@ export default function LoginScreen({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.inner}
       >
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>One L1fe</Text>
-          <Text style={styles.title}>Sign in</Text>
-          <Text style={styles.subtitle}>Sign in to submit your lab data.</Text>
-        </View>
+        <ScreenHeader
+          eyebrow="One L1fe"
+          title="Sign in"
+          subtitle="Sign in to submit your lab data."
+        />
 
-        <View style={styles.card}>
+        <Card>
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -101,19 +102,11 @@ export default function LoginScreen({
           {error !== undefined ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
-        </View>
+        </Card>
 
-        <Pressable
-          disabled={isLoading}
-          onPress={handleSignIn}
-          style={[styles.primaryButton, isLoading && styles.primaryButtonDisabled]}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.primaryButtonText}>Sign in</Text>
-          )}
-        </Pressable>
+        <PrimaryButton onPress={handleSignIn} disabled={isLoading}>
+          {isLoading ? <ActivityIndicator color="#ffffff" /> : 'Sign in'}
+        </PrimaryButton>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -122,7 +115,7 @@ export default function LoginScreen({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f4f7fb',
+    backgroundColor: theme.colors.bg,
   },
   inner: {
     flex: 1,
@@ -130,70 +123,26 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 16,
   },
-  header: {
-    gap: 6,
-    marginBottom: 8,
-  },
-  eyebrow: {
-    color: '#4263eb',
-    fontSize: 13,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#152033',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  subtitle: {
-    color: '#52607a',
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 14,
-    padding: 16,
-  },
   fieldGroup: {
     gap: 6,
   },
   label: {
-    color: '#24324a',
-    fontSize: 14,
-    fontWeight: '600',
+    color: theme.colors.textLabel,
+    ...theme.text.label,
   },
   input: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#c8d3e1',
-    borderRadius: 10,
+    backgroundColor: theme.colors.surfaceSubtle,
+    borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
-    color: '#152033',
+    color: theme.colors.text,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
   errorText: {
-    color: '#b42318',
+    color: theme.colors.danger,
     fontSize: 14,
     lineHeight: 20,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 12,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  primaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
   },
 });

@@ -1,12 +1,13 @@
 import React from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { useWearablePermissions } from './useWearablePermissions';
+import { Card, PrimaryButton, ScreenHeader } from './ui/components';
+import { theme } from './ui/theme';
 
 interface Props {
   children: React.ReactNode;
@@ -28,10 +29,16 @@ export default function HealthConnectPermissionGate({
   if (status === 'unavailable') {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>Health Connect not available</Text>
-        <Text style={styles.subtitle}>
-          This feature requires Health Connect on Android. iOS support coming soon.
-        </Text>
+        <Card style={styles.gateCard}>
+          <ScreenHeader
+            eyebrow="One L1fe"
+            title="Wearable sync (Android only)"
+            subtitle="This screen currently uses Health Connect on Android. iOS HealthKit support is a separate slice."
+          />
+          <Text style={styles.subtitle}>
+            If you’re testing on iPhone today, this is expected — the app will show this placeholder until an iOS adapter is added.
+          </Text>
+        </Card>
       </View>
     );
   }
@@ -39,13 +46,17 @@ export default function HealthConnectPermissionGate({
   if (status === 'denied') {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>Health data access needed</Text>
-        <Text style={styles.subtitle}>
-          Grant access to Steps, Heart Rate, Calories, Distance and Sleep to enable Garmin sync.
-        </Text>
-        <Pressable onPress={request} style={styles.button}>
-          <Text style={styles.buttonText}>Grant access</Text>
-        </Pressable>
+        <Card style={styles.gateCard}>
+          <ScreenHeader
+            eyebrow="One L1fe"
+            title="Health data access needed"
+            subtitle="Grant Health Connect permissions to enable Garmin sync."
+          />
+          <Text style={styles.subtitle}>
+            Request access to Steps, Heart Rate, Calories, Distance, and Sleep.
+          </Text>
+          <PrimaryButton onPress={request}>Grant access</PrimaryButton>
+        </Card>
       </View>
     );
   }
@@ -60,31 +71,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 32,
     gap: 16,
+    backgroundColor: theme.colors.bg,
   },
-  title: {
-    color: '#152033',
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
+  gateCard: { width: '100%', maxWidth: 520 },
   subtitle: {
-    color: '#52607a',
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-  },
-  button: {
-    alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 12,
-    minHeight: 52,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    width: '100%',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
+    color: theme.colors.textMuted,
+    ...theme.text.body,
   },
 });

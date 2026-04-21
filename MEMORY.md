@@ -38,6 +38,9 @@ Important: this file stores project memory, not personal health records. Do not 
 - Treat true signed-out auth states separately from operational auth errors in `getFreshAccessToken()` and adjacent mobile flows.
 - For wearable work, reuse `apps/mobile/mobileSupabaseAuth.ts` and do not introduce a second mobile Supabase client.
 - The current mobile wearable path on `main` includes `useWearableSource`, `useWearableSync`, `WearableSyncScreen`, and an Android-first Health Connect permission gate.
+- Health Connect native wiring should be automated through the Expo config plugin at `apps/mobile/plugins/with-health-connect.ts`; do not rely on manual native edits as the durable path.
+- The OxygenOS 15 end-user runbook now lives in `apps/mobile/docs/oneplus-oxygenos-setup.md`.
+- The dev-only Health Connect diagnostic screen now lives at `apps/mobile/src/screens/HealthConnectDiagnosticScreen.tsx` and should remain release-hidden.
 - Android wearable permissions currently use `react-native-health-connect`; iOS remains an explicit stub until a separate HealthKit adapter slice is added.
 - Early wearable seams should be prepared in a device-free, mockable way when no physical device/app access is available yet, but reset/readiness docs must clearly distinguish hosted-proof from real device proof.
 - Garmin smartwatch is the current first target for wearable source provisioning and eventual real-device verification, but current proof is still device-free / hosted until physical hardware access exists.

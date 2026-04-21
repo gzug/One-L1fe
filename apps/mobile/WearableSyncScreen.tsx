@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,6 +10,8 @@ import { useWearableSource } from './useWearableSource';
 import { useWearableSync } from './useWearableSync';
 import { useComputeDailySummaries } from './useComputeDailySummaries';
 import { createGarminProvisioningRequest } from './wearableSourceProvisioning';
+import { Card, PrimaryButton, ScreenHeader, SecondaryButton } from './ui/components';
+import { theme } from './ui/theme';
 
 const MOCK_APP_INSTALL_ID = 'dev-install-001';
 
@@ -70,16 +71,14 @@ export default function WearableSyncScreen(): React.JSX.Element {
 
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>One L1fe</Text>
-        <Text style={styles.title}>Wearable Sync</Text>
-        <Text style={styles.subtitle}>
-          Provision a wearable source, then trigger a sync run.
-        </Text>
-      </View>
+      <ScreenHeader
+        eyebrow="One L1fe"
+        title="Wearable sync"
+        subtitle="Provision a wearable source, then trigger a sync run."
+      />
 
       {/* Step 1 — Provision */}
-      <View style={styles.card}>
+      <Card>
         <Text style={styles.sectionTitle}>Step 1 — Provision source</Text>
         <Text style={styles.statusText}>
           Status: <Text style={styles.mono}>{sourceState.status}</Text>
@@ -92,23 +91,19 @@ export default function WearableSyncScreen(): React.JSX.Element {
         {sourceState.status === 'error' && (
           <Text style={styles.errorText}>{sourceState.message}</Text>
         )}
-        <Pressable
-          onPress={handleProvision}
-          style={[styles.primaryButton, sourceState.status === 'loading' && styles.buttonDisabled]}
-          disabled={sourceState.status === 'loading'}
-        >
+        <PrimaryButton onPress={handleProvision} disabled={sourceState.status === 'loading'}>
           {sourceState.status === 'loading' ? (
             <ActivityIndicator color="#ffffff" />
+          ) : sourceState.status === 'ready' ? (
+            'Re-provision'
           ) : (
-            <Text style={styles.primaryButtonText}>
-              {sourceState.status === 'ready' ? 'Re-provision' : 'Provision Garmin source'}
-            </Text>
+            'Provision Garmin source'
           )}
-        </Pressable>
-      </View>
+        </PrimaryButton>
+      </Card>
 
       {/* Step 2 — Sync */}
-      <View style={styles.card}>
+      <Card>
         <Text style={styles.sectionTitle}>Step 2 — Trigger sync</Text>
         <Text style={styles.statusText}>
           Status: <Text style={styles.mono}>{syncState}</Text>
@@ -124,25 +119,18 @@ export default function WearableSyncScreen(): React.JSX.Element {
           </>
         )}
         {syncError && <Text style={styles.errorText}>{syncError}</Text>}
-        <Pressable
-          onPress={handleSync}
-          style={[
-            styles.primaryButton,
-            (sourceState.status !== 'ready' || isSyncing) && styles.buttonDisabled,
-          ]}
-          disabled={sourceState.status !== 'ready' || isSyncing}
-        >
+        <PrimaryButton onPress={handleSync} disabled={sourceState.status !== 'ready' || isSyncing}>
           {syncState === 'submitting' ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text style={styles.primaryButtonText}>Trigger sync</Text>
+            'Trigger sync'
           )}
-        </Pressable>
-      </View>
+        </PrimaryButton>
+      </Card>
 
       {/* Step 3 — Compute (auto-triggered, shown after sync succeeds) */}
       {(syncState === 'success' || computeState !== 'idle') && (
-        <View style={[styles.card, computeState === 'error' && styles.cardError]}>
+        <Card variant={computeState === 'error' ? 'danger' : 'default'}>
           <Text style={styles.sectionTitle}>Step 3 — Compute summaries</Text>
           <Text style={styles.statusText}>
             Status: <Text style={styles.mono}>{computeState}</Text>
@@ -166,60 +154,23 @@ export default function WearableSyncScreen(): React.JSX.Element {
             </>
           )}
           {computeError && <Text style={styles.errorText}>{computeError}</Text>}
-        </View>
+        </Card>
       )}
 
       <View style={styles.actions}>
-        <Pressable onPress={handleReset} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Reset</Text>
-        </Pressable>
+        <SecondaryButton onPress={handleReset}>Reset</SecondaryButton>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: { flex: 1, backgroundColor: '#f4f7fb' },
+  scrollView: { flex: 1, backgroundColor: theme.colors.bg },
   container: { padding: 20, gap: 16 },
-  header: { gap: 6, marginBottom: 4 },
-  eyebrow: { color: '#4263eb', fontSize: 13, fontWeight: '700', textTransform: 'uppercase' },
-  title: { color: '#152033', fontSize: 28, fontWeight: '700' },
-  subtitle: { color: '#52607a', fontSize: 15, lineHeight: 21 },
-  card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 12,
-    padding: 16,
-  },
-  cardError: {
-    borderColor: '#f5b8b8',
-    backgroundColor: '#fff8f8',
-  },
-  sectionTitle: { color: '#152033', fontSize: 18, fontWeight: '700' },
-  statusText: { color: '#24324a', fontSize: 14, lineHeight: 21 },
-  mono: { fontFamily: 'monospace', color: '#4263eb' },
-  errorText: { color: '#b42318', fontSize: 14, lineHeight: 20 },
+  sectionTitle: { color: theme.colors.text, ...theme.text.sectionTitle },
+  statusText: { color: theme.colors.textLabel, fontSize: 14, lineHeight: 21 },
+  mono: { fontFamily: 'monospace', color: theme.colors.primary },
+  errorText: { color: theme.colors.danger, fontSize: 14, lineHeight: 20 },
   spinner: { alignSelf: 'flex-start' },
   actions: { gap: 12, marginBottom: 32 },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 12,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  buttonDisabled: { opacity: 0.4 },
-  primaryButtonText: { color: '#ffffff', fontSize: 16, fontWeight: '700' },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#c8d3e1',
-    borderRadius: 12,
-    borderWidth: 1,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  secondaryButtonText: { color: '#24324a', fontSize: 16, fontWeight: '600' },
 });
