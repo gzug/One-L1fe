@@ -27,7 +27,7 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 
 ## Blockers
 
-- No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001–003)
+- No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
 - Android native Health Connect requires manual `MainActivity.kt` + `AndroidManifest.xml` changes outside repo
 - Branch protection for `main` needs explicit verification/enforcement
 - Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004)
@@ -42,7 +42,9 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 ## Next steps
 
 1. **Wire evidence registry to Priority Score** — `aggregateTotalPriorityScoreWithEvidence()` in `MinimumSliceScreen` + Edge Function; `loadEvidenceForRules()` must not be optional (WEARABLE-TD-004)
-2. **Native Android Health Connect** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`
-3. **First real Health Connect ingest proof** — expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
-4. **Garmin Terra webhook smoke-test** — Terra OAuth pairing, verify webhook delivery + `wearable_observations` row (WEARABLE-TD-002)
-5. **Merge `claude/real-app-install-id`** when ready
+2. **Native Android Health Connect + real ingest proof** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`; expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
+3. **Merge `claude/real-app-install-id`** when ready
+
+## Deferred to post-v1
+
+- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002); blocked on physical Garmin device and Terra OAuth credentials; not on critical path for sideload-to-brother milestone
