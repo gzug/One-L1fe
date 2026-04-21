@@ -42,7 +42,10 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 ## Next steps
 
 1. **Wire evidence registry to Priority Score** — `aggregateTotalPriorityScoreWithEvidence()` in `MinimumSliceScreen` + Edge Function; `loadEvidenceForRules()` must not be optional (WEARABLE-TD-004)
-2. **Native Android Health Connect** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`
-3. **First real Health Connect ingest proof** — expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
-4. **Garmin Terra webhook smoke-test** — Terra OAuth pairing, verify webhook delivery + `wearable_observations` row (WEARABLE-TD-002)
-5. **Merge `claude/real-app-install-id`** when ready
+2. **Native Android Health Connect seam (single merged step)** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`, then expo prebuild + real device permission grant + sync run; verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001). Garmin data arrives via Garmin Connect → Health Connect on the same device — no direct Garmin OAuth in our app.
+3. **Merge `claude/real-app-install-id`** when ready
+
+## Deferred (post-v1)
+
+- **Terra webhook bridge** (WEARABLE-TD-002) — $399–499/month; not justified for 1-user scope. Reconsider only if Health Connect path proves insufficient.
+- **Direct Garmin Connect OAuth / BLE pairing** — same reason; Health Connect indirect path covers v1 needs.
