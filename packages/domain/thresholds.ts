@@ -50,10 +50,10 @@ export function evaluateApoB(value: number, unit: string): ThresholdEvaluation |
 
   return {
     canonicalStatus: evaluateUpperBoundThresholds(value, {
-      optimalMax: 80,
-      goodMax: 90,
-      borderlineMax: 110,
-      highMax: 130,
+      optimalMax: 60,
+      goodMax: 80,
+      borderlineMax: 100,
+      highMax: 120,
     }),
     ruleIds: ['LIP-001'],
   };
@@ -180,10 +180,10 @@ export function evaluateVitaminD(value: number, unit: string): ThresholdEvaluati
   if (unit === 'ng/mL') {
     return {
       canonicalStatus: evaluateLowerBoundThresholds(value, {
-        optimalMin: 30,
-        goodMin: 20,
-        borderlineMin: 15,
-        highMin: 10,
+        optimalMin: 40,
+        goodMin: 30,
+        borderlineMin: 20,
+        highMin: 12,
       }),
       ruleIds: ['SUP-001', 'SUP-002'],
     };
@@ -192,16 +192,87 @@ export function evaluateVitaminD(value: number, unit: string): ThresholdEvaluati
   if (unit === 'nmol/L') {
     return {
       canonicalStatus: evaluateLowerBoundThresholds(value, {
-        optimalMin: 75,
-        goodMin: 50,
-        borderlineMin: 37.5,
-        highMin: 25,
+        optimalMin: 100,
+        goodMin: 75,
+        borderlineMin: 50,
+        highMin: 30,
       }),
       ruleIds: ['SUP-001', 'SUP-002'],
     };
   }
 
   return null;
+}
+
+export function evaluateFerritin(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'ng/mL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 50,
+      goodMin: 30,
+      borderlineMin: 20,
+      highMin: 15,
+    }),
+    ruleIds: ['SUP-001', 'SUP-002'],
+  };
+}
+
+export function evaluateTriglycerides(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'mg/dL') return null;
+
+  return {
+    canonicalStatus: evaluateUpperBoundThresholds(value, {
+      optimalMax: 100,
+      goodMax: 130,
+      borderlineMax: 150,
+      highMax: 200,
+    }),
+    ruleIds: ['MET-003'],
+  };
+}
+
+export function evaluateB12(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'pg/mL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 500,
+      goodMin: 400,
+      borderlineMin: 300,
+      highMin: 200,
+    }),
+    ruleIds: ['SUP-003'],
+  };
+}
+
+export function evaluateMagnesium(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'mg/dL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 2.0,
+      goodMin: 1.9,
+      borderlineMin: 1.7,
+      highMin: 1.5,
+    }),
+    ruleIds: ['SUP-004'],
+  };
+}
+
+export function evaluateDAO(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'U/mL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 10,
+      goodMin: 7,
+      borderlineMin: 4,
+      highMin: 2,
+    }),
+    ruleIds: ['CTX-003'],
+    notes: ['LOW_CONFIDENCE: lab-manufacturer reference only. evidenceConfidenceModifier: 0.3'],
+  };
 }
 
 export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation | null {
@@ -220,6 +291,16 @@ export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation 
       return evaluateCRP(input.value, input.unit);
     case 'vitamin_d':
       return evaluateVitaminD(input.value, input.unit);
+    case 'ferritin':
+      return evaluateFerritin(input.value, input.unit);
+    case 'triglycerides':
+      return evaluateTriglycerides(input.value, input.unit);
+    case 'b12':
+      return evaluateB12(input.value, input.unit);
+    case 'magnesium':
+      return evaluateMagnesium(input.value, input.unit);
+    case 'dao':
+      return evaluateDAO(input.value, input.unit);
     default:
       return null;
   }

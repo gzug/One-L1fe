@@ -1,4 +1,5 @@
 import { runContractAssertions } from './contracts.assertions.ts';
+import { runBiomarkerAssertions } from './biomarkers.assertions.ts';
 import { runEvidenceRegistrySeedAssertions } from './evidenceSupabaseSeed.assertions.ts';
 import { runFieldValueStateAssertions } from './fieldValueState.assertions.ts';
 import { runMinimumSliceAppClientAssertions } from './minimumSliceAppClient.assertions.ts';
@@ -11,9 +12,12 @@ import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctio
 import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
 import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions.ts';
 import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions.ts';
+import { runThresholdAssertions } from './thresholds.assertions.ts';
 
 async function main(): Promise<void> {
   runFieldValueStateAssertions();
+  runBiomarkerAssertions();
+  runThresholdAssertions();
   runMinimumSliceAssertions();
   runMinimumSliceFunctionContractAssertions();
   await runMinimumSliceAppClientAssertions();

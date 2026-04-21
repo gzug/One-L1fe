@@ -16,6 +16,11 @@ The minimum-slice mobile seam is proven live end to end. Field-state contract is
 
 ## Current state
 
+- Domain biomarker thresholds and scoring metadata were recently tightened:
+  - ApoB, HbA1c, glucose, CRP, and vitamin D reference ranges are synced to the new ground-truth values
+  - new threshold evaluators exist for triglycerides, B12, magnesium, DAO, and ferritin
+  - biomarker scoring metadata now carries `evidenceConfidenceModifier` and `scoringClass`
+- Domain assertions now cover the revised thresholds and the new marker dispatch paths
 - Branch: `main` at `243a116`, aligned with `origin/main`
 - PRs #48 through #64 merged, including provisioning, ingest guardrails, field-state, docs, wearable mobile hooks/UI, Health Connect permission gate, and follow-up cleanup/fixes
 - Active seam: real device-backed wearable ingest proof and native Android completion

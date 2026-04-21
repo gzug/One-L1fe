@@ -39,6 +39,8 @@ export interface BiomarkerDefinition {
   unit: string;
   priorityWeight: number;
   evidenceLevel: EvidenceLevel;
+  evidenceConfidenceModifier: number;
+  scoringClass: 'causal-primary' | 'supporting-actionable' | 'contextual-low-certainty';
   description: string;
   referenceRange: ReferenceRange;
 }
@@ -51,8 +53,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 3,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 1,
+    scoringClass: 'causal-primary',
     description: 'Primary lipid-risk marker used as a top-level cardiovascular signal in the MVP.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 130 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 60 },
   },
   {
     key: 'ldl',
@@ -61,6 +65,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 0.9,
+    scoringClass: 'supporting-actionable',
     description: 'Core lipid marker tracked alongside ApoB and triglycerides.',
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
   },
@@ -71,6 +77,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
+    evidenceConfidenceModifier: 0.9,
+    scoringClass: 'supporting-actionable',
     description: 'Core metabolic and lipid-context marker in the MVP panel.',
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 150 },
   },
@@ -81,6 +89,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
+    evidenceConfidenceModifier: 0.9,
+    scoringClass: 'supporting-actionable',
     description: 'Inherited cardiovascular-risk marker tracked as part of the core set.',
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 30 },
   },
@@ -91,8 +101,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: '%',
     priorityWeight: 2,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 1,
+    scoringClass: 'causal-primary',
     description: 'Long-range glucose marker used as a primary metabolic trend signal.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.7 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.3 },
   },
   {
     key: 'glucose',
@@ -101,8 +113,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 0.85,
+    scoringClass: 'supporting-actionable',
     description: 'Core glucose marker for the initial biomarker workflow.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 85 },
   },
   {
     key: 'crp',
@@ -111,8 +125,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/L',
     priorityWeight: 1.5,
     evidenceLevel: EvidenceLevel.Secondary,
+    evidenceConfidenceModifier: 0.8,
+    scoringClass: 'supporting-actionable',
     description: 'Inflammation-related marker included in the MVP set.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 3 },
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 1 },
   },
   {
     key: 'vitamin_d',
@@ -121,8 +137,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'ng/mL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
+    evidenceConfidenceModifier: 0.75,
+    scoringClass: 'supporting-actionable',
     description: 'Supporting nutrient-status marker used for broader context.',
-    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 20 },
+    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 40 },
   },
   {
     key: 'ferritin',
@@ -131,6 +149,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'ng/mL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 0.75,
+    scoringClass: 'supporting-actionable',
     description: 'Supporting iron-status context marker.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 30 },
   },
@@ -141,6 +161,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'pg/mL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Primary,
+    evidenceConfidenceModifier: 0.7,
+    scoringClass: 'contextual-low-certainty',
     description: 'Supporting nutrient marker used for context, not as a diagnostic endpoint.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 400 },
   },
@@ -151,6 +173,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'mg/dL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Secondary,
+    evidenceConfidenceModifier: 0.65,
+    scoringClass: 'contextual-low-certainty',
     description: 'Supporting mineral-status marker.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 1.8 },
   },
@@ -161,6 +185,8 @@ export const biomarkers: BiomarkerDefinition[] = [
     unit: 'U/mL',
     priorityWeight: 1,
     evidenceLevel: EvidenceLevel.Experimental,
+    evidenceConfidenceModifier: 0.3,
+    scoringClass: 'contextual-low-certainty',
     description: 'Interpretation-sensitive contextual marker. Keep optional and bounded.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 10 },
   },
