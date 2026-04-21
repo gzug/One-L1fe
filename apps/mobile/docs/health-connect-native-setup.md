@@ -1,42 +1,27 @@
 # Health Connect Native Setup
 
-## Required: MainActivity.kt change (Android only)
+This app now uses the Expo config plugin at [`apps/mobile/plugins/with-health-connect.ts`](/Users/ufo/Documents/Codex/2026-04-18-plugin-creator-users-ufo-codex-skills/work/One-L1fe/apps/mobile/plugins/with-health-connect.ts), so the Android manifest permissions, Health Connect rationale routing, and `MainActivity` delegate wiring survive `expo prebuild --clean`.
 
-After installing `react-native-health-connect`, the following change is required in
-`android/app/src/main/java/.../MainActivity.kt`.
+If you need to inspect the generated native files, run `expo prebuild --clean` and check the Android project output. No manual patching is required in `MainActivity.kt` or `AndroidManifest.xml`.
 
-Add the import:
-```kotlin
-import com.healthconnect.reactnative.permission.HealthConnectPermissionDelegate
-```
+## Manifest coverage
 
-Add inside `MainActivity` class:
-```kotlin
-override fun onCreate(savedInstanceState: Bundle?) {
-  super.onCreate(savedInstanceState)
-  HealthConnectPermissionDelegate.setPermissionDelegate(this)
-}
-```
+The plugin injects the required Health Connect read permissions for the app’s Android flow, including:
+- `android.permission.health.READ_STEPS`
+- `android.permission.health.READ_HEART_RATE`
+- `android.permission.health.READ_SLEEP`
+- `android.permission.health.READ_ACTIVE_CALORIES_BURNED`
+- `android.permission.health.READ_EXERCISE`
+- `android.permission.health.READ_WEIGHT`
+- `android.permission.health.READ_RESTING_HEART_RATE`
+- `android.permission.health.READ_HEART_RATE_VARIABILITY`
+- `android.permission.health.READ_VO2_MAX`
+- `android.permission.health.READ_BODY_FAT`
+- `android.permission.health.READ_OXYGEN_SATURATION`
+- `android.permission.health.READ_BLOOD_PRESSURE`
+- `android.permission.health.READ_DISTANCE`
 
-Without this change, `requestPermission()` will silently fail on Android.
-
-## Required: AndroidManifest.xml
-
-Add inside `<manifest>`:
-```xml
-<uses-permission android:name="android.permission.health.READ_STEPS" />
-<uses-permission android:name="android.permission.health.READ_HEART_RATE" />
-<uses-permission android:name="android.permission.health.READ_ACTIVE_CALORIES_BURNED" />
-<uses-permission android:name="android.permission.health.READ_DISTANCE" />
-<uses-permission android:name="android.permission.health.READ_SLEEP" />
-```
-
-Add inside `<application>`:
-```xml
-<activity
-  android:name="androidx.health.connect.client.permission.HealthPermissionActivity"
-  android:exported="true" />
-```
+The plugin also adds the Health Connect rationale entry points needed on Android 13 and Android 14+.
 
 ## npm install
 

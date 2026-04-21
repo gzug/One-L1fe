@@ -13,6 +13,9 @@ import WearableSyncScreen from './WearableSyncScreen.tsx';
 import HealthConnectPermissionGate from './HealthConnectPermissionGate.tsx';
 import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
+import { theme } from './ui/theme';
+import OverviewScreen from './OverviewScreen';
+import HealthConnectDiagnosticScreen from './src/screens/HealthConnectDiagnosticScreen';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -22,11 +25,11 @@ const controller = createMinimumSliceScreenController({
   functionPath: process.env.EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH,
 });
 
-type ActiveScreen = 'minimum-slice' | 'wearable-sync';
+type ActiveScreen = 'overview' | 'minimum-slice' | 'wearable-sync' | 'health-connect-diagnostic';
 
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
-  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('overview');
 
   if (authState === 'loading') {
     return <SafeAreaView style={styles.centered} />;
@@ -44,20 +47,30 @@ export default function App(): React.JSX.Element {
           <SessionBar email={user.email} userId={user.id} onSignOut={signOut} />
         ) : null}
         <View style={styles.tabBar}>
-          {(['minimum-slice', 'wearable-sync'] as const).map((screen) => (
+          {(['overview', 'minimum-slice', 'wearable-sync', ...(__DEV__ ? ['health-connect-diagnostic'] as const : [])] as const).map((screen) => (
             <Pressable
               key={screen}
               onPress={() => setActiveScreen(screen)}
               style={[styles.tab, activeScreen === screen && styles.tabActive]}
             >
               <Text style={[styles.tabText, activeScreen === screen && styles.tabTextActive]}>
-                {screen === 'minimum-slice' ? 'Blood Panel' : 'Wearable Sync'}
+                {screen === 'overview'
+                  ? 'Overview'
+                  : screen === 'minimum-slice'
+                    ? 'Blood Panel'
+                    : screen === 'wearable-sync'
+                      ? 'Wearable Sync'
+                      : 'HC Diagnostics'}
               </Text>
             </Pressable>
           ))}
         </View>
-        {activeScreen === 'minimum-slice' ? (
+        {activeScreen === 'overview' ? (
+          <OverviewScreen snapshot={null} />
+        ) : activeScreen === 'minimum-slice' ? (
           <MinimumSliceScreen controller={controller} />
+        ) : activeScreen === 'health-connect-diagnostic' ? (
+          <HealthConnectDiagnosticScreen />
         ) : (
           <HealthConnectPermissionGate>
             <WearableSyncScreen />
@@ -69,12 +82,12 @@ export default function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f4f7fb' },
+  safeArea: { flex: 1, backgroundColor: theme.colors.bg },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   appShell: { flex: 1 },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#d9e2f2', backgroundColor: '#ffffff' },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.colors.border, backgroundColor: theme.colors.surface },
   tab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
-  tabActive: { borderBottomWidth: 2, borderBottomColor: '#4263eb' },
-  tabText: { fontSize: 14, fontWeight: '600', color: '#52607a' },
-  tabTextActive: { color: '#4263eb' },
+  tabActive: { borderBottomWidth: 2, borderBottomColor: theme.colors.primary },
+  tabText: { fontSize: 14, fontWeight: '600', color: theme.colors.textMuted },
+  tabTextActive: { color: theme.colors.primary },
 });
