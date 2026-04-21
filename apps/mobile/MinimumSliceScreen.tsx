@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Modal,
   KeyboardTypeOptions,
   Pressable,
   ScrollView,
@@ -16,6 +17,8 @@ import {
   getOptionalFieldMetadata,
   OptionalMinimumSliceMarkerKey,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
+import PriorityScoreCard, { PriorityScoreCardData } from './src/components/PriorityScoreCard.tsx';
+import TrendSectionReadOnly from './src/components/TrendSectionReadOnly.tsx';
 
 const FIELD_ORDER = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
@@ -42,6 +45,10 @@ function renderTopDrivers(state: MinimumSliceScreenModel): string {
     : 'none';
 }
 
+function getCurrentEvaluation(state: MinimumSliceScreenModel) {
+  return state.submissionState.lastResult?.evaluation;
+}
+
 function getOptionalMarkerState(state: MinimumSliceScreenModel, marker: OptionalMinimumSliceMarkerKey): 'provided' | 'missing' | 'disabled' {
   const meta = getOptionalFieldMetadata(state.draft, marker);
   if (meta?.fieldState === 'disabled') return 'disabled';
@@ -61,6 +68,16 @@ export default function MinimumSliceScreen({
   );
   const [localError, setLocalError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScoreSheetOpen, setIsScoreSheetOpen] = useState(false);
+  const [isEvidenceSheetOpen, setIsEvidenceSheetOpen] = useState(false);
+
+  const evaluation = getCurrentEvaluation(screenState);
+  const scoreCardData: PriorityScoreCardData | undefined = evaluation
+    ? {
+        ...evaluation.priorityScore,
+        rawValue: evaluation.priorityScore.rawValue,
+      }
+    : undefined;
 
   const helperText = useMemo(() => {
     return [
@@ -175,6 +192,29 @@ export default function MinimumSliceScreen({
         ))}
       </View>
 
+      {evaluation !== undefined ? (
+        <View style={styles.scoreSurface}>
+          {scoreCardData !== undefined ? (
+            <>
+              <PriorityScoreCard
+                result={scoreCardData}
+                onPress={() => setIsScoreSheetOpen(true)}
+                onEvidencePress={() => setIsEvidenceSheetOpen(true)}
+              />
+              <TrendSectionReadOnly
+                trendSkeleton={evaluation.priorityScore.trendSkeleton}
+                onPress={() => setIsEvidenceSheetOpen(true)}
+              />
+            </>
+          ) : null}
+          {evaluation.priorityScore.evidenceClass === 'unanchored' ? (
+            <Pressable onPress={() => setIsEvidenceSheetOpen(true)} style={styles.inlineHint}>
+              <Text style={styles.inlineHintText}>Tap to learn why the score is suppressed.</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Submission summary</Text>
         <Text style={styles.summary}>{helperText}</Text>
@@ -204,6 +244,69 @@ export default function MinimumSliceScreen({
           <Text style={styles.secondaryButtonText}>Reset demo draft</Text>
         </Pressable>
       </View>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setIsScoreSheetOpen(false)}
+        transparent
+        visible={isScoreSheetOpen}
+      >
+        <View style={styles.sheetBackdrop}>
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTitle}>Priority score breakdown</Text>
+            {evaluation !== undefined ? (
+              <>
+                <Text style={styles.sheetBody}>rawScore: {evaluation.priorityScore.rawValue}</Text>
+                {evaluation.entries
+                  .filter((entry) => entry.scoreEligible)
+                  .sort((a, b) => b.scoreContribution - a.scoreContribution)
+                  .map((entry) => (
+                    <View key={entry.marker} style={styles.breakdownRow}>
+                      <View style={styles.breakdownLabelBlock}>
+                        <Text style={styles.breakdownLabel}>{entry.displayName}</Text>
+                        <Text style={styles.breakdownStatus}>{entry.canonicalStatus}</Text>
+                      </View>
+                      <Text style={styles.breakdownValue}>{entry.scoreContribution}</Text>
+                    </View>
+                  ))}
+              </>
+            ) : null}
+            <Pressable onPress={() => setIsScoreSheetOpen(false)} style={styles.sheetButton}>
+              <Text style={styles.sheetButtonText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setIsEvidenceSheetOpen(false)}
+        transparent
+        visible={isEvidenceSheetOpen}
+      >
+        <View style={styles.sheetBackdrop}>
+          <View style={styles.sheet}>
+            <Text style={styles.sheetTitle}>Evidence anchors</Text>
+            <Text style={styles.sheetBody}>
+              Trend is read-only in v1 and does not affect score.
+            </Text>
+            {evaluation !== undefined ? (
+              evaluation.priorityScore.anchors.length > 0 ? (
+                evaluation.priorityScore.anchors.map((anchor) => (
+                  <Text key={anchor.ruleId} style={styles.anchorLine}>
+                    {anchor.ruleId} - {anchor.title}
+                  </Text>
+                ))
+              ) : (
+                <Text style={styles.anchorLine}>No anchors loaded.</Text>
+              )
+            ) : null}
+            <Pressable onPress={() => setIsEvidenceSheetOpen(false)} style={styles.sheetButton}>
+              <Text style={styles.sheetButtonText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -244,6 +347,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12,
     padding: 16,
+  },
+  scoreSurface: {
+    gap: 14,
+  },
+  inlineHint: {
+    alignSelf: 'flex-start',
+  },
+  inlineHintText: {
+    color: '#475569',
+    fontSize: 13,
+    fontStyle: 'italic',
   },
   fieldGroup: {
     gap: 6,
@@ -338,5 +452,71 @@ const styles = StyleSheet.create({
     color: '#24324a',
     fontSize: 16,
     fontWeight: '600',
+  },
+  sheetBackdrop: {
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    gap: 10,
+    padding: 20,
+  },
+  sheetTitle: {
+    color: '#152033',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  sheetBody: {
+    color: '#24324a',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  breakdownRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingVertical: 8,
+  },
+  breakdownLabelBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  breakdownLabel: {
+    color: '#152033',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  breakdownStatus: {
+    color: '#52607a',
+    fontSize: 12,
+    textTransform: 'capitalize',
+  },
+  breakdownValue: {
+    color: '#152033',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  anchorLine: {
+    color: '#24324a',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  sheetButton: {
+    alignSelf: 'stretch',
+    backgroundColor: '#4263eb',
+    borderRadius: 12,
+    marginTop: 8,
+    minHeight: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sheetButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

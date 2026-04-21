@@ -1,0 +1,8 @@
+{
+  "name": "one-l1fe-domain",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node ../../node_modules/typescript/bin/tsc -p ../../tsconfig.json && node --test ../../dist/packages/domain/__tests__/scoring.test.js"
+  }
+}

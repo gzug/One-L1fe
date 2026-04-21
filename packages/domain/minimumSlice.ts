@@ -1,6 +1,9 @@
-import { CanonicalStatus, mapPriorityScore } from './biomarkers.ts';
+import { aggregateTotalPriorityScoreWithEvidence, CanonicalStatus } from './biomarkers.ts';
 import { getRuleProvenance, ProductEvidenceClass, RuleOrigin } from './provenance.ts';
+import { PriorityPillar, PriorityScoreResult } from './scoring.ts';
 import { evaluateByThreshold } from './thresholds.ts';
+import { FEATURE_FLAG_TREND_SKELETON_READONLY } from './flags.ts';
+import { buildTrendSkeleton, TrendObservation } from './trends.ts';
 import {
   BiomarkerKey,
   FieldState,
@@ -14,6 +17,7 @@ import {
   canContributeToPriorityScore,
   determineLipidHierarchyDecision,
   getBiomarkerOrThrow,
+  markerRuntimeConfigs,
   statusSeverityMap,
 } from './v1.ts';
 
@@ -34,6 +38,14 @@ export interface MinimumSlicePanelInput {
   collectedAt: string | Date;
   source?: string | null;
   entries: MinimumSliceEntryInput[];
+}
+
+export interface TrendObservationsByMarker {
+  [markerKey: string]: TrendObservation[] | undefined;
+}
+
+export interface MinimumSliceFeatureFlags {
+  trendSkeletonReadonly?: boolean;
 }
 
 export interface Recommendation {
@@ -81,6 +93,11 @@ export interface MinimumSliceEvaluation {
     name: 'Priority Score';
     rawValue: number;
     value: number;
+    bucket: PriorityScoreResult['bucket'];
+    pillarScores: PriorityScoreResult['pillarScores'];
+    evidenceClass: PriorityScoreResult['evidenceClass'];
+    anchors: PriorityScoreResult['anchors'];
+    trendSkeleton: PriorityScoreResult['trendSkeleton'];
     includedMarkerCount: number;
     topDrivers: string[];
     boundedModifierNote?: string;
@@ -387,6 +404,8 @@ function buildEntry(
 export function evaluateMinimumSlice(
   panel: MinimumSlicePanelInput,
   now: Date = new Date(),
+  observations?: TrendObservationsByMarker,
+  featureFlags?: MinimumSliceFeatureFlags,
 ): MinimumSliceEvaluation {
   const entriesByMarker = new Map<BiomarkerKey, MinimumSliceEntryInput>();
 
@@ -419,10 +438,27 @@ export function evaluateMinimumSlice(
     return buildEntry(entry, assessment, lipidDecision);
   });
 
-  const rawScore = evaluatedEntries.reduce((total, entry) => total + entry.scoreContribution, 0);
   const includedEntries = evaluatedEntries.filter((entry) => entry.scoreEligible && entry.scoreContribution > 0);
   const sortedDrivers = [...includedEntries].sort((a, b) => b.scoreContribution - a.scoreContribution);
   const topDrivers = sortedDrivers.map((entry) => entry.displayName);
+  const biomarkerValues = Object.fromEntries(
+    panel.entries.map((entry) => [entry.marker, entry.value ?? null]),
+  ) as Record<string, number | null>;
+  const ruleIds = Array.from(new Set(evaluatedEntries.flatMap((entry) => entry.ruleIds)));
+  const pillarByBiomarker = Object.fromEntries(
+    Object.entries(markerRuntimeConfigs).map(([marker, config]) => [marker, config.pillar]),
+  ) as Record<string, PriorityPillar>;
+  const scoringResult = aggregateTotalPriorityScoreWithEvidence({
+    biomarkerValues,
+    pillarByBiomarker,
+    ruleIds,
+    lipidHierarchyDecision:
+      lipidDecision.primaryDriver === 'apob'
+        ? 'apob_primary'
+        : lipidDecision.primaryDriver === 'ldl'
+          ? 'ldl_primary'
+          : 'none',
+  });
 
   const coverageNotes = summarizeCoverageNotes(evaluatedEntries, lipidDecision);
   const coverageState = toCoverageState(evaluatedEntries);
@@ -445,11 +481,22 @@ export function evaluateMinimumSlice(
     (entry) => (entry.marker === 'lpa' || entry.marker === 'crp') && entry.interpretableState === InterpretabilityState.Interpretable,
   );
   const hasExcludedSignals = evaluatedEntries.some((entry) => !entry.scoreEligible && entry.interpretableState === InterpretabilityState.Interpretable);
+  const trendEnabled = (featureFlags?.trendSkeletonReadonly ?? FEATURE_FLAG_TREND_SKELETON_READONLY) && observations !== undefined;
+  const primaryMarker = [...includedEntries].sort((left, right) => right.scoreContribution - left.scoreContribution)[0]?.marker ?? undefined;
+  const trendSkeleton =
+    trendEnabled && primaryMarker !== undefined
+      ? buildTrendSkeleton(observations?.[primaryMarker] ?? [], 30, primaryMarker)
+      : null;
 
   const priorityScore: MinimumSliceEvaluation['priorityScore'] = {
     name: 'Priority Score',
-    rawValue: rawScore,
-    value: mapPriorityScore(rawScore),
+    rawValue: scoringResult.rawScore,
+    value: scoringResult.bucket,
+    bucket: scoringResult.bucket,
+    pillarScores: scoringResult.pillarScores,
+    evidenceClass: scoringResult.evidenceClass,
+    anchors: scoringResult.anchors,
+    trendSkeleton,
     includedMarkerCount: includedEntries.length,
     topDrivers,
     coverageSummary: coverageNotes.join(' '),

@@ -1,0 +1,14 @@
+{
+  "name": "zero-markers",
+  "rationale": "An empty panel should stay unanchored with a zero bucket and no dominant pillar.",
+  "input": {
+    "values": {},
+    "anchors": [],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 0,
+    "evidenceClass": "unanchored",
+    "primaryPillar": "none"
+  }
+}

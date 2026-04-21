@@ -8,6 +8,8 @@ import { runMinimumSliceMobileIntegrationAssertions } from './minimumSliceMobile
 import { runMinimumSliceResultSummaryAssertions } from './minimumSliceResultSummary.assertions.ts';
 import { runMinimumSliceAssertions } from './minimumSlice.assertions.ts';
 import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctionContract.assertions.ts';
+import { runScoringAssertions } from './scoring.assertions.ts';
+import { runTrendAssertions } from './trends.assertions.ts';
 import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
 import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions.ts';
 import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions.ts';
@@ -15,6 +17,8 @@ import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions
 async function main(): Promise<void> {
   runFieldValueStateAssertions();
   runMinimumSliceAssertions();
+  runScoringAssertions();
+  runTrendAssertions();
   runMinimumSliceFunctionContractAssertions();
   await runMinimumSliceAppClientAssertions();
   await runMinimumSliceAppHttpClientAssertions();

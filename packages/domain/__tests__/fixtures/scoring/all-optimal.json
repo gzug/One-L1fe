@@ -1,0 +1,29 @@
+{
+  "name": "all-optimal",
+  "rationale": "All core markers are optimal, so the composite should stay at bucket 0 with moderate evidence and no dominant pillar.",
+  "input": {
+    "values": {
+      "apob": 70,
+      "ldl": 68,
+      "hba1c": 5.1,
+      "glucose": 82,
+      "crp": 0.8,
+      "vitamin_d": 32,
+      "ferritin": 45
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-002", "anchorSourceId": "src_ldl_fallback_v1" },
+      { "ruleId": "MET-001", "anchorSourceId": "src_hba1c_threshold_policy_v1" },
+      { "ruleId": "MET-002", "anchorSourceId": "src_glucose_threshold_policy_v1" },
+      { "ruleId": "INF-001", "anchorSourceId": "src_hscrp_assay_policy_v1" },
+      { "ruleId": "COV-001", "anchorSourceId": "src_coverage_policy_v1" }
+    ],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 0,
+    "evidenceClass": "limited",
+    "primaryPillar": "none"
+  }
+}

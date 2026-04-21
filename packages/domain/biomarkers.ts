@@ -1,3 +1,15 @@
+import {
+  BucketAndReason,
+  classifyEvidenceClass,
+  emptyBucketAndReason,
+  loadEvidenceForRules,
+  PriorityBucket,
+  PriorityPillar,
+  PriorityScoreResult,
+} from './scoring.ts';
+import { buildTrendSkeleton, TrendObservation } from './trends.ts';
+import { FEATURE_FLAG_TREND_SKELETON_READONLY } from './flags.ts';
+
 export enum CanonicalStatus {
   Optimal = 'optimal',
   Good = 'good',
@@ -253,6 +265,132 @@ export function aggregateTotalPriorityScore(
     const value = biomarkerValues[biomarker.key];
     return total + calculateWeightedScore(biomarker, value);
   }, 0);
+}
+
+export interface AggregatePriorityScoreWithEvidenceInput {
+  biomarkerValues: Record<string, number | null | undefined>;
+  pillarByBiomarker: Partial<Record<string, PriorityPillar>>;
+  ruleIds: string[];
+  lipidHierarchyDecision?: 'apob_primary' | 'ldl_primary' | 'none' | null;
+  observations?: Partial<Record<string, TrendObservation[]>>;
+  trendWindowDays?: number;
+}
+
+function toPriorityBucket(score: number): PriorityBucket {
+  return mapPriorityScore(score) as PriorityBucket;
+}
+
+function selectPillarScore(
+  pillar: PriorityPillar,
+  biomarkerValues: Record<string, number | null | undefined>,
+  pillarByBiomarker: Partial<Record<string, PriorityPillar>>,
+): BucketAndReason {
+  const candidates = biomarkers
+    .filter((biomarker) => {
+      const value = biomarkerValues[biomarker.key];
+      if (value == null || Number.isNaN(value)) {
+        return false;
+      }
+
+      const assignedPillar = pillarByBiomarker[biomarker.key];
+      if (!assignedPillar) {
+        throw new Error(`Missing pillar assignment for biomarker key: ${biomarker.key}`);
+      }
+
+      return assignedPillar === pillar;
+    })
+    .map((biomarker) => ({
+      markerKey: biomarker.key,
+      weightedScore: calculateWeightedScore(biomarker, biomarkerValues[biomarker.key]),
+    }))
+    .sort((left, right) => right.weightedScore - left.weightedScore);
+
+  const strongest = candidates[0];
+  if (!strongest) {
+    return emptyBucketAndReason();
+  }
+
+  return {
+    bucket: toPriorityBucket(strongest.weightedScore),
+    reason: 'HIGHEST_WEIGHTED_MARKER',
+    markerKey: strongest.markerKey,
+    weightedScore: strongest.weightedScore,
+  };
+}
+
+export function aggregateTotalPriorityScoreWithEvidence(
+  input: AggregatePriorityScoreWithEvidenceInput,
+): PriorityScoreResult {
+  const rawScore = aggregateTotalPriorityScore(input.biomarkerValues);
+  const anchors = loadEvidenceForRules(input.ruleIds);
+  const evidenceClass = classifyEvidenceClass(anchors);
+
+  const pillarScores: PriorityScoreResult['pillarScores'] = {
+    cardiovascular: selectPillarScore('cardiovascular', input.biomarkerValues, input.pillarByBiomarker),
+    metabolic: selectPillarScore('metabolic', input.biomarkerValues, input.pillarByBiomarker),
+    inflammation: selectPillarScore('inflammation', input.biomarkerValues, input.pillarByBiomarker),
+    nutrientContext: selectPillarScore('nutrientContext', input.biomarkerValues, input.pillarByBiomarker),
+  };
+
+  if (input.lipidHierarchyDecision === 'apob_primary') {
+    const apobDefinition = getBiomarkerDefinition('apob');
+    const ldlDefinition = getBiomarkerDefinition('ldl');
+    const apobStatus = apobDefinition ? calculateCanonicalStatus(apobDefinition, input.biomarkerValues.apob) : CanonicalStatus.Missing;
+    const ldlWeightedScore = ldlDefinition ? calculateWeightedScore(ldlDefinition, input.biomarkerValues.ldl) : 0;
+    const ldlBucket = toPriorityBucket(ldlWeightedScore);
+
+    if (apobStatus === CanonicalStatus.Optimal || apobStatus === CanonicalStatus.Good) {
+      pillarScores.cardiovascular = {
+        bucket: Math.max(0, ldlBucket - 1) as PriorityBucket,
+        reason: 'CLAMPED_BY_APOB_PRIMARY',
+        markerKey: 'ldl',
+        weightedScore: ldlWeightedScore,
+      };
+    }
+  }
+
+  let bucket = Math.max(
+    pillarScores.cardiovascular.bucket,
+    pillarScores.metabolic.bucket,
+    pillarScores.inflammation.bucket,
+    pillarScores.nutrientContext.bucket,
+  ) as PriorityBucket;
+
+  if (evidenceClass === 'unanchored') {
+    bucket = 0;
+    pillarScores.cardiovascular = emptyBucketAndReason('NOT_EVIDENCE_ANCHORED');
+    pillarScores.metabolic = emptyBucketAndReason('NOT_EVIDENCE_ANCHORED');
+    pillarScores.inflammation = emptyBucketAndReason('NOT_EVIDENCE_ANCHORED');
+    pillarScores.nutrientContext = emptyBucketAndReason('NOT_EVIDENCE_ANCHORED');
+  }
+
+  const trendEnabled = FEATURE_FLAG_TREND_SKELETON_READONLY && input.observations !== undefined;
+  const trendMarker = trendEnabled
+    ? (Object.entries(pillarScores)
+        .reduce<Array<{ markerKey: string; weightedScore: number }>>((acc, [_, bucket]) => {
+          if (bucket.markerKey) {
+            acc.push({ markerKey: bucket.markerKey, weightedScore: bucket.weightedScore });
+          }
+          return acc;
+        }, [])
+        .sort((left, right) => right.weightedScore - left.weightedScore)[0]?.markerKey ?? null)
+    : null;
+
+  return {
+    rawScore,
+    bucket,
+    pillarScores,
+    evidenceClass,
+    anchors,
+    trendSkeleton:
+      trendEnabled && trendMarker !== null
+        ? buildTrendSkeleton(
+            input.observations?.[trendMarker] ?? [],
+            input.trendWindowDays ?? 30,
+            trendMarker,
+          )
+        : null,
+  };
 }
 
 export function determinePrimaryFocus(

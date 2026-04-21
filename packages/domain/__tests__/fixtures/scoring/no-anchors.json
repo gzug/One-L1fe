@@ -1,0 +1,19 @@
+{
+  "name": "no-anchors",
+  "rationale": "Without anchors the result must clamp to bucket 0 and surface the evidence gate as unanchored.",
+  "input": {
+    "values": {
+      "apob": 165,
+      "ldl": 160,
+      "hba1c": 6.8,
+      "glucose": 110
+    },
+    "anchors": [],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 0,
+    "evidenceClass": "unanchored",
+    "primaryPillar": "none"
+  }
+}

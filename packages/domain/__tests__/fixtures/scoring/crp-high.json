@@ -1,0 +1,24 @@
+{
+  "name": "crp-high",
+  "rationale": "CRP is the only active signal, so inflammation should be the leading pillar while the composite remains bounded.",
+  "input": {
+    "values": {
+      "apob": 70,
+      "ldl": 68,
+      "hba1c": 5.1,
+      "glucose": 82,
+      "crp": 8
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-002", "anchorSourceId": "src_ldl_fallback_v1" },
+      { "ruleId": "INF-001", "anchorSourceId": "src_hscrp_assay_policy_v1" }
+    ],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 4,
+    "evidenceClass": "moderate",
+    "primaryPillar": "inflammation"
+  }
+}

@@ -1,5 +1,6 @@
 import { FieldState, FieldStateReason, FieldValueSource, requiresNullValueForFieldState } from './fieldValueState.ts';
 import { BiomarkerDefinition, biomarkers, CanonicalStatus, getBiomarkerDefinition } from './biomarkers.ts';
+import { PriorityPillar } from './scoring.ts';
 
 export type BiomarkerKey = BiomarkerDefinition['key'];
 
@@ -47,6 +48,7 @@ export interface MarkerRuntimeConfig {
   key: BiomarkerKey;
   markerRole: MarkerRole;
   scoreRole: ScoreRole;
+  pillar: PriorityPillar;
   allowedUnits: string[];
   requiresAssay: boolean;
   allowedRecommendationClass: RecommendationEligibilityClass;
@@ -89,6 +91,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'apob',
     markerRole: MarkerRole.Core,
     scoreRole: ScoreRole.Primary,
+    pillar: 'cardiovascular',
     allowedUnits: ['mg/dL'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Full,
@@ -100,6 +103,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     // because its presence or absence directly drives the lipid hierarchy decision
     // (LIP-002 / LIP-003). Missing LDL is a coverage signal, not just an optional gap.
     scoreRole: ScoreRole.Fallback,
+    pillar: 'cardiovascular',
     allowedUnits: ['mg/dL'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Full,
@@ -109,6 +113,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'triglycerides',
     markerRole: MarkerRole.Core,
     scoreRole: ScoreRole.Primary,
+    pillar: 'cardiovascular',
     allowedUnits: ['mg/dL'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Full,
@@ -117,6 +122,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'lpa',
     markerRole: MarkerRole.Supporting,
     scoreRole: ScoreRole.BoundedModifier,
+    pillar: 'cardiovascular',
     allowedUnits: ['mg/dL', 'nmol/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -126,6 +132,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'hba1c',
     markerRole: MarkerRole.Core,
     scoreRole: ScoreRole.Primary,
+    pillar: 'metabolic',
     allowedUnits: ['%', 'mmol/mol'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Full,
@@ -134,6 +141,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'glucose',
     markerRole: MarkerRole.Core,
     scoreRole: ScoreRole.Primary,
+    pillar: 'metabolic',
     allowedUnits: ['mg/dL', 'mmol/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Full,
@@ -143,6 +151,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'crp',
     markerRole: MarkerRole.Supporting,
     scoreRole: ScoreRole.BoundedModifier,
+    pillar: 'inflammation',
     allowedUnits: ['mg/L'],
     requiresAssay: true,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -152,6 +161,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'vitamin_d',
     markerRole: MarkerRole.Contextual,
     scoreRole: ScoreRole.Excluded,
+    pillar: 'nutrientContext',
     allowedUnits: ['ng/mL', 'nmol/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -160,6 +170,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'ferritin',
     markerRole: MarkerRole.Contextual,
     scoreRole: ScoreRole.Excluded,
+    pillar: 'nutrientContext',
     allowedUnits: ['ng/mL', 'µg/L', 'ug/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -169,6 +180,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'b12',
     markerRole: MarkerRole.Contextual,
     scoreRole: ScoreRole.Excluded,
+    pillar: 'nutrientContext',
     allowedUnits: ['pg/mL', 'pmol/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -177,6 +189,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'magnesium',
     markerRole: MarkerRole.Contextual,
     scoreRole: ScoreRole.Excluded,
+    pillar: 'nutrientContext',
     allowedUnits: ['mg/dL', 'mmol/L'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,
@@ -185,6 +198,7 @@ export const markerRuntimeConfigs: Record<BiomarkerKey, MarkerRuntimeConfig> = {
     key: 'dao',
     markerRole: MarkerRole.Contextual,
     scoreRole: ScoreRole.Excluded,
+    pillar: 'nutrientContext',
     allowedUnits: ['U/mL'],
     requiresAssay: false,
     allowedRecommendationClass: RecommendationEligibilityClass.Bounded,

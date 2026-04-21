@@ -1,0 +1,19 @@
+{
+  "name": "apob-alone",
+  "rationale": "ApoB is severe while the mandatory metabolic markers are absent, so cardiovascular should dominate with a high bucket.",
+  "input": {
+    "values": {
+      "apob": 165
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-003", "anchorSourceId": "src_coverage_policy_v1" }
+    ],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 4,
+    "evidenceClass": "limited",
+    "primaryPillar": "cardiovascular"
+  }
+}

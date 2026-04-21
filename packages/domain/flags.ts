@@ -1,0 +1,1 @@
+export const FEATURE_FLAG_TREND_SKELETON_READONLY = true;

@@ -1,0 +1,24 @@
+{
+  "name": "apob-optimal-ldl-160",
+  "rationale": "ApoB stays good while LDL remains elevated under ApoB-primary hierarchy, so the cardiovascular bucket is clamped down from LDL.",
+  "input": {
+    "values": {
+      "apob": 90,
+      "ldl": 160,
+      "hba1c": 5.1,
+      "glucose": 82
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-002", "anchorSourceId": "src_ldl_fallback_v1" },
+      { "ruleId": "MET-001", "anchorSourceId": "src_hba1c_threshold_policy_v1" },
+      { "ruleId": "MET-002", "anchorSourceId": "src_glucose_threshold_policy_v1" }
+    ],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 3,
+    "evidenceClass": "moderate",
+    "primaryPillar": "cardiovascular"
+  }
+}

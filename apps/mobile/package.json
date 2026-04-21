@@ -8,6 +8,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "prebuild": "expo prebuild --platform android --clean --non-interactive",
     "typecheck": "tsc --noEmit",
     "export:web": "expo export --platform web --output-dir dist-web"
   },

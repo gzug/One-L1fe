@@ -1,0 +1,25 @@
+{
+  "name": "vitd-ferritin-low",
+  "rationale": "Low vitamin D and ferritin should surface as a nutrient-context signal without overtaking stronger medical pillars.",
+  "input": {
+    "values": {
+      "apob": 70,
+      "ldl": 68,
+      "hba1c": 5.1,
+      "glucose": 82,
+      "vitamin_d": 15,
+      "ferritin": 20
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-002", "anchorSourceId": "src_ldl_fallback_v1" },
+      { "ruleId": "COV-001", "anchorSourceId": "src_coverage_policy_v1" }
+    ],
+    "freshness": {}
+  },
+  "expected": {
+    "bucket": 3,
+    "evidenceClass": "limited",
+    "primaryPillar": "nutrientContext"
+  }
+}

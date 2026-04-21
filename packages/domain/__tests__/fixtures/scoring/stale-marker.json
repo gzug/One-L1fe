@@ -1,0 +1,26 @@
+{
+  "name": "stale-marker",
+  "rationale": "A stale panel should still compute a score, but the minimum-slice path should flag freshness as stale and keep the score bounded.",
+  "input": {
+    "values": {
+      "apob": 165,
+      "ldl": 160,
+      "hba1c": 6.8,
+      "glucose": 110
+    },
+    "anchors": [
+      { "ruleId": "LIP-001", "anchorSourceId": "src_apob_guideline_consensus_v1" },
+      { "ruleId": "LIP-002", "anchorSourceId": "src_ldl_fallback_v1" },
+      { "ruleId": "MET-001", "anchorSourceId": "src_hba1c_threshold_policy_v1" },
+      { "ruleId": "MET-002", "anchorSourceId": "src_glucose_threshold_policy_v1" }
+    ],
+    "freshness": {
+      "apob": { "daysAgo": 200 }
+    }
+  },
+  "expected": {
+    "bucket": 4,
+    "evidenceClass": "moderate",
+    "primaryPillar": "cardiovascular"
+  }
+}

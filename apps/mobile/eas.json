@@ -1,0 +1,19 @@
+{
+  "cli": {
+    "version": ">= 10.0.0"
+  },
+  "build": {
+    "preview-apk": {
+      "distribution": "internal",
+      "developmentClient": false,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_ONE_L1FE_SUPABASE_URL": "set-in-env",
+        "EXPO_PUBLIC_ONE_L1FE_SUPABASE_ANON_KEY": "set-in-env",
+        "EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH": "set-in-env"
+      }
+    }
+  }
+}
