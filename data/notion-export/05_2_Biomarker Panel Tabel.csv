@@ -1,0 +1,43 @@
+﻿Name,ADMA / SDMA,ALT Priority Score,ALT Status,ALT Unit,ALT Value,APOE Genotype,ApoB Priority Score,ApoB Status,ApoB Unit,ApoB Value,ApoB Weighted,B12 Priority Score,B12 Status,B12 Unit,B12 Value,B12 Weighted,Biomarker Insight,Blood Pressure Diastolic,Blood Pressure Systolic,Blood Pressure Unit,CRP Priority Score,CRP Status,CRP Weighted,Cardiovascular Notes,DAO Priority Score,DAO Status,DAO Unit,DAO Value,DAO Weighted,Date,Estradiol Unit,Estradiol Value,Fasting Glucose Priority Score,Fasting Glucose Status,Fasting Glucose Unit,Fasting Glucose Value,Fasting Glucose Weighted,Fasting Insulin Unit,Fasting Insulin Value,Ferritin Priority Score,Ferritin Status,Ferritin Unit,Ferritin Value,Ferritin Weighted,Fibrinogen Unit,Fibrinogen Value,Gender,Glucose Unit,Glucose Value,Gut Notes,HDL Priority Score,HDL Status,HDL Unit,HDL Value,HbA1c Priority Score,HbA1c Status,HbA1c Unit,HbA1c Value,HbA1c Weighted,Homocysteine Priority Score,Homocysteine Status,Homocysteine Unit,Homocysteine Value,Inflammation Notes,LDL Priority Score,LDL Status,LDL Unit,LDL Value,LDL Weighted,LDL-P Unit,LDL-P Value,Lab / Source,Liver Notes,Lp(a) Priority Score,Lp(a) Status,Lp(a) Unit,Lp(a) Value,Lp(a) Weighted,Lp-PLA2 Unit,Lp-PLA2 Value,Magnesium Priority Score,Magnesium Status,Magnesium Unit,Magnesium Value,Magnesium Weighted,Metabolic Notes,Micronutrient Notes,Notes,OGTT Insulin Unit,OGTT Insulin Value,Primary Focus,Profile,Thyroid Panel Notes,Total Cholesterol Unit,Total Cholesterol Value,Total Priority Score,Triglycerides Priority Score,Triglycerides Status,Triglycerides Unit,Triglycerides Value,Triglycerides Weighted,Uric Acid Priority Score,Uric Acid Status,Uric Acid Unit,Uric Acid Value,Vitamin D Priority Score,Vitamin D Status,Vitamin D Unit,Vitamin D Value,Vitamin D Weighted,Weekly Actions (Auto),hs-CRP / CRP Unit,hs-CRP / CRP Value,oxLDL / oxPL
+Oct 2023 Panel,,2,Missing,,,,2,Missing,Unknown,,6,3,Needs improvement,pmol/L,265,3,"🎯 Priority:
+⚠️ Missing ApoB → key cardiovascular marker → get tested to assess baseline risk
+
+⚠️ Next Focus:
+✅ No secondary concern → keep current habits
+
+🧩 Also Improve:
+⚠️ Low B12 → impacts energy and cognition → increase intake or consider supplementation
+
+💡 Focus on the Priority first before optimizing others",,,,2,Elevated,3,,2,Missing,Unknown,,2,"October 11, 2023",,,2,Missing,,,2,,,3,Needs improvement,µg/L,204,3,,,Male,mmol/L,5.8,,2,Missing,Unknown,,3,Needs improvement,mmol/mol,34,6,2,Missing,,,,2,Missing,Unknown,,2,,,Danish hospital lab (http://sundhed.dk),,2,Missing,Unknown,,2,,,2,Missing,Unknown,,2,,,Baseline panel from 2023. No lipid panel available. Higher CRP compared to 2025. Strong metabolic health already present.,,,Metabolic,Untitled (https://www.notion.so/337538a8fbe1805d8952d2102a51dd64?pvs=21),,Unknown,,33,2,Missing,Unknown,,2,2,Missing,,,0,Optimal,nmol/L,77,0,"🎯 Metabolic Focus
+
+1. Walk 10 min after meals
+2. Reduce sugar + refined carbs
+3. Strength train 3x/week",mg/L,3,
+Test,,2,Missing,,,,4,High risk,,110,12,2,Missing,,,2,"🎯 Priority:
+🚨 High ApoB → elevated cardiovascular risk → prioritize lipid lowering (nutrition, exercise, consider advanced testing)
+
+⚠️ Next Focus:
+🧠 Check LDL, triglycerides, and metabolic health → support overall lipid system
+
+🧩 Also Improve:
+✅ Keep building on what’s working → small optimizations can compound over time
+
+💡 Focus on the Priority first before optimizing others",,,,0,Optimal,0,,2,Missing,,,2,,,,2,Missing,,,2,,,2,Missing,,,2,,,Male,,,,2,Missing,,,0,Optimal,,5.2,0,2,Missing,,,,3,Needs improvement,,140,3,,,,,2,Missing,,,2,,,2,Missing,,,2,,,,,,Cardiovascular (ApoB),,,,,31,2,Missing,,,2,2,Missing,,,2,Missing,,,2,"🎯 Cardiovascular Focus
+
+1. Eat high-fiber + reduce saturated fats
+2. 3–4x Zone 2 cardio (30–45 min)
+3. Track cholesterol markers",,0.5,
+Apr 2025 Panel,,2,Missing,,,,2,Missing,Unknown,,6,0,Optimal,pg/mL,534,0,"🎯 Priority:
+⚠️ Missing ApoB → key cardiovascular marker → get tested to assess baseline risk
+
+⚠️ Next Focus:
+⚠️ LDL above optimal → cumulative cardiovascular exposure → adjust nutrition and increase activity
+
+🧩 Also Improve:
+✅ Keep building on what’s working → small optimizations can compound over time
+
+💡 Focus on the Priority first before optimizing others",,,,0,Optimal,0,,2,Low,,5.1,2,"April 18, 2025",,,2,Missing,,,2,,,3,Needs improvement,ng/mL,188,3,,,Male,mg/dL,96,,0,Optimal,mg/dL,56,0,Optimal,%,5.24,0,2,Missing,,,,3,Needs improvement,mg/dL,133,3,,,ALAB blood test,,2,Missing,Unknown,,2,,,0,Optimal,mg/dL,2.02,0,,,"Blood test from April 2025. Post H. pylori phase. Good metabolic and inflammation markers. LDL elevated. DAO low, likely gut recovery related.",,,General Optimization,Untitled (https://www.notion.so/337538a8fbe1805d8952d2102a51dd64?pvs=21),,mg/dL,209,20,1,Good,mg/dL,101,1,2,Missing,,,1,Good,ng/mL,36,1,"🎯 Gut / Histamine Focus
+
+1. Reduce high-histamine foods
+2. Support gut health
+3. Monitor symptoms",mg/L,0.6,

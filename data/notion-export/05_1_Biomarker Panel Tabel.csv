@@ -1,0 +1,43 @@
+﻿Name,Date,Profile,Gender,Lab / Source,Notes,Cardiovascular Notes,ApoB Value,ApoB Unit,Lp(a) Value,Lp(a) Unit,LDL Value,LDL Unit,HDL Value,HDL Unit,Triglycerides Value,Triglycerides Unit,Total Cholesterol Value,Total Cholesterol Unit,Blood Pressure Systolic,Blood Pressure Diastolic,Blood Pressure Unit,Metabolic Notes,HbA1c Value,HbA1c Unit,Fasting Glucose Value,Fasting Glucose Unit,Homocysteine Value,Homocysteine Unit,Uric Acid Value,Uric Acid Unit,Inflammation Notes,hs-CRP / CRP Value,hs-CRP / CRP Unit,Liver Notes,ALT Value,ALT Unit,Micronutrient Notes,Vitamin D Value,Vitamin D Unit,Ferritin Value,Ferritin Unit,B12 Value,B12 Unit,Magnesium Value,Magnesium Unit,Gut Notes,DAO Value,DAO Unit,LDL-P Value,LDL-P Unit,Fasting Insulin Value,Fasting Insulin Unit,OGTT Insulin Value,OGTT Insulin Unit,APOE Genotype,Fibrinogen Value,Fibrinogen Unit,Lp-PLA2 Value,Lp-PLA2 Unit,oxLDL / oxPL,ADMA / SDMA,Thyroid Panel Notes,Estradiol Value,Estradiol Unit,ApoB Status,Lp(a) Status,LDL Status,HDL Status,Triglycerides Status,HbA1c Status,Fasting Glucose Status,Homocysteine Status,Uric Acid Status,CRP Status,ALT Status,Vitamin D Status,Ferritin Status,B12 Status,Magnesium Status,DAO Status,Primary Focus,Total Priority Score,ApoB Priority Score,ApoB Weighted,Lp(a) Priority Score,Lp(a) Weighted,LDL Priority Score,LDL Weighted,HDL Priority Score,Triglycerides Priority Score,Triglycerides Weighted,HbA1c Priority Score,HbA1c Weighted,Fasting Glucose Priority Score,Fasting Glucose Weighted,Homocysteine Priority Score,Uric Acid Priority Score,CRP Priority Score,CRP Weighted,ALT Priority Score,Vitamin D Priority Score,Vitamin D Weighted,Ferritin Priority Score,Ferritin Weighted,B12 Priority Score,B12 Weighted,Magnesium Priority Score,Magnesium Weighted,DAO Priority Score,DAO Weighted,Biomarker Insight,Weekly Actions (Auto)
+Oct 2023 Panel,"October 11, 2023",Untitled (https://www.notion.so/337538a8fbe1805d8952d2102a51dd64?pvs=21),Male,Danish hospital lab (http://sundhed.dk),Baseline panel from 2023. No lipid panel available. Higher CRP compared to 2025. Strong metabolic health already present.,,,Unknown,,Unknown,,Unknown,,Unknown,,Unknown,,Unknown,,,,,34,mmol/mol,,,,,,,,3,mg/L,,,,,77,nmol/L,204,µg/L,265,pmol/L,,Unknown,,,Unknown,,,,,,,,,,,,,,,,,Missing,Missing,Missing,Missing,Missing,Needs improvement,Missing,Missing,Missing,Elevated,Missing,Optimal,Needs improvement,Needs improvement,Missing,Missing,Metabolic,33,2,6,2,2,2,2,2,2,2,3,6,2,2,2,2,2,3,2,0,0,3,3,3,3,2,2,2,2,"🎯 Priority:
+⚠️ Missing ApoB → key cardiovascular marker → get tested to assess baseline risk
+
+⚠️ Next Focus:
+✅ No secondary concern → keep current habits
+
+🧩 Also Improve:
+⚠️ Low B12 → impacts energy and cognition → increase intake or consider supplementation
+
+💡 Focus on the Priority first before optimizing others","🎯 Metabolic Focus
+
+1. Walk 10 min after meals
+2. Reduce sugar + refined carbs
+3. Strength train 3x/week"
+Apr 2025 Panel,"April 18, 2025",Untitled (https://www.notion.so/337538a8fbe1805d8952d2102a51dd64?pvs=21),Male,ALAB blood test,"Blood test from April 2025. Post H. pylori phase. Good metabolic and inflammation markers. LDL elevated. DAO low, likely gut recovery related.",,,Unknown,,Unknown,133,mg/dL,56,mg/dL,101,mg/dL,209,mg/dL,,,,,5.24,%,,,,,,,,0.6,mg/L,,,,,36,ng/mL,188,ng/mL,534,pg/mL,2.02,mg/dL,,5.1,,,,,,,,,,,,,,,,,,Missing,Missing,Needs improvement,Optimal,Good,Optimal,Missing,Missing,Missing,Optimal,Missing,Good,Needs improvement,Optimal,Optimal,Low,General Optimization,20,2,6,2,2,3,3,0,1,1,0,0,2,2,2,2,0,0,2,1,1,3,3,0,0,0,0,2,2,"🎯 Priority:
+⚠️ Missing ApoB → key cardiovascular marker → get tested to assess baseline risk
+
+⚠️ Next Focus:
+⚠️ LDL above optimal → cumulative cardiovascular exposure → adjust nutrition and increase activity
+
+🧩 Also Improve:
+✅ Keep building on what’s working → small optimizations can compound over time
+
+💡 Focus on the Priority first before optimizing others","🎯 Gut / Histamine Focus
+
+1. Reduce high-histamine foods
+2. Support gut health
+3. Monitor symptoms"
+Test,,,Male,,,,110,,,,140,,,,,,,,,,,,5.2,,,,,,,,,0.5,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,High risk,Missing,Needs improvement,Missing,Missing,Optimal,Missing,Missing,Missing,Optimal,Missing,Missing,Missing,Missing,Missing,Missing,Cardiovascular (ApoB),31,4,12,2,2,3,3,2,2,2,0,0,2,2,2,2,0,0,2,2,2,2,2,2,2,2,2,2,2,"🎯 Priority:
+🚨 High ApoB → elevated cardiovascular risk → prioritize lipid lowering (nutrition, exercise, consider advanced testing)
+
+⚠️ Next Focus:
+🧠 Check LDL, triglycerides, and metabolic health → support overall lipid system
+
+🧩 Also Improve:
+✅ Keep building on what’s working → small optimizations can compound over time
+
+💡 Focus on the Priority first before optimizing others","🎯 Cardiovascular Focus
+
+1. Eat high-fiber + reduce saturated fats
+2. 3–4x Zone 2 cardio (30–45 min)
+3. Track cholesterol markers"
