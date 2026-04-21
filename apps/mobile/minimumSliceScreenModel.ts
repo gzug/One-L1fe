@@ -15,6 +15,7 @@ import {
   submitMinimumSlicePanel,
   summarizeMinimumSliceSubmissionState,
 } from '../../packages/domain/minimumSliceMobileIntegration.ts';
+import { EvidenceAnchor } from '../../packages/domain/evidenceRegistry.ts';
 
 export interface MinimumSliceMobileSession {
   profileId: string;
@@ -28,6 +29,7 @@ export interface MinimumSliceScreenModel {
   draft: MinimumSliceMobileFormDraft;
   submissionState: MinimumSliceSubmissionState;
   submissionSummary: MinimumSliceSubmissionStateSummary;
+  evidenceAnchors?: EvidenceAnchor[];
 }
 
 function trimTrailingSlash(value: string): string {
@@ -58,6 +60,16 @@ export function createMinimumSliceScreenModel(
     draft,
     submissionState,
     submissionSummary: summarizeMinimumSliceSubmissionState(submissionState),
+  };
+}
+
+export function setEvidenceAnchors(
+  state: MinimumSliceScreenModel,
+  evidenceAnchors?: EvidenceAnchor[],
+): MinimumSliceScreenModel {
+  return {
+    ...state,
+    evidenceAnchors,
   };
 }
 
@@ -111,11 +123,12 @@ export async function submitMinimumSliceScreen(
     ...(session.functionPath !== undefined ? { functionPath: session.functionPath } : {}),
   };
 
-  const result = await submitMinimumSlicePanel(options, panel, submittingState);
+  const result = await submitMinimumSlicePanel(options, panel, submittingState, state.evidenceAnchors);
 
   return {
     draft: state.draft,
     submissionState: result.nextState,
     submissionSummary: summarizeMinimumSliceSubmissionState(result.nextState),
+    evidenceAnchors: state.evidenceAnchors,
   };
 }

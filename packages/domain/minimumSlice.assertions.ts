@@ -81,4 +81,31 @@ export function runMinimumSliceAssertions(): void {
     !disabledOptional.recommendations.some((recommendation) => recommendation.verdict.includes('Lp(a) is missing')),
     'Disabled optional entries should not emit collect-more-data recommendations.',
   );
+
+  assert(
+    (() => {
+      try {
+        evaluateMinimumSlice(
+          {
+            profileId: 'profile_anchor_gate_1',
+            panelId: 'panel_anchor_gate_1',
+            collectedAt: '2026-04-13T09:00:00.000Z',
+            entries: [
+              { marker: 'apob', value: 118, unit: 'mg/dL' },
+              { marker: 'ldl', value: 152, unit: 'mg/dL' },
+              { marker: 'hba1c', value: 5.8, unit: '%' },
+              { marker: 'glucose', value: 104, unit: 'mg/dL', fastingContext: true },
+            ],
+          },
+          new Date('2026-04-13T10:00:00.000Z'),
+          [],
+        );
+      } catch (error) {
+        return error instanceof Error && error.message.includes('UnanchoredScoreError');
+      }
+
+      return false;
+    })(),
+    'Empty evidence anchors should trigger the hard gate.',
+  );
 }

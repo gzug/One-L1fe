@@ -1,3 +1,11 @@
+export interface EvidenceRegistrySupabaseClient {
+  from(table: 'rule_evidence_links' | 'evidence_sources'): {
+    select(columns: string): {
+      in(column: string, values: string[]): Promise<{ data: unknown[] | null; error: { message: string } | null }>;
+    };
+  };
+}
+
 export type SourceType =
   | 'guideline'
   | 'consensus_statement'
@@ -40,6 +48,10 @@ export interface RuleEvidenceLink {
   supportingSourceIds: string[];
   productEvidenceClass: ProductEvidenceClass;
   status: 'active' | 'draft';
+}
+
+export interface EvidenceAnchor extends RuleEvidenceLink {
+  source: EvidenceSource;
 }
 
 export const evidenceSources: Record<string, EvidenceSource> = {
@@ -266,4 +278,103 @@ export function getEvidenceSource(sourceId: string): EvidenceSource | undefined 
 
 export function getRuleEvidenceLink(ruleId: string): RuleEvidenceLink | undefined {
   return ruleEvidenceLinks[ruleId];
+}
+
+export async function loadEvidenceForRules(
+  supabase: EvidenceRegistrySupabaseClient,
+  ruleIds: string[],
+): Promise<Map<string, EvidenceAnchor[]>> {
+  const uniqueRuleIds = Array.from(new Set(ruleIds)).filter((ruleId) => ruleId.trim().length > 0);
+  if (uniqueRuleIds.length === 0) {
+    return new Map();
+  }
+
+  const { data: linkRows, error: linkError } = await supabase
+    .from('rule_evidence_links')
+    .select('rule_id, biomarker_or_topic, logic, description, origin, anchor_source_id, supporting_source_ids, product_evidence_class, status')
+    .in('rule_id', uniqueRuleIds);
+
+  if (linkError) {
+    throw new Error(`Failed to load rule evidence links: ${linkError.message}`);
+  }
+
+  const links = (linkRows ?? []) as Array<{
+    rule_id: string;
+    biomarker_or_topic: string;
+    logic: string;
+    description: string;
+    origin: RuleOrigin;
+    anchor_source_id: string;
+    supporting_source_ids: string[];
+    product_evidence_class: ProductEvidenceClass;
+    status: 'active' | 'draft';
+  }>;
+
+  const sourceIds = Array.from(new Set(links.map((link) => link.anchor_source_id).filter((value): value is string => Boolean(value))));
+  const { data: sourceRows, error: sourceError } = await supabase
+    .from('evidence_sources')
+    .select('source_id, title, publisher, year, canonical_url_or_doi, source_type, biomedical_evidence_class, authority_level, bucket, main_usable_contribution, main_weakness')
+    .in('source_id', sourceIds.length > 0 ? sourceIds : ['__none__']);
+
+  if (sourceError) {
+    throw new Error(`Failed to load evidence sources: ${sourceError.message}`);
+  }
+
+  const sources = (sourceRows ?? []) as Array<{
+    source_id: string;
+    title: string;
+    publisher: string;
+    year: number;
+    canonical_url_or_doi: string;
+    source_type: SourceType;
+    biomedical_evidence_class: BiomedicalEvidenceClass;
+    authority_level: AuthorityLevel;
+    bucket: SourceBucket;
+    main_usable_contribution: string;
+    main_weakness: string;
+  }>;
+
+  const sourceById = new Map(
+    sources.map((source) => [
+      source.source_id,
+      {
+        sourceId: source.source_id,
+        title: source.title,
+        publisher: source.publisher,
+        year: source.year,
+        canonicalUrlOrDoi: source.canonical_url_or_doi,
+        sourceType: source.source_type,
+        biomedicalEvidenceClass: source.biomedical_evidence_class,
+        authorityLevel: source.authority_level,
+        bucket: source.bucket,
+        mainUsableContribution: source.main_usable_contribution,
+        mainWeakness: source.main_weakness,
+      } as EvidenceSource,
+    ]),
+  );
+
+  const grouped = new Map<string, EvidenceAnchor[]>();
+  for (const link of links) {
+    const source = sourceById.get(link.anchor_source_id);
+    if (!source) continue;
+
+    const anchor: EvidenceAnchor = {
+      ruleId: link.rule_id,
+      biomarkerOrTopic: link.biomarker_or_topic,
+      logic: link.logic,
+      description: link.description,
+      origin: link.origin,
+      anchorSourceId: link.anchor_source_id,
+      supportingSourceIds: link.supporting_source_ids ?? [],
+      productEvidenceClass: link.product_evidence_class,
+      status: link.status,
+      source,
+    };
+
+    const existing = grouped.get(link.rule_id) ?? [];
+    existing.push(anchor);
+    grouped.set(link.rule_id, existing);
+  }
+
+  return grouped;
 }

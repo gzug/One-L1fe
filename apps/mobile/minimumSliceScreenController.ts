@@ -4,9 +4,11 @@ import {
   MinimumSliceMobileSession,
   MinimumSliceScreenModel,
   patchMinimumSliceDraft,
+  setEvidenceAnchors as setEvidenceAnchorsOnState,
   setOptionalMarkerFieldState,
   submitMinimumSliceScreen,
 } from './minimumSliceScreenModel.ts';
+import { EvidenceAnchor } from '../../packages/domain/evidenceRegistry.ts';
 import { ONE_L1FE_SUPABASE_PROJECT_REF, getOneL1feSupabaseUrl } from './minimumSliceHostedConfig.ts';
 import { MinimumSliceMobileFormDraft, OptionalMinimumSliceMarkerKey } from '../../packages/domain/minimumSliceMobileForm.ts';
 
@@ -34,6 +36,7 @@ export interface MinimumSliceScreenController {
   getState(): MinimumSliceScreenModel;
   patchDraft(patch: Partial<MinimumSliceMobileFormDraft>): MinimumSliceScreenModel;
   setOptionalMarkerFieldState(marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel;
+  setEvidenceAnchors(evidenceAnchors?: EvidenceAnchor[]): MinimumSliceScreenModel;
   reset(): MinimumSliceScreenModel;
   submit(): Promise<MinimumSliceScreenModel>;
 }
@@ -66,6 +69,11 @@ export function createMinimumSliceScreenController(
 
     setOptionalMarkerFieldState(marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel {
       state = setOptionalMarkerFieldState(state, marker, fieldState);
+      return state;
+    },
+
+    setEvidenceAnchors(evidenceAnchors?: EvidenceAnchor[]): MinimumSliceScreenModel {
+      state = setEvidenceAnchorsOnState(state, evidenceAnchors);
       return state;
     },
 

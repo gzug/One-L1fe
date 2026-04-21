@@ -1,8 +1,7 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardTypeOptions,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,11 +10,16 @@ import {
 } from 'react-native';
 import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
+import { buildMinimumSlicePanelInputFromMobileDraft } from '../../packages/domain/minimumSliceMobileForm.ts';
+import { collectRuleIdsForPanel, evaluateMinimumSlice } from '../../packages/domain/minimumSlice.ts';
 import {
   createOptionalFieldMetadata,
   getOptionalFieldMetadata,
   OptionalMinimumSliceMarkerKey,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
+import { Card, PrimaryButton, ScreenHeader, SecondaryButton } from './ui/components';
+import { theme } from './ui/theme';
+import { loadEvidenceAnchorsForRuleIds } from './src/data/evidenceAnchors.ts';
 
 const FIELD_ORDER = [
   { key: 'panelId', label: 'Panel ID', keyboardType: 'default' },
@@ -61,17 +65,66 @@ export default function MinimumSliceScreen({
   );
   const [localError, setLocalError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [anchorLoadingState, setAnchorLoadingState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
+  const [anchorError, setAnchorError] = useState<string | undefined>();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAnchors(): Promise<void> {
+      setAnchorLoadingState('loading');
+      setAnchorError(undefined);
+
+      try {
+        const previewPanel = buildMinimumSlicePanelInputFromMobileDraft(screenState.draft, {
+          profileId: 'mobile-preview',
+          defaultSource: 'mobile-minimum-slice-screen',
+        });
+        const ruleIds = collectRuleIdsForPanel(previewPanel);
+        const anchors = await loadEvidenceAnchorsForRuleIds(ruleIds);
+
+        if (cancelled) return;
+
+        controller.setEvidenceAnchors(anchors);
+        setAnchorLoadingState(anchors.length > 0 ? 'ready' : 'empty');
+      } catch (error) {
+        if (cancelled) return;
+        setAnchorLoadingState('error');
+        setAnchorError(error instanceof Error ? error.message : 'Failed to load evidence anchors.');
+        controller.setEvidenceAnchors([]);
+      }
+    }
+
+    void loadAnchors();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controller, screenState.draft]);
+
+  const previewEvaluation = useMemo(() => {
+    if (anchorLoadingState !== 'ready') return null;
+    try {
+      const previewPanel = buildMinimumSlicePanelInputFromMobileDraft(screenState.draft, {
+        profileId: 'mobile-preview',
+        defaultSource: 'mobile-minimum-slice-screen',
+      });
+      return evaluateMinimumSlice(previewPanel, new Date(), screenState.evidenceAnchors);
+    } catch {
+      return null;
+    }
+  }, [anchorLoadingState, screenState.draft, screenState.evidenceAnchors]);
 
   const helperText = useMemo(() => {
     return [
       `Status: ${screenState.submissionSummary.status}`,
-      `Coverage: ${screenState.submissionSummary.lastResultSummary?.coverageState ?? 'n/a'}`,
+      `Coverage: ${previewEvaluation?.coverage.state ?? screenState.submissionSummary.lastResultSummary?.coverageState ?? 'n/a'}`,
       `Interpretation run: ${screenState.submissionSummary.lastResultSummary?.interpretationRunId ?? 'n/a'}`,
-      `Entries: ${screenState.submissionSummary.lastResultSummary?.interpretedEntryCount ?? 'n/a'}`,
+      `Entries: ${previewEvaluation?.entries.length ?? screenState.submissionSummary.lastResultSummary?.interpretedEntryCount ?? 'n/a'}`,
       `Recommendations: ${screenState.submissionSummary.lastResultSummary?.recommendationCount ?? 'n/a'}`,
       `Top drivers: ${renderTopDrivers(screenState)}`,
     ].join('\n');
-  }, [screenState]);
+  }, [previewEvaluation, screenState]);
 
   const handleSubmit = useCallback(async (): Promise<void> => {
     setIsSubmitting(true);
@@ -124,15 +177,33 @@ export default function MinimumSliceScreen({
       style={styles.scrollView}
       contentContainerStyle={styles.container}
     >
-      <View style={styles.header}>
-        <Text style={styles.eyebrow}>One L1fe</Text>
-        <Text style={styles.title}>Minimum-slice</Text>
-        <Text style={styles.subtitle}>
-          Thin Expo screen, shared domain contract, hosted Supabase function.
-        </Text>
-      </View>
+      <ScreenHeader
+        eyebrow="One L1fe"
+        title="Blood panel"
+        subtitle="Minimum-slice mobile seam: shared contract + hosted Supabase function."
+      />
 
-      <View style={styles.card}>
+      {anchorLoadingState === 'loading' ? (
+        <Card>
+          <Text style={styles.sectionTitle}>Loading evidence anchors</Text>
+          <Text style={styles.summary}>Resolving rule evidence links before calculating the score.</Text>
+          <ActivityIndicator color={theme.colors.primary} />
+        </Card>
+      ) : anchorLoadingState === 'error' ? (
+        <Card variant="danger">
+          <Text style={styles.sectionTitle}>Evidence anchors unavailable</Text>
+          <Text style={styles.errorText}>{anchorError ?? 'No evidence anchors could be loaded.'}</Text>
+        </Card>
+      ) : anchorLoadingState === 'empty' ? (
+        <Card variant="danger">
+          <Text style={styles.sectionTitle}>No evidence anchors</Text>
+          <Text style={styles.errorText}>
+            The current panel has no anchored rule evidence, so the score is not shown.
+          </Text>
+        </Card>
+      ) : null}
+
+      <Card>
         {FIELD_ORDER.map((field) => (
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
@@ -147,7 +218,7 @@ export default function MinimumSliceScreen({
                 {(['provided', 'missing', 'disabled'] as const).map((stateOption) => {
                   const isActive = getOptionalMarkerState(screenState, field.key) === stateOption;
                   return (
-                    <Pressable
+                    <SecondaryButton
                       key={stateOption}
                       onPress={() => handleOptionalMarkerStateChange(field.key, stateOption)}
                       style={[styles.optionChip, isActive ? styles.optionChipActive : null]}
@@ -159,7 +230,7 @@ export default function MinimumSliceScreen({
                             ? 'Missing'
                             : 'Not provided'}
                       </Text>
-                    </Pressable>
+                    </SecondaryButton>
                   );
                 })}
               </View>
@@ -173,9 +244,9 @@ export default function MinimumSliceScreen({
             ) : null}
           </View>
         ))}
-      </View>
+      </Card>
 
-      <View style={styles.card}>
+      <Card>
         <Text style={styles.sectionTitle}>Submission summary</Text>
         <Text style={styles.summary}>{helperText}</Text>
         {screenState.submissionSummary.lastError !== undefined ? (
@@ -186,23 +257,13 @@ export default function MinimumSliceScreen({
         {localError !== undefined ? (
           <Text style={styles.errorText}>{localError}</Text>
         ) : null}
-      </View>
+      </Card>
 
       <View style={styles.actions}>
-        <Pressable
-          onPress={handleSubmit}
-          style={styles.primaryButton}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.primaryButtonText}>Submit</Text>
-          )}
-        </Pressable>
-        <Pressable onPress={handleReset} style={styles.secondaryButton}>
-          <Text style={styles.secondaryButtonText}>Reset demo draft</Text>
-        </Pressable>
+        <PrimaryButton onPress={handleSubmit} disabled={isSubmitting || anchorLoadingState !== 'ready'}>
+          {isSubmitting ? <ActivityIndicator color="#ffffff" /> : 'Submit'}
+        </PrimaryButton>
+        <SecondaryButton onPress={handleReset}>Reset demo draft</SecondaryButton>
       </View>
     </ScrollView>
   );
@@ -211,54 +272,25 @@ export default function MinimumSliceScreen({
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: '#f4f7fb',
+    backgroundColor: theme.colors.bg,
   },
   container: {
     padding: 20,
     gap: 16,
   },
-  header: {
-    gap: 6,
-    marginBottom: 4,
-  },
-  eyebrow: {
-    color: '#4263eb',
-    fontSize: 13,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  title: {
-    color: '#152033',
-    fontSize: 28,
-    fontWeight: '700',
-  },
-  subtitle: {
-    color: '#52607a',
-    fontSize: 15,
-    lineHeight: 21,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 16,
-    borderWidth: 1,
-    gap: 12,
-    padding: 16,
-  },
   fieldGroup: {
     gap: 6,
   },
   label: {
-    color: '#24324a',
-    fontSize: 14,
-    fontWeight: '600',
+    color: theme.colors.textLabel,
+    ...theme.text.label,
   },
   input: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#c8d3e1',
-    borderRadius: 10,
+    backgroundColor: theme.colors.surfaceSubtle,
+    borderColor: theme.colors.borderStrong,
+    borderRadius: theme.radius.sm,
     borderWidth: 1,
-    color: '#152033',
+    color: theme.colors.text,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -270,16 +302,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   optionChip: {
-    backgroundColor: '#eef2ff',
-    borderColor: '#c7d2fe',
-    borderRadius: 999,
-    borderWidth: 1,
+    minHeight: 36,
+    borderRadius: theme.radius.pill,
+    borderWidth: 0,
     paddingHorizontal: 12,
-    paddingVertical: 6,
   },
   optionChipActive: {
-    backgroundColor: '#4263eb',
-    borderColor: '#4263eb',
+    backgroundColor: theme.colors.primary,
   },
   optionChipText: {
     color: '#334155',
@@ -290,53 +319,26 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   fieldHint: {
-    color: '#52607a',
+    color: theme.colors.textMuted,
     fontSize: 13,
     lineHeight: 18,
   },
   sectionTitle: {
-    color: '#152033',
-    fontSize: 18,
-    fontWeight: '700',
+    color: theme.colors.text,
+    ...theme.text.sectionTitle,
   },
   summary: {
-    color: '#24324a',
+    color: theme.colors.textLabel,
     fontSize: 14,
     lineHeight: 21,
   },
   errorText: {
-    color: '#b42318',
+    color: theme.colors.danger,
     fontSize: 14,
     lineHeight: 20,
   },
   actions: {
     gap: 12,
     marginBottom: 32,
-  },
-  primaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 12,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#c8d3e1',
-    borderRadius: 12,
-    borderWidth: 1,
-    minHeight: 52,
-    justifyContent: 'center',
-  },
-  secondaryButtonText: {
-    color: '#24324a',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

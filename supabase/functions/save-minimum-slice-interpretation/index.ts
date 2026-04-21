@@ -5,6 +5,8 @@ import {
   parseMinimumSliceFunctionRequestBody,
   parseOptionalDateFromIso,
 } from './_lib/domain/minimumSliceFunctionContract.ts';
+import { loadEvidenceForRules } from './_lib/domain/evidenceRegistry.ts';
+import { collectRuleIdsForPanel } from './_lib/domain/minimumSlice.ts';
 import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository.ts';
 import { corsHeaders, json } from '../_shared/http.ts';
 
@@ -148,6 +150,7 @@ Deno.serve(async (request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
     if (!supabaseUrl || !supabaseAnonKey) {
       throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be configured for the function runtime.');
@@ -162,6 +165,9 @@ Deno.serve(async (request) => {
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
+    const evidenceClient = supabaseServiceRoleKey
+      ? createClient(supabaseUrl, supabaseServiceRoleKey)
+      : supabase;
 
     const {
       data: { user },
@@ -191,6 +197,15 @@ Deno.serve(async (request) => {
         throw new ClientError(e instanceof Error ? e.message : 'Invalid request body.');
       }
     })();
+
+    const evidenceRuleIds = collectRuleIdsForPanel({
+      profileId,
+      panelId: body.panel.panelId,
+      collectedAt: body.panel.collectedAt,
+      source: body.panel.source,
+      entries: body.panel.entries,
+    });
+    const evidenceAnchors = Array.from((await loadEvidenceForRules(evidenceClient, evidenceRuleIds)).values()).flat();
 
     // Ownership validation for all referenced IDs (#32)
     const persistence = body.persistence;
@@ -227,6 +242,7 @@ Deno.serve(async (request) => {
           interpretedEntryLabResultEntryIds: persistence?.interpretedEntryLabResultEntryIds,
           derivedInsightId: persistence?.derivedInsightId,
           auditTraceId: persistence?.auditTraceId,
+          evidenceAnchors,
         },
       );
     } catch (e) {

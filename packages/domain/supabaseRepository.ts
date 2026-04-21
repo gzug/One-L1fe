@@ -1,4 +1,5 @@
 import { toInterpretationPersistencePayload } from './contracts.ts';
+import { EvidenceAnchor } from './evidenceRegistry.ts';
 import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
 import { persistInterpretationBundle, PersistInterpretationResult, SupabasePersistenceClient } from './supabasePersistence.ts';
 import { toSupabasePersistenceBundle } from './supabasePayload.ts';
@@ -10,6 +11,7 @@ export interface SaveMinimumSliceInterpretationParams {
   interpretedEntryLabResultEntryIds?: Record<string, string>;
   derivedInsightId?: string | null;
   auditTraceId?: string | null;
+  evidenceAnchors?: EvidenceAnchor[];
 }
 
 export interface SaveMinimumSliceInterpretationResult {
@@ -22,7 +24,7 @@ export async function saveMinimumSliceInterpretation(
   input: MinimumSlicePanelInput,
   params?: SaveMinimumSliceInterpretationParams,
 ): Promise<SaveMinimumSliceInterpretationResult> {
-  const evaluation = evaluateMinimumSlice(input, params?.now ?? new Date());
+  const evaluation = evaluateMinimumSlice(input, params?.now ?? new Date(), params?.evidenceAnchors);
   const payload = toInterpretationPersistencePayload(
     evaluation,
     input,
