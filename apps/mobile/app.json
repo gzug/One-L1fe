@@ -12,31 +12,13 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.onel1fe.mobile",
-      "permissions": [
-        "android.permission.health.READ_STEPS",
-        "android.permission.health.READ_HEART_RATE",
-        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
-        "android.permission.health.READ_DISTANCE",
-        "android.permission.health.READ_SLEEP"
-      ]
+      "package": "com.onel1fe.mobile"
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      [
-        "react-native-health-connect",
-        {
-          "permissions": [
-            "Steps",
-            "HeartRate",
-            "ActiveCaloriesBurned",
-            "Distance",
-            "SleepSession"
-          ]
-        }
-      ]
+      "./plugins/with-health-connect"
     ]
   }
 }
