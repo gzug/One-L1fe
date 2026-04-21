@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-20
+last_verified: 2026-04-21
 supersedes: []
 superseded_by: null
 scope: repo
@@ -23,7 +23,7 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 
 ## Pending PRs
 
-_None. All recent branches merged._
+- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID replacing `MOCK_APP_INSTALL_ID`; pending merge (intentionally held)
 
 ## Blockers
 
@@ -32,12 +32,12 @@ _None. All recent branches merged._
 - Branch protection for `main` needs explicit verification/enforcement
 - Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004)
 
-## Completed this session (2026-04-20)
+## Completed this session (2026-04-21)
 
-- ✅ **Task 5** — CRP + ApoB/LDL evidence seeds (`20260420190000`): `evidence_sources` + `rule_evidence_links` for CRP rules and ApoB/LDL rules added
-- ✅ **Task 6** — `isDerivedStale()` threshold extracted: `STALE_THRESHOLD_DAYS_LAB`, `STALE_THRESHOLD_DAYS_WEARABLE`, `StalenessConfig` type, per-biomarker override pattern
-- ✅ **Task 7** — `WearableSyncScreen` feedback UI: `SyncStatus` state, success banner (timestamp + `records_inserted`), error banner, disabled button during run (`commit: 3fc06f3`)
-- ✅ **Task 8** — `HealthConnectPermissionGate` in tab navigation: `useWearablePermissions` lifted to `App` level, lock badge on Wearable Sync tab when `hcStatus` is `denied` / `unavailable` (`commit: c279bb7`)
+- ✅ Repo cleanup: 11 stale branches deleted
+- ✅ Issues #95, #94, #89 closed (duplicates + already-merged)
+- ✅ Auto-delete branches on merge activated (GitHub repo setting)
+- ✅ `AGENTS.md` — output standards section added (commit messages, secrets, session closeout, issue hygiene)
 
 ## Next steps
 
@@ -45,5 +45,4 @@ _None. All recent branches merged._
 2. **Native Android Health Connect** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`
 3. **First real Health Connect ingest proof** — expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
 4. **Garmin Terra webhook smoke-test** — Terra OAuth pairing, verify webhook delivery + `wearable_observations` row (WEARABLE-TD-002)
-5. **useWearableSync return type** — verify `run()` return shape matches `SyncStatus` success path (`records_inserted` field); typed as `void` currently — may need edge function response type propagated
-6. **Clean follow-ups** — branch protection, `as any` typed cleanup
+5. **Merge `claude/real-app-install-id`** when ready
