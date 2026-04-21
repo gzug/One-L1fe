@@ -1,5 +1,7 @@
 import { CanonicalStatus, mapPriorityScore } from './biomarkers.ts';
+import { EvidenceAnchor, getRuleEvidenceLink } from './evidenceRegistry.ts';
 import { getRuleProvenance, ProductEvidenceClass, RuleOrigin } from './provenance.ts';
+import { downgradeEvidenceClass, PanelConfiguration, ScoreLockedResult } from './userPreferences.ts';
 import { evaluateByThreshold } from './thresholds.ts';
 import {
   BiomarkerKey,
@@ -81,6 +83,12 @@ export interface MinimumSliceEvaluation {
     name: 'Priority Score';
     rawValue: number;
     value: number;
+    evidenceClass: string;
+    reducedConfidence?: {
+      excludedOptionalKeys: string[];
+    };
+    anchors: EvidenceAnchor[];
+    anchorCount: number;
     includedMarkerCount: number;
     topDrivers: string[];
     boundedModifierNote?: string;
@@ -91,8 +99,46 @@ export interface MinimumSliceEvaluation {
   recommendations: Recommendation[];
 }
 
+export function collectRuleIdsForPanel(panel: MinimumSlicePanelInput): string[] {
+  const entriesByMarker = new Map<BiomarkerKey, MinimumSliceEntryInput>();
+  for (const entry of panel.entries) {
+    entriesByMarker.set(entry.marker, {
+      ...entry,
+      collectedAt: entry.collectedAt ?? panel.collectedAt,
+    });
+  }
+
+  const orderedMarkers: BiomarkerKey[] = [...REQUIRED_MINIMUM_SLICE_MARKERS, ...OPTIONAL_MINIMUM_SLICE_MARKERS];
+  const ruleIds = new Set<string>();
+
+  for (const marker of orderedMarkers) {
+    const input = entriesByMarker.get(marker) ?? { marker, collectedAt: panel.collectedAt };
+    const assessment = assessInterpretability(input, new Date(panel.collectedAt));
+    const biomarker = getBiomarkerOrThrow(marker);
+    const thresholdEvaluation =
+      assessment.state === InterpretabilityState.Interpretable && input.value != null && input.unit
+        ? evaluateByThreshold({ marker, value: input.value, unit: input.unit })
+        : null;
+
+    const fallbackRuleIds = thresholdEvaluation?.ruleIds?.length
+      ? thresholdEvaluation.ruleIds
+      : getFallbackRuleIds(marker, assessment, input);
+
+    for (const ruleId of fallbackRuleIds) {
+      ruleIds.add(ruleId);
+    }
+
+    const biomarkerRuleId = getRuleEvidenceLink(biomarker.key)?.ruleId;
+    if (biomarkerRuleId) {
+      ruleIds.add(biomarkerRuleId);
+    }
+  }
+
+  return Array.from(ruleIds);
+}
+
 const REQUIRED_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['apob', 'hba1c', 'glucose', 'ldl'];
-const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp', 'ferritin'];
+const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp'];
 
 function dedupeRecommendations(recommendations: Recommendation[]): Recommendation[] {
   const seen = new Set<string>();
@@ -266,52 +312,6 @@ function buildInterpretationRecommendation(entry: EvaluatedEntry): Recommendatio
     };
   }
 
-  if (entry.marker === 'ferritin') {
-    // Low ferritin: directly actionable.
-    if (
-      entry.canonicalStatus === CanonicalStatus.High ||
-      entry.canonicalStatus === CanonicalStatus.Critical
-    ) {
-      return {
-        type: entry.canonicalStatus === CanonicalStatus.Critical ? 'clinician_clarification' : 'monitor',
-        verdict: 'Low ferritin — iron stores need attention',
-        text:
-          entry.canonicalStatus === CanonicalStatus.Critical
-            ? 'Critically low ferritin warrants clinician review before any supplementation.'
-            : 'Ferritin is below the adequate range. Revisit dietary iron intake and track trend over the next panel.',
-        evidenceSummary: `Ferritin is interpretable and currently maps to ${entry.canonicalStatus} (low iron stores).`,
-        confidence: 'medium',
-        scope: 'iron-status context only — not a diagnosis of iron-deficiency anaemia',
-        handoffRequired: entry.canonicalStatus === CanonicalStatus.Critical,
-        ruleId: 'CTX-001',
-        anchorSourceId: undefined,
-        ruleOrigin: undefined,
-        productEvidenceClass: undefined,
-      };
-    }
-
-    // Elevated ferritin: context gate — always Borderline until context is collected.
-    if (entry.canonicalStatus === CanonicalStatus.Borderline) {
-      return {
-        type: 'collect_more_data',
-        verdict: 'Elevated ferritin — context needed before escalation',
-        text:
-          'Ferritin is above the good range but context (inflammation markers, liver function, iron-transport panel) is not yet captured. Collect context before treating this as a severity signal.',
-        evidenceSummary:
-          'Elevated ferritin without inflammation / liver / iron-transport context. CTX-001 holds interpretation at Borderline.',
-        confidence: 'medium',
-        scope: 'iron-storage context only — not a severity conclusion without supporting data',
-        handoffRequired: false,
-        ruleId: 'CTX-001',
-        anchorSourceId: undefined,
-        ruleOrigin: undefined,
-        productEvidenceClass: undefined,
-      };
-    }
-
-    return null;
-  }
-
   return null;
 }
 
@@ -430,9 +430,74 @@ function buildEntry(
   };
 }
 
-export function evaluateMinimumSlice(
+export interface PriorityScoreResult {
+  rawValue: number;
+  value: number;
+  evidenceClass: string;
+  anchors: EvidenceAnchor[];
+  anchorCount: number;
+  includedMarkerCount: number;
+  topDrivers: string[];
+  boundedModifierNote?: string;
+  excludedMarkerNote?: string;
+  coverageSummary: string;
+  freshnessNote: string;
+  name: 'Priority Score';
+}
+
+function aggregateTotalPriorityScoreWithEvidence(
+  rawValue: number,
+  anchors: EvidenceAnchor[] | undefined,
+  topDrivers: string[],
+  includedMarkerCount: number,
+  coverageSummary: string,
+  freshnessNote: string,
+  hasBoundedModifier: boolean,
+  hasExcludedSignals: boolean,
+): PriorityScoreResult {
+  const resolvedAnchors = anchors ?? [];
+  if (anchors !== undefined && resolvedAnchors.length === 0) {
+    throw new Error('UnanchoredScoreError: evidence anchors are required.');
+  }
+
+  const evidenceClass = resolvedAnchors.length === 0
+    ? 'unanchored'
+    : resolvedAnchors.some((anchor) => anchor.productEvidenceClass === 'P0')
+      ? 'strong'
+      : resolvedAnchors.some((anchor) => anchor.productEvidenceClass === 'P1')
+        ? 'moderate'
+        : 'limited';
+
+  const priorityScore: PriorityScoreResult = {
+    name: 'Priority Score',
+    rawValue,
+    value: evidenceClass === 'unanchored' ? 0 : mapPriorityScore(rawValue),
+    evidenceClass,
+    anchors: resolvedAnchors,
+    anchorCount: resolvedAnchors.length,
+    includedMarkerCount,
+    topDrivers,
+    coverageSummary,
+    freshnessNote,
+  };
+
+  if (hasBoundedModifier) {
+    priorityScore.boundedModifierNote =
+      'Bounded modifiers are visible but do not behave like major recurring core score drivers.';
+  }
+
+  if (hasExcludedSignals) {
+    priorityScore.excludedMarkerNote =
+      'Some interpretable signals are intentionally excluded from the hard core score.';
+  }
+
+  return priorityScore;
+}
+
+function evaluateMinimumSliceInternal(
   panel: MinimumSlicePanelInput,
   now: Date = new Date(),
+  evidenceAnchors?: EvidenceAnchor[],
 ): MinimumSliceEvaluation {
   const entriesByMarker = new Map<BiomarkerKey, MinimumSliceEntryInput>();
 
@@ -492,27 +557,18 @@ export function evaluateMinimumSlice(
   );
   const hasExcludedSignals = evaluatedEntries.some((entry) => !entry.scoreEligible && entry.interpretableState === InterpretabilityState.Interpretable);
 
-  const priorityScore: MinimumSliceEvaluation['priorityScore'] = {
-    name: 'Priority Score',
-    rawValue: rawScore,
-    value: mapPriorityScore(rawScore),
-    includedMarkerCount: includedEntries.length,
+  const priorityScore = aggregateTotalPriorityScoreWithEvidence(
+    rawScore,
+    evidenceAnchors,
     topDrivers,
-    coverageSummary: coverageNotes.join(' '),
-    freshnessNote: evaluatedEntries.some((entry) => entry.freshness === FreshnessState.Stale)
+    includedEntries.length,
+    coverageNotes.join(' '),
+    evaluatedEntries.some((entry) => entry.freshness === FreshnessState.Stale)
       ? 'At least one minimum-slice marker is stale and blocked from active scoring.'
       : 'Freshness is acceptable for the currently included score inputs.',
-  };
-
-  if (hasBoundedModifier) {
-    priorityScore.boundedModifierNote =
-      'Bounded modifiers are visible but do not behave like major recurring core score drivers.';
-  }
-
-  if (hasExcludedSignals) {
-    priorityScore.excludedMarkerNote =
-      'Some interpretable signals are intentionally excluded from the hard core score.';
-  }
+    hasBoundedModifier,
+    hasExcludedSignals,
+  );
 
   return {
     profileId: panel.profileId,
@@ -527,4 +583,60 @@ export function evaluateMinimumSlice(
     priorityScore,
     recommendations,
   };
+}
+
+export function evaluateMinimumSlice(
+  panel: MinimumSlicePanelInput,
+  now?: Date,
+  evidenceAnchors?: EvidenceAnchor[],
+): MinimumSliceEvaluation;
+export function evaluateMinimumSlice(
+  panel: MinimumSlicePanelInput,
+  panelConfiguration: PanelConfiguration,
+  now?: Date,
+  evidenceAnchors?: EvidenceAnchor[],
+): MinimumSliceEvaluation | ScoreLockedResult;
+export function evaluateMinimumSlice(
+  panel: MinimumSlicePanelInput,
+  panelConfigurationOrNow?: PanelConfiguration | Date,
+  nowOrEvidenceAnchors?: Date | EvidenceAnchor[],
+  evidenceAnchors?: EvidenceAnchor[],
+): MinimumSliceEvaluation | ScoreLockedResult {
+  const panelConfiguration = panelConfigurationOrNow instanceof Date || panelConfigurationOrNow === undefined
+    ? undefined
+    : panelConfigurationOrNow;
+  const now = panelConfigurationOrNow instanceof Date
+    ? panelConfigurationOrNow
+    : nowOrEvidenceAnchors instanceof Date
+      ? nowOrEvidenceAnchors
+      : new Date();
+  const resolvedEvidenceAnchors = Array.isArray(nowOrEvidenceAnchors)
+    ? nowOrEvidenceAnchors
+    : evidenceAnchors;
+
+  if (panelConfiguration?.excludedMandatoryKeys.size) {
+    return {
+      kind: 'score_locked',
+      reason: 'MANDATORY_MARKER_EXCLUDED',
+      missingKeys: Array.from(panelConfiguration.excludedMandatoryKeys) as ScoreLockedResult['missingKeys'],
+      userAction: 'RE_ENABLE_IN_SETTINGS',
+    };
+  }
+
+  const evaluation = evaluateMinimumSliceInternal(panel, now, resolvedEvidenceAnchors);
+
+  if (panelConfiguration?.excludedOptionalKeys.size) {
+    return {
+      ...evaluation,
+      priorityScore: {
+        ...evaluation.priorityScore,
+        evidenceClass: downgradeEvidenceClass(evaluation.priorityScore.evidenceClass as ProductEvidenceClass),
+        reducedConfidence: {
+          excludedOptionalKeys: Array.from(panelConfiguration.excludedOptionalKeys),
+        },
+      },
+    };
+  }
+
+  return evaluation;
 }
