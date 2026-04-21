@@ -12,39 +12,116 @@ scope: repo
 
 ## Verdict
 
-Minimum-slice mobile seam proven live end to end. Field-state contract complete through `stale` derived-policy layer. Wearable backend seam hosted-proof complete. Evidence registry schema + seeds live (9 sources, 15 rules). Vitamin D + Ferritin seeds added (`20260420091500`). CRP + ApoB/LDL seeds added (`20260420190000`). `isDerivedStale` staleness thresholds extracted as named constants per biomarker type. WearableSyncScreen now shows success/error feedback post-sync. HealthConnectPermissionGate wired into tab navigation — Android users see lock badge when permissions are denied.
-
-Remaining gaps: native Android Health Connect wiring, first real device-backed ingest proof, evidence registry wire to Priority Score runtime.
+The minimum-slice mobile seam is proven live end to end. Field-state contract is complete through the `stale` derived-policy layer. The wearable backend seam is hosted-proof complete. Active work is A8: user-configurable panel and data-source preferences on `fix/health-connect-native-wiring`.
 
 ## Current state
 
-- Branch: `main` — all recent work committed directly
-- Active seam: real device-backed wearable ingest proof + evidence runtime wire
+- Domain biomarker thresholds and scoring metadata are tightened; assertions cover the revised thresholds and dispatch paths.
+- Active local branch: `fix/health-connect-native-wiring`
+- A8 work is in progress:
+  - user preference migration added
+  - pure domain `packages/domain/userPreferences.ts` added
+  - `evaluateMinimumSlice` now has a `score_locked` wrapper path
+  - mobile settings/data-source screen is wired into the app shell
+  - full verification is still pending after local disk-pressure issues
+- Branch: `main` at `243a116`, aligned with `origin/main`
+- PRs #48 through #64 merged, including provisioning, ingest guardrails, field-state, docs, wearable mobile hooks/UI, Health Connect permission gate, and follow-up cleanup/fixes
+- Current open PR: `#98` on `fix/health-connect-native-wiring`
+- Source of truth repo: `gzug/One-L1fe`
+- Current blockers:
+  - no physical Garmin device / Health Connect data source proof yet
+  - Android native Health Connect setup still needs manual `MainActivity.kt` and `AndroidManifest.xml` changes outside the repo state
+  - `WearableSyncScreen.tsx` still uses a temporary `MOCK_APP_INSTALL_ID`
+  - A8 changes still need a full typecheck and end-to-end Supabase/mobile validation
+  - branch protection for `main` still needs explicit verification/enforcement
+- Key confirmed facts:
+  - hosted migrations applied and local chain aligned (all migrations through `20260417093000_wearable_source_identity_guards.sql`)
+  - RLS and policies live
+  - `wearable-source-resolve` v1 deployed, `verify_jwt: false`, smoke tests green:
+    - create: `wearable_source_id` provisioned for `g.zugang@hotmail.com`
+    - idempotency: second call returns same ID, `created: false`
+    - missing instance identity: 400 with correct error
+    - missing auth: 401
+  - `wearables-sync` v2 deployed, `verify_jwt: false`, smoke tests green:
+    - hosted ingest writes succeed
+    - inactive source is rejected
+    - empty observations arrays are rejected
+  - all edge functions use `verify_jwt: false` + in-function `getUser()` auth, documented in `supabase/README.md`
+  - `save-minimum-slice-interpretation` works for real authenticated mobile submit
+  - Expo Go login via QR confirmed live on iPhone for `g.zugang@hotmail.com`
+  - the current controllable confirmed smoke-test user is `g.zugang@hotmail.com` (UID `523b48a4-2aa2-4e4c-97f2-8fa95141ac8b`)
+  - `mobileSupabaseAuth.ts` uses AsyncStorage-backed Supabase session persistence, normalizes true signed-out cases distinctly from operational auth errors
+  - `react-native-url-polyfill/auto` must load before `@supabase/supabase-js` in the mobile auth seam
+  - `apps/mobile/.gitignore` protects `.env` and `.env.*`
+  - `apps/mobile/metro.config.js` is present for monorepo layout resolution
+  - wearable mobile auth continues to flow through `apps/mobile/mobileSupabaseAuth.ts`
+  - wearable provisioning path is `supabase/functions/wearable-source-resolve/` only
+  - mobile wearable helpers now exist on `main` at:
+    - `apps/mobile/wearableSourceProvisioning.ts`
+    - `apps/mobile/useWearableSource.ts`
+    - `apps/mobile/wearableSyncClient.ts`
+    - `apps/mobile/useWearableSync.ts`
+    - `apps/mobile/WearableSyncScreen.tsx`
+    - `apps/mobile/wearablePermissions.ts`
+    - `apps/mobile/useWearablePermissions.ts`
+    - `apps/mobile/HealthConnectPermissionGate.tsx`
+  - Health Connect native setup steps are documented in `apps/mobile/docs/health-connect-native-setup.md`
+  - current platform posture is Android-first via `react-native-health-connect`; iOS remains an explicit stub until a separate HealthKit adapter slice is added
+  - provisioning identity stays anchored to instance-level identifiers: `app_install_id` first, `device_hardware_id` later
+  - `source_app_id` is connector metadata, not a sole ownership key
+  - identity-guard migration (`20260417093000_wearable_source_identity_guards.sql`) applies unique index guards for `(profile_id, source_kind, app_install_id)` and `(profile_id, source_kind, device_hardware_id)`
+- `wearables-sync` rejects inactive `wearable_sources` and empty observations arrays
+- Garmin smartwatch is still the first intended wearable target, but no physical device proof exists yet.
+- Garmin-first field priority remains `resting_heart_rate`, `sleep_duration`, `steps_total`, `hrv` with explicit method tagging.
+- HRV V1 policy stays: always store/display method metadata, never compare or aggregate SDNN and RMSSD together, and reject `unknown` at validation.
+- `wearable_metric_definitions` is seeded for first real device metrics.
+- `subjective_energy` stays self-report-first.
+- Field-state contract is complete via `packages/domain/fieldValueState.ts`; `stale` is derived-only.
+- Field-state QA checklist remains current with P0 #9, P0 #15, and P1 #1 enforced.
+- Domain files are vendored into `_lib/domain` at deploy time via `scripts/prepare-supabase-function-domain.sh`.
 
-## Pending PRs
+## Current next step
 
-- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID replacing `MOCK_APP_INSTALL_ID`; pending merge (intentionally held)
+In order:
+1. **Complete native Android Health Connect wiring** — apply the documented `MainActivity.kt` and `AndroidManifest.xml` changes from `apps/mobile/docs/health-connect-native-setup.md`
+2. **Replace the temporary dev identity path** — remove `MOCK_APP_INSTALL_ID` in `apps/mobile/WearableSyncScreen.tsx` once a real install/device identity source is available
+3. **Run first real Health Connect ingest proof** — provision with a real app/device identity, request permissions, and pass real observations into `wearables-sync`
+4. **Verify physical Garmin path** — once hardware/app access exists, confirm real end-to-end Garmin-backed flow
+5. **Finish A8 validation** — complete the mobile typecheck, verify the new preference/data-source seam, and confirm the `score_locked` wrapper preserves existing call sites
+6. **Clean small follow-ups** — resolve `memory/2026-04-17.md`, verify branch protection on `main`, and address remaining typed cleanup like the `as any` follow-up when the result type stabilizes
 
-## Blockers
+Near-term simplifications to keep:
+- keep `declined` out of V1 unless a real settings/preferences flow exists
+- keep "reset to device value" as later work
+- treat `provided` as a display-layer umbrella, not a required persisted state
+- keep the HRV render guard explicit in the reusable component contract
+- keep `isDerivedStale()` default 30-day window as the lab-field starting policy
 
-- No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
-- Android native Health Connect requires manual `MainActivity.kt` + `AndroidManifest.xml` changes outside repo
-- Branch protection for `main` needs explicit verification/enforcement
-- Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004)
+## Startup rule
 
-## Completed this session (2026-04-21)
+For meaningful repo work, start with `CHECKPOINT.md`.
+Read `README.md` first only when a person or agent needs broad repo orientation.
+Only read deeper docs when the task actually touches them.
 
-- ✅ Repo cleanup: 11 stale branches deleted
-- ✅ Issues #95, #94, #89 closed (duplicates + already-merged)
-- ✅ Auto-delete branches on merge activated (GitHub repo setting)
-- ✅ `AGENTS.md` — output standards section added (commit messages, secrets, session closeout, issue hygiene)
+## Read-on-demand map
 
-## Next steps
+- `docs/compliance/intended-use.md` only for health-adjacent copy, recommendation wording, or compliance boundaries.
+- `docs/architecture/evidence-registry-and-rule-governance-v1.md` only for provenance / evidence logic work.
+- `docs/roadmap/v1-checkpoint-and-next-agent-brief.md` only when planning the next implementation seam.
+- `docs/architecture/wearables-and-context-schema-draft.md` only when the task is specifically about the new wearable seam.
+- `docs/architecture/field-value-state-and-missingness-v1.md` when the task touches manual overrides, disabled/not-provided fields, or calculation behavior under missingness.
+- `docs/architecture/field-status-qa-checklist-v1.md` when the task is about test coverage, QA priorities, or release-blocking field-state failures.
+- `GLOSSARY.md` only when abbreviations or term meanings are unclear.
+- `README.md` only for broad repo orientation.
+- `supabase/README.md` for Supabase workflow, CI commands, secrets, deploy procedure, and edge function conventions.
+- `supabase/functions/wearable-source-resolve/README.md` only when working directly on wearable source resolution/provisioning.
 
-1. **Wire evidence registry to Priority Score** — `aggregateTotalPriorityScoreWithEvidence()` in `MinimumSliceScreen` + Edge Function; `loadEvidenceForRules()` must not be optional (WEARABLE-TD-004)
-2. **Native Android Health Connect + real ingest proof** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`; expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
-3. **Merge `claude/real-app-install-id`** when ready
+## Guardrails
 
-## Deferred to post-v1
-
-- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002); blocked on physical Garmin device and Terra OAuth credentials; not on critical path for sideload-to-brother milestone
+- Keep the product boundary explicit, with normative detail in `docs/compliance/intended-use.md`.
+- Keep ApoB primary and LDL fallback/secondary.
+- Keep severity separate from coverage.
+- Keep Notion out of hidden runtime logic.
+- Do not treat the Priority Score as a clinical risk score.
+- Keep raw personal health data, direct identifiers, and unsafe artifacts out of the repo. Use `docs/compliance/data-handling-and-redaction.md` as the canonical operational policy.
+- For wearable work, route mobile auth through `apps/mobile/mobileSupabaseAuth.ts` and do not create a second mobile Supabase client.

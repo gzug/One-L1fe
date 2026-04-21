@@ -11,14 +11,12 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "package": "com.onel1fe.mobile"
-    },
+    "android": {},
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      "./plugins/with-health-connect"
+      "./plugins/with-health-connect.js"
     ]
   }
 }
