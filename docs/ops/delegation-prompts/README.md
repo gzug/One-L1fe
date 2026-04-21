@@ -26,6 +26,7 @@ Deferred post-v1: Terra webhook bridge, direct Garmin OAuth, iOS HealthKit.
 | A5     | Scoring test matrix                         | Haiku 4.5         | Mechanical fixtures, cheap                             |
 | A6     | UI surface — bucket + raw score display     | Codex             | React Native screen edits                              |
 | A7     | Trend skeleton — read-only, score-decoupled | Codex             | New domain module + persistence plan                   |
+| A8     | User-configurable panel (mandatory/optional/wearable) | Codex    | Migrations + domain + settings UI + score-lock state   |
 | B1     | Expo prebuild + EAS config (Mac Mini M4)    | Codex             | Local toolchain, needs repo-aware edits                |
 | B2     | Health Connect native wiring + OxygenOS verify | Codex + Perplexity| MainActivity/Manifest + OnePlus background policy      |
 | B3     | Sideload runbook for OnePlus 13R            | Haiku 4.5         | Checklist writing, operational                         |
