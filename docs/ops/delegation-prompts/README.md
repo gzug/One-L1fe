@@ -7,10 +7,13 @@ in the orchestrator / gatekeeper role — reviewing returned output before merge
 
 ## Scope and status (v1)
 
-Single target user: brother (Xiaomi Android phone + Garmin watch).
-Data path: Garmin watch → Garmin Connect → Health Connect → One L1fe app.
-Priority for v1: sideloadable APK + evidence-anchored Priority Score +
-working Health Connect ingest on a MIUI/HyperOS device.
+Single target user: brother. Device stack confirmed:
+- **Watch:** Garmin Forerunner 255.
+- **Phone:** OnePlus 13R (OxygenOS 15, Android 15).
+
+Data path: Garmin Forerunner 255 → Garmin Connect app → Health Connect
+→ One L1fe app. Priority for v1: sideloadable APK + evidence-anchored
+Priority Score + working Health Connect ingest on OxygenOS 15.
 
 Deferred post-v1: Terra webhook bridge, direct Garmin OAuth, iOS HealthKit.
 
@@ -24,8 +27,8 @@ Deferred post-v1: Terra webhook bridge, direct Garmin OAuth, iOS HealthKit.
 | A6     | UI surface — bucket + raw score display     | Codex             | React Native screen edits                              |
 | A7     | Trend skeleton — read-only, score-decoupled | Codex             | New domain module + persistence plan                   |
 | B1     | Expo prebuild + EAS config (Mac Mini M4)    | Codex             | Local toolchain, needs repo-aware edits                |
-| B2     | Health Connect native wiring + MIUI verify  | Codex + Perplexity| MainActivity/Manifest + Xiaomi background-kill quirks  |
-| B3     | Sideload runbook for Xiaomi phone           | Haiku 4.5         | Checklist writing, operational                         |
+| B2     | Health Connect native wiring + OxygenOS verify | Codex + Perplexity| MainActivity/Manifest + OnePlus background policy      |
+| B3     | Sideload runbook for OnePlus 13R            | Haiku 4.5         | Checklist writing, operational                         |
 | C2     | Evidence runtime wire (issue #88)           | Codex             | Domain + Edge Function + migration                     |
 
 ## Rules for the human operator
