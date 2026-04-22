@@ -29,7 +29,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - Keep core health/domain logic in shared domain/backend code
 - ApoB primary, LDL fallback/secondary; weak markers out of hard core score unless clearly justified
 - Priority Score: bounded prioritization aid, not a clinical risk score
-- Evidence registry: schema + seed live (`evidence_sources`, `rule_evidence_links`; 9 sources, 15 rules, migrations `20260413021500` + `20260420091500` + `20260420190000`). Covered: Vitamin D, Ferritin, CRP, ApoB/LDL. Runtime consumer **not wired** — Priority Score currently does not read from `rule_evidence_links` at calculation time. Acceptable for private-use V1; must be wired before any external claim or distribution scope change. See Issue #94.
+- Evidence registry: schema + seed live (`evidence_sources`, `rule_evidence_links`; 9 sources, 15 rules, migrations `20260413021500` + `20260420091500` + `20260420190000`). Covered: Vitamin D, Ferritin, CRP, ApoB/LDL. Runtime consumer not yet wired to the active execution path — Priority Score still does not read from `rule_evidence_links` at calculation time in the current app/backend seam. Acceptable for private-use V1; must be wired before any external claim or distribution scope change. Active tracker: Issue #104 (WEARABLE-TD-004).
 - Keep shared domain imports cross-runtime safe (Node tests + Supabase Edge Functions)
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
