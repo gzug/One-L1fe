@@ -16,6 +16,8 @@ Minimum-slice mobile seam proven live end to end. Field-state contract complete 
 
 Biomarker scoring architecture audited and implemented (verified 2026-04-22): `evidenceConfidenceModifier` + `scoringClass` are present on `BiomarkerDefinition`; `calculateWeightedScore()` multiplies the confidence modifier; `aggregateTotalPriorityScoreWithEvidence()` exists and enforces non-empty evidence anchors. Full delta in `AUDIT_LOG.md`.
 
+Small audit fixes completed on `main` (2026-04-22): dead duplicate wearable hook removed, README verification date refreshed, `MinimumSliceScreen` developer subtitle removed, architecture + wearables docs clarified, stale date-specific planning docs archived via `docs/archive/planning/` with redirect stubs left in place.
+
 Remaining gaps: native Android Health Connect wiring, first real device-backed ingest proof, runtime call-site for Priority Score / evidence registry.
 
 ## Current state
@@ -39,6 +41,7 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 - ✅ Repo access verified: GitHub account `gzug`; repo `gzug/One-L1fe`; write/admin confirmed
 - ✅ Open-task triage completed: active blockers are Issue #104, #103, #102 (all ADR-heavy)
 - ✅ `CHECKPOINT.md` corrected: removed stale instruction claiming scoring-field implementation was still pending although code already contains it
+- ✅ Small audit fixes executed on `main`: dead code delete, README refresh, dev subtitle removal, architecture/wearables doc clarification, planning archive cleanup
 - ✅ Prioritized next execution target: WEARABLE-TD-004 runtime call-site via dedicated edge function ADR path
 
 ## Completed previous session (2026-04-22)
