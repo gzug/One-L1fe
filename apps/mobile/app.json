@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {},
+    "android": { "package": "com.onel1fe.mobile" },
     "web": {
       "bundler": "metro"
     },
