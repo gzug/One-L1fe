@@ -13,6 +13,18 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
+## 2026-04-22 — ChatGPT (audit-fix execution session)
+
+- Executed verified small todos directly on `main`
+- Deleted dead duplicate hook: `apps/mobile/src/hooks/useWearableSource.ts`
+- Refreshed `README.md` front-matter `last_verified` to `2026-04-22`
+- Removed production-visible developer subtitle from `apps/mobile/MinimumSliceScreen.tsx`
+- Updated `docs/architecture/overview.md`: bumped `last_verified`, marked OpenAI layer as planned/not yet wired, added wearable ingest layer note
+- Updated `docs/planning/wearables-hard-facts-and-automation.md`: bumped `last_verified`, clarified Garmin Android path should be treated as Health Connect mediated in V1
+- Confirmed `memory/2026-04-17.md` was already archived; no action needed
+- Confirmed stale `GLOSSARY.md` README reference was already gone; no action needed
+- Archived three stale date-specific planning docs under `docs/archive/planning/`; direct deletion was blocked by safety layer, so lightweight redirect stubs remain at original paths
+
 ## 2026-04-22 — ChatGPT (repo-access + task triage session)
 
 - Verified GitHub connector identity and permissions: account `gzug`, repo `gzug/One-L1fe`, write/admin confirmed
@@ -28,11 +40,3 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Open issues remaining: #88 (evidence → Priority Score), #69, #68 (backlog)
 - Pending: `claude/real-app-install-id` intentionally held, not yet merged
 - GitHub PAT setup for agent access; .env local only, gitignored
-
-## 2026-04-20 — Claude Code (session 3)
-
-- Merged PR #75 (memory-system-v2) and PR #82 (CHECKPOINT trim); ran audits H-2, H-4, H-6 — evidence registry provenance wired via `getRuleProvenance()` in `minimumSlice.ts`, doc links clean, Ferritin/Vit-D gap confirmed
-- Task 1 — `apps/mobile/appInstallIdentity.ts`: AsyncStorage-backed persistent UUID replacing `MOCK_APP_INSTALL_ID`; branch `claude/real-app-install-id` pushed, PR pending
-- Task 3a/3b — Vitamin D + Ferritin evidence seeds (2 sources, 4 rules SUP-001/SUP-002/CTX-001/CTX-002); migration `20260420091500`; merged as PR #90
-- Observed merges during session: PR #91 (in-app dev insight interface), PR #86 (EAS sideload guide), PR #84 (TypeScript 5→6)
-- GitHub MCP repeatedly disconnected/reconnected during session
