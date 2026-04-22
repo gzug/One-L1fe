@@ -14,14 +14,14 @@ scope: repo
 
 Minimum-slice mobile seam proven live end to end. Field-state contract complete through `stale` derived-policy layer. Wearable backend seam hosted-proof complete. Evidence registry schema + seeds live (9 sources, 15 rules). Vitamin D + Ferritin seeds added (`20260420091500`). CRP + ApoB/LDL seeds added (`20260420190000`). `isDerivedStale` staleness thresholds extracted as named constants per biomarker type. WearableSyncScreen now shows success/error feedback post-sync. HealthConnectPermissionGate wired into tab navigation — Android users see lock badge when permissions are denied.
 
-Biomarker scoring architecture audited and validated (2026-04-22): `evidenceConfidenceModifier` + `scoringClass` fields defined on `BiomarkerDefinition`; `evaluateTriglycerides()` + `evaluateDAO()` evaluators added; thresholds tightened to Attia Medicine 3.0 targets. Full delta in `AUDIT_LOG.md`.
+Biomarker scoring architecture audited and implemented (verified 2026-04-22): `evidenceConfidenceModifier` + `scoringClass` are present on `BiomarkerDefinition`; `calculateWeightedScore()` multiplies the confidence modifier; `aggregateTotalPriorityScoreWithEvidence()` exists and enforces non-empty evidence anchors. Full delta in `AUDIT_LOG.md`.
 
-Remaining gaps: native Android Health Connect wiring, first real device-backed ingest proof, evidence registry wire to Priority Score runtime.
+Remaining gaps: native Android Health Connect wiring, first real device-backed ingest proof, runtime call-site for Priority Score / evidence registry.
 
 ## Current state
 
 - Branch: `main` — all recent work committed directly
-- Active seam: real device-backed wearable ingest proof + evidence runtime wire
+- Active seam: real device-backed wearable ingest proof + Priority Score runtime wire
 
 ## Pending PRs
 
@@ -32,9 +32,16 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 - No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
 - Android native Health Connect requires manual `MainActivity.kt` + `AndroidManifest.xml` changes outside repo
 - Branch protection for `main` needs explicit verification/enforcement
-- Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004)
+- Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004 / Issue #104)
 
 ## Completed this session (2026-04-22)
+
+- ✅ Repo access verified: GitHub account `gzug`; repo `gzug/One-L1fe`; write/admin confirmed
+- ✅ Open-task triage completed: active blockers are Issue #104, #103, #102 (all ADR-heavy)
+- ✅ `CHECKPOINT.md` corrected: removed stale instruction claiming scoring-field implementation was still pending although code already contains it
+- ✅ Prioritized next execution target: WEARABLE-TD-004 runtime call-site via dedicated edge function ADR path
+
+## Completed previous session (2026-04-22)
 
 - ✅ Biomarker scoring audit — weighting hierarchy validated against Medicine 3.0 / Attia framework
 - ✅ `evidenceConfidenceModifier` + `scoringClass` fields specified on `BiomarkerDefinition` interface
@@ -53,11 +60,11 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 
 ## Next steps
 
-1. **Implement scoring fields in code** — add `evidenceConfidenceModifier` + `scoringClass` to `BiomarkerDefinition` type in `packages/domain/biomarkers.ts`; update `calculateWeightedScore()` to multiply modifier; update all 12 marker definitions with values from `AUDIT_LOG.md`
-2. **Add missing evaluators** — `evaluateTriglycerides()` + `evaluateDAO()` to `packages/domain/thresholds.ts`; also `evaluateB12()` + `evaluateMagnesium()` pending
-3. **Wire evidence registry to Priority Score** — `aggregateTotalPriorityScoreWithEvidence()` in `MinimumSliceScreen` + Edge Function; `loadEvidenceForRules()` must not be optional (WEARABLE-TD-004)
-4. **Native Android Health Connect + real ingest proof** — apply `MainActivity.kt` + `AndroidManifest.xml` from `apps/mobile/docs/health-connect-native-setup.md`; expo prebuild, grant permissions, real sync run, verify `wearable_sync_runs` row in Supabase (WEARABLE-TD-001)
-5. **Merge `claude/real-app-install-id`** when ready
+1. **Resolve WEARABLE-TD-004 with explicit ADR choice** — choose Option A (`compute-priority-score` edge function). Avoid client-only call-site; it breaks auditability and weakens reuse by `compute-health-index`.
+2. **Scaffold runtime call-site** — add `supabase/functions/compute-priority-score/index.ts`, require evidence loading, call `aggregateTotalPriorityScoreWithEvidence()`, and return score + recommendations + evidence links.
+3. **Add thin caller seam** — trigger the new function from `MinimumSliceScreen` or from the existing interpretation flow only after the dedicated edge function exists.
+4. **Add integration proof** — one real rule + one evidence row should produce a non-zero score and non-empty anchors.
+5. **Then unblock wearable domain ADRs** — Issues #102 and #103 remain decision work for `compute-health-index`; do not overbuild before #104 runtime seam is live.
 
 ## Deferred to post-v1
 
