@@ -2,7 +2,7 @@
 status: current
 canonical_for: project entry point
 owner: repo
-last_verified: 2026-04-20
+last_verified: 2026-04-22
 supersedes: []
 superseded_by: null
 scope: repo
