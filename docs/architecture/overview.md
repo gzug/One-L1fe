@@ -2,7 +2,7 @@
 status: reference
 canonical_for: high-level system shape
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-22
 supersedes: []
 superseded_by: null
 scope: architecture
@@ -25,7 +25,7 @@ Supabase (Auth + Postgres + Storage)
     ↓
 Supabase Functions / Backend Endpoints
     ↓
-OpenAI API
+OpenAI API (planned, not yet wired in production)
 ```
 
 ## Core Components
@@ -65,10 +65,23 @@ Responsibilities:
 
 This layer exists to stop business logic from being duplicated across app UI, SQL, and prompts.
 
+### 4. Wearable ingest layer
+Location: `apps/mobile` + `supabase`
+
+Responsibilities:
+- read permitted device data via platform health stores,
+- normalize wearable records into stable internal metric keys,
+- persist raw observations separately from summaries,
+- preserve provenance across source platform, device, and aggregation level.
+
+Current state: the wearable seam is partially wired for mobile + backend ingestion, but real device-backed proof and full runtime scoring use are still incomplete.
+
 ## Design Decisions
 
 ### Keep AI server-side
 OpenAI should sit behind backend functions, not inside the mobile app. This protects keys, enables logging and gating, and keeps recommendation behavior more controllable.
+
+Current note: this is still a planned architecture layer. The repo shows the intended OpenAI position in the stack, but no production-wired function should be assumed from this diagram alone.
 
 ### Keep raw data and generated output separate
 Store:
