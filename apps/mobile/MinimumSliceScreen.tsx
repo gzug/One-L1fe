@@ -69,6 +69,9 @@ export default function MinimumSliceScreen({
       `Interpretation run: ${screenState.submissionSummary.lastResultSummary?.interpretationRunId ?? 'n/a'}`,
       `Entries: ${screenState.submissionSummary.lastResultSummary?.interpretedEntryCount ?? 'n/a'}`,
       `Recommendations: ${screenState.submissionSummary.lastResultSummary?.recommendationCount ?? 'n/a'}`,
+      `Priority score: ${screenState.submissionSummary.lastResultSummary?.runtimePriorityScoreValue ?? screenState.submissionSummary.lastResultSummary?.priorityScoreValue ?? 'n/a'}`,
+      `Evidence class: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceClass ?? 'n/a'}`,
+      `Evidence anchors: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceAnchorCount ?? 'n/a'}`,
       `Top drivers: ${renderTopDrivers(screenState)}`,
     ].join('\n');
   }, [screenState]);
