@@ -1,18 +1,14 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2';
 
+import { computePriorityScoreRuntime } from '../../../packages/domain/computePriorityScoreRuntime.ts';
 import {
   parseMinimumSliceFunctionRequestBody,
   parseOptionalDateFromIso,
-} from './_lib/domain/minimumSliceFunctionContract.ts';
-import { saveMinimumSliceInterpretation } from './_lib/domain/supabaseRepository.ts';
+} from '../../../packages/domain/minimumSliceFunctionContract.ts';
+import { saveMinimumSliceInterpretation } from '../../../packages/domain/supabaseRepository.ts';
 import { corsHeaders, json } from '../_shared/http.ts';
 
-// ---------------------------------------------------------------------------
-// Typed error classes (#33)
-// ---------------------------------------------------------------------------
-
-/** Auth token missing or invalid → 401 */
 class AuthError extends Error {
   constructor(message: string) {
     super(message);
@@ -20,7 +16,6 @@ class AuthError extends Error {
   }
 }
 
-/** Request payload malformed or fails validation → 400 */
 class ClientError extends Error {
   constructor(message: string) {
     super(message);
@@ -28,7 +23,6 @@ class ClientError extends Error {
   }
 }
 
-/** Referenced ID does not belong to the authenticated user → 403 */
 class OwnershipError extends Error {
   constructor(message: string) {
     super(message);
@@ -36,7 +30,6 @@ class OwnershipError extends Error {
   }
 }
 
-/** Supabase write/read failed unexpectedly → 502 */
 class PersistenceError extends Error {
   constructor(message: string) {
     super(message);
@@ -44,14 +37,6 @@ class PersistenceError extends Error {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Ownership validation (#32)
-// ---------------------------------------------------------------------------
-
-/**
- * Verifies that a lab_results row with the given id belongs to profileId.
- * Throws OwnershipError if it does not exist or belongs to another profile.
- */
 async function assertLabResultOwnership(
   client: SupabaseClient,
   labResultId: string,
@@ -75,10 +60,6 @@ async function assertLabResultOwnership(
   }
 }
 
-/**
- * Verifies that all lab_result_entries rows belong to profileId via their
- * parent lab_result. Only validates IDs actually present in the map.
- */
 async function assertLabResultEntriesOwnership(
   client: SupabaseClient,
   entryIds: string[],
@@ -106,9 +87,6 @@ async function assertLabResultEntriesOwnership(
   }
 }
 
-/**
- * Verifies that a derived_insights row belongs to profileId.
- */
 async function assertDerivedInsightOwnership(
   client: SupabaseClient,
   derivedInsightId: string,
@@ -131,10 +109,6 @@ async function assertDerivedInsightOwnership(
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// Handler
-// ---------------------------------------------------------------------------
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
@@ -172,11 +146,8 @@ Deno.serve(async (request) => {
       throw new AuthError('Unauthorized.');
     }
 
-    // profileId is always derived from the auth session — never from the
-    // request body. Caller-supplied profile ids are intentionally ignored.
     const profileId = user.id;
 
-    // Parse and validate request body (ClientError on failure)
     let rawBody: unknown;
     try {
       rawBody = await request.json();
@@ -192,7 +163,6 @@ Deno.serve(async (request) => {
       }
     })();
 
-    // Ownership validation for all referenced IDs (#32)
     const persistence = body.persistence;
 
     if (persistence?.labResultId) {
@@ -208,20 +178,22 @@ Deno.serve(async (request) => {
       await assertDerivedInsightOwnership(supabase, persistence.derivedInsightId, profileId);
     }
 
-    // Persistence (PersistenceError bubbles from supabaseRepository on failure)
+    const panelInput = {
+      profileId,
+      panelId: body.panel.panelId,
+      collectedAt: body.panel.collectedAt,
+      source: body.panel.source,
+      entries: body.panel.entries,
+    };
+    const executionNow = parseOptionalDateFromIso(body.execution?.now, 'execution.now');
+
     let result;
     try {
       result = await saveMinimumSliceInterpretation(
         supabase,
+        panelInput,
         {
-          profileId,
-          panelId: body.panel.panelId,
-          collectedAt: body.panel.collectedAt,
-          source: body.panel.source,
-          entries: body.panel.entries,
-        },
-        {
-          now: parseOptionalDateFromIso(body.execution?.now, 'execution.now'),
+          now: executionNow,
           createdAt: body.execution?.createdAt,
           labResultId: persistence?.labResultId,
           interpretedEntryLabResultEntryIds: persistence?.interpretedEntryLabResultEntryIds,
@@ -234,8 +206,24 @@ Deno.serve(async (request) => {
       throw new PersistenceError(e instanceof Error ? e.message : 'Persistence failed.');
     }
 
-    return json(result, { status: 200 });
+    try {
+      const priorityScoreRuntime = await computePriorityScoreRuntime(
+        supabase,
+        panelInput,
+        executionNow ?? new Date(),
+      );
 
+      return json({
+        ...result,
+        priorityScoreRuntime,
+      }, { status: 200 });
+    } catch (e) {
+      throw new PersistenceError(
+        e instanceof Error
+          ? `Priority score runtime failed after persistence: ${e.message}`
+          : 'Priority score runtime failed after persistence.',
+      );
+    }
   } catch (error) {
     if (error instanceof AuthError) {
       return json({ error: error.message }, { status: 401 });
