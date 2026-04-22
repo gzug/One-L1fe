@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-20
+last_verified: 2026-04-22
 supersedes: []
 superseded_by: null
 scope: repo
@@ -63,6 +63,19 @@ Long-term operating memory for **One L1fe (OL)**.
 - HRV V1: store method metadata; never aggregate SDNN + RMSSD; `unknown` method rejected at `supabase/functions/wearables-sync/validate.ts`
 - Domain code vendored into `_lib/domain` via `scripts/prepare-supabase-function-domain.sh` (cross-runtime Node + Edge)
 - Severity separate from coverage
+
+## Durable biomarker scoring posture
+
+- `BiomarkerDefinition` carries two scoring-class fields: `evidenceConfidenceModifier` (0.3–1.0) and `scoringClass` (`causal-primary` | `supporting-actionable` | `contextual-low-certainty`)
+- Effective weight = `priorityWeight × evidenceConfidenceModifier` — suppresses low-certainty markers without removing them from the system
+- Tier 1 causal-primary (modifier 1.0): ApoB (weight 3.0), HbA1c (weight 2.0) — Mendelian randomization + large RCT evidence
+- Tier 2 supporting-actionable (modifier 0.8–1.0): hsCRP (1.5 × 0.8), LDL, Triglycerides, Glucose (all 1.0 × 1.0), Vitamin D (1.0 × 0.8), Ferritin (1.0 × 0.8), B12 (1.0 × 0.8)
+- Tier 3 contextual-low-certainty (modifier 0.3–0.7): Lp(a) (0.7), Magnesium (0.7), DAO (0.3)
+- Optimal thresholds follow Attia Medicine 3.0 targets — tighter than standard lab reference ranges; full delta table in `AUDIT_LOG.md`
+- Key tightened values: ApoB optimalMax 60 mg/dL; HbA1c optimalMax 5.3%; Glucose optimalMax 85 mg/dL; hsCRP optimalMax 1 mg/L; LDL optimalMax 70 mg/dL; Vitamin D optimalMin 40 ng/mL
+- `evaluateTriglycerides()` (LIP-003) and `evaluateDAO()` (CTX-003, LOW_CONFIDENCE) defined — implementation pending in `packages/domain/thresholds.ts`
+- `evaluateB12()` and `evaluateMagnesium()` also pending
+- `thresholds.ts` is source of truth for threshold values; `biomarkers.ts` referenceRange must stay in sync
 
 ## Durable repo operations posture
 
