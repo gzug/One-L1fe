@@ -13,6 +13,12 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
+## 2026-04-22 — ChatGPT (additional hygiene pass)
+
+- Refreshed `docs/README.md` front-matter `last_verified` to `2026-04-22`
+- Corrected `MEMORY.md` drift: replaced stale closed-issue reference `#94` with active tracker `#104` for the Priority Score runtime gap
+- Confirmed this pass was documentation hygiene only; no product logic, schema, or runtime behavior changed
+
 ## 2026-04-22 — ChatGPT (audit-fix execution session)
 
 - Executed verified small todos directly on `main`
@@ -32,11 +38,3 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Determined current open work is ADR-heavy; avoided risky code changes without settled decision points
 - Corrected stale `CHECKPOINT.md` next-step content: scoring fields are already implemented in code, runtime call-site is the real remaining gap
 - Recommended execution order: resolve #104 first via dedicated `compute-priority-score` edge function, then thin caller seam, then integration proof
-
-## 2026-04-21 — Claude Haiku (cleanup session)
-
-- Repo cleanup: 11 stale branches deleted, issues #95/#94/#89 closed (duplicates/merged)
-- Auto-delete branches on merge activated; AGENTS.md output standards added
-- Open issues remaining: #88 (evidence → Priority Score), #69, #68 (backlog)
-- Pending: `claude/real-app-install-id` intentionally held, not yet merged
-- GitHub PAT setup for agent access; .env local only, gitignored
