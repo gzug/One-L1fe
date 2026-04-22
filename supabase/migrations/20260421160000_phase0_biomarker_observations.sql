@@ -22,7 +22,7 @@ create policy "biomarker_observations_owner_all"
     exists (
       select 1
       from public.wearable_sources ws
-      where ws.app_install_id = biomarker_observations.app_install_id::text
+      where ws.app_install_id::uuid = biomarker_observations.app_install_id
         and ws.profile_id = (select auth.uid())
     )
   )
@@ -30,7 +30,7 @@ create policy "biomarker_observations_owner_all"
     exists (
       select 1
       from public.wearable_sources ws
-      where ws.app_install_id = biomarker_observations.app_install_id::text
+      where ws.app_install_id::uuid = biomarker_observations.app_install_id
         and ws.profile_id = (select auth.uid())
     )
   );
