@@ -45,17 +45,23 @@ function evaluateLowerBoundThresholds(
   return CanonicalStatus.Critical;
 }
 
+/**
+ * ApoB — LIP-001
+ * optimalMax tightened 80 → 60 per Attia primordial prevention target.
+ * goodMax stays 90 as the practical achievable band with intervention.
+ */
 export function evaluateApoB(value: number, unit: string): ThresholdEvaluation | null {
   if (unit !== 'mg/dL') return null;
 
   return {
     canonicalStatus: evaluateUpperBoundThresholds(value, {
-      optimalMax: 80,
-      goodMax: 90,
-      borderlineMax: 110,
+      optimalMax: 60,
+      goodMax: 80,
+      borderlineMax: 100,
       highMax: 130,
     }),
     ruleIds: ['LIP-001'],
+    notes: ['optimalMax tightened to 60 mg/dL per Attia primordial prevention standard (Medicine 3.0).'],
   };
 }
 
@@ -176,28 +182,35 @@ export function evaluateCRP(value: number, unit: string): ThresholdEvaluation | 
   };
 }
 
+/**
+ * Vitamin D — SUP-001 / SUP-002
+ * optimalMin raised 30 → 40 ng/mL per Attia target range 40–60 ng/mL.
+ * goodMin stays 30 as the practical floor for sufficiency.
+ */
 export function evaluateVitaminD(value: number, unit: string): ThresholdEvaluation | null {
   if (unit === 'ng/mL') {
     return {
       canonicalStatus: evaluateLowerBoundThresholds(value, {
-        optimalMin: 30,
-        goodMin: 20,
-        borderlineMin: 15,
+        optimalMin: 40,
+        goodMin: 30,
+        borderlineMin: 20,
         highMin: 10,
       }),
       ruleIds: ['SUP-001', 'SUP-002'],
+      notes: ['optimalMin raised to 40 ng/mL per Attia target range 40–60 ng/mL.'],
     };
   }
 
   if (unit === 'nmol/L') {
     return {
       canonicalStatus: evaluateLowerBoundThresholds(value, {
-        optimalMin: 75,
-        goodMin: 50,
-        borderlineMin: 37.5,
+        optimalMin: 100,
+        goodMin: 75,
+        borderlineMin: 50,
         highMin: 25,
       }),
       ruleIds: ['SUP-001', 'SUP-002'],
+      notes: ['optimalMin raised to 100 nmol/L (≈40 ng/mL) per Attia target range.'],
     };
   }
 
@@ -241,7 +254,7 @@ export function evaluateFerritin(
 
   if (value < lowThreshold) {
     return {
-      canonicalStatus: CanonicalStatus.High, // repurposed: Low severity maps to High concern
+      canonicalStatus: CanonicalStatus.High,
       ruleIds: ['CTX-001'],
       notes: ['Low ferritin — iron stores depleted or borderline.'],
     };
@@ -266,7 +279,6 @@ export function evaluateFerritin(
   }
 
   // --- Elevated band (context-gated) ---
-  // CTX-002 (draft): escalate only when inflammation/liver/iron-transport context is present.
   if (hasInflammationContext) {
     return {
       canonicalStatus: value > 500 ? CanonicalStatus.Critical : CanonicalStatus.High,
@@ -278,13 +290,72 @@ export function evaluateFerritin(
     };
   }
 
-  // Without context: request context collection, hold at Borderline.
   return {
     canonicalStatus: CanonicalStatus.Borderline,
     ruleIds: ['CTX-001'],
     notes: [
       'Elevated ferritin without inflammation, liver, or iron-transport context.',
       'Context collection required before escalation (CTX-001).',
+    ],
+  };
+}
+
+/**
+ * Triglycerides — LIP-003
+ * optimalMax: 100 mg/dL per Medicine 3.0 / Attia framework.
+ * Standard clinical cutoff is 150; tightened here for primordial prevention.
+ */
+export function evaluateTriglycerides(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit === 'mg/dL') {
+    return {
+      canonicalStatus: evaluateUpperBoundThresholds(value, {
+        optimalMax: 100,
+        goodMax: 130,
+        borderlineMax: 150,
+        highMax: 200,
+      }),
+      ruleIds: ['LIP-003'],
+      notes: ['optimalMax set to 100 mg/dL per Medicine 3.0 primordial prevention standard.'],
+    };
+  }
+
+  if (unit === 'mmol/L') {
+    return {
+      canonicalStatus: evaluateUpperBoundThresholds(value, {
+        optimalMax: 1.13,
+        goodMax: 1.47,
+        borderlineMax: 1.7,
+        highMax: 2.26,
+      }),
+      ruleIds: ['LIP-003'],
+      notes: ['Evaluated through mmol/L path. optimalMax ≈ 100 mg/dL.'],
+    };
+  }
+
+  return null;
+}
+
+/**
+ * DAO — CTX-003 [LOW_CONFIDENCE]
+ * Diamine oxidase as a proxy for histamine intolerance / gut barrier integrity.
+ * Evidence is limited; treat as contextual signal only.
+ * evaluateByThreshold routes here but the scoring engine applies
+ * evidenceConfidenceModifier: 0.3 from biomarkers.ts, suppressing score contribution.
+ */
+export function evaluateDAO(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'U/mL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 10,
+      goodMin: 6,
+      borderlineMin: 3,
+      highMin: 1,
+    }),
+    ruleIds: ['CTX-003'],
+    notes: [
+      'LOW_CONFIDENCE: DAO assay standardisation is poor across labs.',
+      'Treat as contextual signal only. Score contribution suppressed via evidenceConfidenceModifier: 0.3.',
     ],
   };
 }
@@ -307,6 +378,10 @@ export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation 
       return evaluateVitaminD(input.value, input.unit);
     case 'ferritin':
       return evaluateFerritin(input.value, input.unit);
+    case 'triglycerides':
+      return evaluateTriglycerides(input.value, input.unit);
+    case 'dao':
+      return evaluateDAO(input.value, input.unit);
     default:
       return null;
   }

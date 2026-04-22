@@ -25,6 +25,18 @@ export enum ReferenceRangeKind {
   Range = 'range',
 }
 
+/**
+ * scoringClass: classifies the causal/evidential role of the marker in the scoring engine.
+ * - causal-primary: direct causal evidence from Mendelian randomization or large RCTs (ApoB, HbA1c)
+ * - supporting-actionable: strong observational + mechanistic support, actionable (LDL, Glucose, CRP, Triglycerides)
+ * - contextual-low-certainty: limited or context-dependent evidence; contributes with reduced weight (DAO, Lp(a), VitD, Ferritin, B12, Mg)
+ *
+ * evidenceConfidenceModifier: multiplied into priorityWeight at score time (0.3–1.0).
+ * Allows markers to remain in the system at reduced contribution without changing their priorityWeight.
+ * Effective score = baseSeverity * priorityWeight * evidenceConfidenceModifier
+ */
+export type ScoringClass = 'causal-primary' | 'supporting-actionable' | 'contextual-low-certainty';
+
 export interface ReferenceRange {
   kind: ReferenceRangeKind;
   optimalMin?: number;
@@ -38,6 +50,10 @@ export interface BiomarkerDefinition {
   category: BiomarkerCategory;
   unit: string;
   priorityWeight: number;
+  /** Multiplied into priorityWeight at score time. Range 0.3–1.0. Default 1.0. */
+  evidenceConfidenceModifier: number;
+  /** Causal/evidential classification used by the scoring engine. */
+  scoringClass: ScoringClass;
   evidenceLevel: EvidenceLevel;
   description: string;
   referenceRange: ReferenceRange;
@@ -50,9 +66,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/dL',
     priorityWeight: 3,
+    evidenceConfidenceModifier: 1.0,
+    scoringClass: 'causal-primary',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Primary lipid-risk marker used as a top-level cardiovascular signal in the MVP.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 130 },
+    description: 'Primary lipid-risk marker. Causal cardiovascular signal via Mendelian randomization. Top-level scoring driver.',
+    // Synced to thresholds.ts evaluateApoB optimalMax: 80. Attia target for primordial prevention: ≤60.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 80 },
   },
   {
     key: 'ldl',
@@ -60,9 +79,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/dL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 1.0,
+    scoringClass: 'supporting-actionable',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Core lipid marker tracked alongside ApoB and triglycerides.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    description: 'Core lipid marker tracked alongside ApoB. Acts as fallback primary lipid driver when ApoB is absent.',
+    // Synced to thresholds.ts evaluateLDL optimalMax: 70.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 70 },
   },
   {
     key: 'triglycerides',
@@ -70,9 +92,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/dL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 1.0,
+    scoringClass: 'supporting-actionable',
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Core metabolic and lipid-context marker in the MVP panel.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 150 },
+    description: 'Core metabolic and lipid-context marker. Tightened to 100 mg/dL optimal per Medicine 3.0 framework.',
+    // Tightened from 150 → 100 per Attia/Medicine 3.0. Synced to new evaluateTriglycerides() in thresholds.ts.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
   },
   {
     key: 'lpa',
@@ -80,8 +105,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/dL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.7,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inherited cardiovascular-risk marker tracked as part of the core set.',
+    description: 'Inherited cardiovascular-risk marker. Bounded modifier only — no intervention changes Lp(a) meaningfully in V1.',
     referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 30 },
   },
   {
@@ -90,9 +117,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: '%',
     priorityWeight: 2,
+    evidenceConfidenceModifier: 1.0,
+    scoringClass: 'causal-primary',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Long-range glucose marker used as a primary metabolic trend signal.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.7 },
+    description: 'Long-range glucose marker. Primary metabolic trend signal. Causal link to T2D and cardiovascular outcomes.',
+    // Tightened from 5.7 → 5.3 per Attia optimal target. Synced to thresholds.ts evaluateHbA1c.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 5.3 },
   },
   {
     key: 'glucose',
@@ -100,9 +130,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/dL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 1.0,
+    scoringClass: 'supporting-actionable',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Core glucose marker for the initial biomarker workflow.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 100 },
+    description: 'Core fasting glucose marker. Tightened to 85 mg/dL optimal per Medicine 3.0 pre-diabetic early-warning threshold.',
+    // Tightened from 100 → 85 per Attia/Medicine 3.0. Synced to thresholds.ts evaluateGlucose.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 85 },
   },
   {
     key: 'crp',
@@ -110,9 +143,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Core,
     unit: 'mg/L',
     priorityWeight: 1.5,
+    evidenceConfidenceModifier: 0.8,
+    scoringClass: 'supporting-actionable',
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Inflammation-related marker included in the MVP set.',
-    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 3 },
+    description: 'Inflammation marker. Tightened to 1 mg/dL optimal (hsCRP standard). Confidence modifier applied due to acute-context sensitivity.',
+    // Tightened from 3 → 1 per hsCRP preventive standard. Synced to thresholds.ts evaluateCRP.
+    referenceRange: { kind: ReferenceRangeKind.UpperBound, optimalMax: 1 },
   },
   {
     key: 'vitamin_d',
@@ -120,9 +156,12 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Supporting,
     unit: 'ng/mL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.8,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Supporting nutrient-status marker used for broader context.',
-    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 20 },
+    description: 'Supporting nutrient-status marker. Attia targets 40–60 ng/mL. Raised from 20 → 30 optimal minimum.',
+    // Raised from 20 → 30 per Attia (targets 40–60). Synced to thresholds.ts evaluateVitaminD optimalMin: 40.
+    referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 30 },
   },
   {
     key: 'ferritin',
@@ -130,8 +169,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Supporting,
     unit: 'ng/mL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.8,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Supporting iron-status context marker.',
+    description: 'Supporting iron-status context marker. Context-gated interpretation for elevated values.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 30 },
   },
   {
@@ -140,8 +181,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Supporting,
     unit: 'pg/mL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.8,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Primary,
-    description: 'Supporting nutrient marker used for context, not as a diagnostic endpoint.',
+    description: 'Supporting nutrient marker for context, not a diagnostic endpoint in V1.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 400 },
   },
   {
@@ -150,8 +193,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Supporting,
     unit: 'mg/dL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.7,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Secondary,
-    description: 'Supporting mineral-status marker.',
+    description: 'Supporting mineral-status marker. Serum magnesium is a weak proxy for intracellular status.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 1.8 },
   },
   {
@@ -160,8 +205,10 @@ export const biomarkers: BiomarkerDefinition[] = [
     category: BiomarkerCategory.Contextual,
     unit: 'U/mL',
     priorityWeight: 1,
+    evidenceConfidenceModifier: 0.3,
+    scoringClass: 'contextual-low-certainty',
     evidenceLevel: EvidenceLevel.Experimental,
-    description: 'Interpretation-sensitive contextual marker. Keep optional and bounded.',
+    description: 'Interpretation-sensitive contextual marker. Experimental evidence only. Effective score contribution suppressed via 0.3 confidence modifier.',
     referenceRange: { kind: ReferenceRangeKind.LowerBound, optimalMin: 10 },
   },
 ];
@@ -243,7 +290,8 @@ export function calculateWeightedScore(
     [CanonicalStatus.Missing]: 0,
   };
 
-  return baseSeverity[status] * biomarker.priorityWeight;
+  // Apply evidenceConfidenceModifier to suppress low-certainty markers proportionally.
+  return baseSeverity[status] * biomarker.priorityWeight * biomarker.evidenceConfidenceModifier;
 }
 
 export function aggregateTotalPriorityScore(
