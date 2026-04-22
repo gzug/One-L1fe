@@ -2,7 +2,7 @@
 status: current
 canonical_for: rolling session context
 owner: repo
-last_verified: 2026-04-21
+last_verified: 2026-04-22
 scope: all-agents
 ---
 
@@ -12,6 +12,14 @@ Last 2–3 sessions. Hard cap: 60 lines. Updated every session by the closing ag
 For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at startup.
 
 ---
+
+## 2026-04-22 — ChatGPT (repo-access + task triage session)
+
+- Verified GitHub connector identity and permissions: account `gzug`, repo `gzug/One-L1fe`, write/admin confirmed
+- Reviewed open issues: #104 (Priority Score runtime call-site), #103 (wearable weighting ADR), #102 (normalization ADR)
+- Determined current open work is ADR-heavy; avoided risky code changes without settled decision points
+- Corrected stale `CHECKPOINT.md` next-step content: scoring fields are already implemented in code, runtime call-site is the real remaining gap
+- Recommended execution order: resolve #104 first via dedicated `compute-priority-score` edge function, then thin caller seam, then integration proof
 
 ## 2026-04-21 — Claude Haiku (cleanup session)
 
@@ -28,11 +36,3 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Task 3a/3b — Vitamin D + Ferritin evidence seeds (2 sources, 4 rules SUP-001/SUP-002/CTX-001/CTX-002); migration `20260420091500`; merged as PR #90
 - Observed merges during session: PR #91 (in-app dev insight interface), PR #86 (EAS sideload guide), PR #84 (TypeScript 5→6)
 - GitHub MCP repeatedly disconnected/reconnected during session
-
-## 2026-04-20 — Perplexity (session 2)
-
-- Ran full session closeout audit: H-B migration ordering, H-C evidence registry consistency, H-D dead code check, H-E SQL constraint validation
-- Migration order: 9 files, strictly ascending, no duplicates or gaps — PASS
-- Evidence registry: all anchorSourceIds valid, all threshold rule IDs covered — PASS
-- Dead code: `MOCK_APP_INSTALL_ID` still present in `WearableSyncScreen.tsx` — PR pending
-- New migration `20260420091500` all constraint values PASS
