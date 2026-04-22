@@ -2,7 +2,7 @@
 status: current
 canonical_for: wearables scope and ingestion posture
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-22
 supersedes: []
 superseded_by: null
 scope: planning
@@ -195,6 +195,8 @@ The practical path is:
 3. app normalizes them into a stable internal schema,
 4. app sends them to Supabase,
 5. backend stores raw observations and optional aggregates separately.
+
+Clarifier: in the near-term Android path, Garmin-originated data should be assumed to arrive via Health Connect mediation where available, not via a direct Garmin API integration in V1.
 
 ## Recommended ingestion architecture
 
