@@ -9,6 +9,9 @@ export interface MinimumSliceResultSummary {
   coverageState?: string;
   priorityScoreValue?: number;
   topDrivers: string[];
+  runtimeEvidenceClass?: string;
+  runtimeEvidenceAnchorCount?: number;
+  runtimePriorityScoreValue?: number;
 }
 
 export function summarizeMinimumSliceResult(
@@ -23,5 +26,8 @@ export function summarizeMinimumSliceResult(
     coverageState: result.evaluation.coverage?.state,
     priorityScoreValue: result.evaluation.priorityScore?.value,
     topDrivers: result.evaluation.priorityScore?.topDrivers ?? [],
+    runtimeEvidenceClass: result.priorityScoreRuntime?.priorityScore.productEvidenceClass,
+    runtimeEvidenceAnchorCount: result.priorityScoreRuntime?.priorityScore.anchorCount,
+    runtimePriorityScoreValue: result.priorityScoreRuntime?.priorityScore.mappedValue,
   };
 }
