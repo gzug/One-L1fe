@@ -1,3 +1,4 @@
+import { ComputePriorityScoreRuntimeResult } from './computePriorityScoreRuntime.ts';
 import { toInterpretationPersistencePayload } from './contracts.ts';
 import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
 import { persistInterpretationBundle, PersistInterpretationResult, SupabasePersistenceClient } from './supabasePersistence.ts';
@@ -15,6 +16,7 @@ export interface SaveMinimumSliceInterpretationParams {
 export interface SaveMinimumSliceInterpretationResult {
   evaluation: ReturnType<typeof evaluateMinimumSlice>;
   persistence: PersistInterpretationResult;
+  priorityScoreRuntime?: ComputePriorityScoreRuntimeResult;
 }
 
 export async function saveMinimumSliceInterpretation(
