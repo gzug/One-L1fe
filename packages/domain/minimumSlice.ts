@@ -109,7 +109,7 @@ export interface MinimumSliceEvaluation {
 }
 
 const REQUIRED_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['apob', 'hba1c', 'glucose', 'ldl'];
-const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp'];
+const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp', 'ferritin'];
 
 function dedupeRecommendations(recommendations: Recommendation[]): Recommendation[] {
   const seen = new Set<string>();
@@ -135,7 +135,7 @@ function buildCoverageRecommendation(entry: EvaluatedEntry): Recommendation | nu
       confidence: 'high',
       scope: 'coverage follow-up only, not a severity judgment',
       handoffRequired: false,
-      ruleId: entry.ruleIds[0] ?? 'COV-001',
+      ruleId: entry.ruleIds[0] ?? 'CTX-001',
       anchorSourceId: undefined,
       ruleOrigin: undefined,
       productEvidenceClass: undefined,
@@ -341,7 +341,7 @@ function getFallbackRuleIds(
     return [];
   }
   if (marker === 'apob' && assessment.state === InterpretabilityState.Missing) {
-    return ['LIP-003', 'COV-001'];
+    return ['LIP-003', 'CTX-001'];
   }
   if (assessment.blockingReason === 'missing_or_unsupported_unit') return ['COV-002'];
   if (assessment.blockingReason === 'missing_assay') return ['COV-003'];
