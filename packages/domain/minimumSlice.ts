@@ -134,7 +134,7 @@ export function collectRuleIdsForPanel(panel: MinimumSlicePanelInput): string[] 
 }
 
 const REQUIRED_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['apob', 'hba1c', 'glucose', 'ldl'];
-const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp'];
+const OPTIONAL_MINIMUM_SLICE_MARKERS: BiomarkerKey[] = ['lpa', 'crp', 'ferritin'];
 
 function dedupeRecommendations(recommendations: Recommendation[]): Recommendation[] {
   const seen = new Set<string>();
