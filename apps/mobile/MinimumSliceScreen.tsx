@@ -127,9 +127,6 @@ export default function MinimumSliceScreen({
       <View style={styles.header}>
         <Text style={styles.eyebrow}>One L1fe</Text>
         <Text style={styles.title}>Minimum-slice</Text>
-        <Text style={styles.subtitle}>
-          Thin Expo screen, shared domain contract, hosted Supabase function.
-        </Text>
       </View>
 
       <View style={styles.card}>
@@ -231,11 +228,6 @@ const styles = StyleSheet.create({
     color: '#152033',
     fontSize: 28,
     fontWeight: '700',
-  },
-  subtitle: {
-    color: '#52607a',
-    fontSize: 15,
-    lineHeight: 21,
   },
   card: {
     backgroundColor: '#ffffff',
