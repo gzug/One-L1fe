@@ -2,7 +2,7 @@
 status: current
 canonical_for: docs folder orientation
 owner: repo
-last_verified: 2026-04-13
+last_verified: 2026-04-22
 supersedes: []
 superseded_by: null
 scope: docs
