@@ -3,3 +3,6 @@ node_modules
 .web-build
 dist
 *.log
+.env
+.env.*
+android/app/debug.keystore
