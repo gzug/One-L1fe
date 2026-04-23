@@ -43,11 +43,14 @@ type TabType = 'errors' | 'feedback' | 'metrics';
 
 interface DevInsightScreenProps {
   profileId: string;
+  allowAccess: boolean;
 }
 
 export default function DevInsightScreen({
   profileId,
+  allowAccess,
 }: DevInsightScreenProps): React.JSX.Element {
+  const [accessState, setAccessState] = useState<'checking' | 'allowed' | 'denied'>('checking');
   const [activeTab, setActiveTab] = useState<TabType>('errors');
   const [errors, setErrors] = useState<DevErrorLog[]>([]);
   const [feedback, setFeedback] = useState<DevFeedback[]>([]);
@@ -62,8 +65,46 @@ export default function DevInsightScreen({
   const supabase = getMobileSupabaseClient();
 
   useEffect(() => {
+    let cancelled = false;
+
+    const verifyAccess = async (): Promise<void> => {
+      if (!allowAccess) {
+        setAccessState('denied');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('is_dev')
+          .eq('id', profileId)
+          .single();
+
+        if (cancelled) return;
+        if (error) {
+          setAccessState('denied');
+          return;
+        }
+
+        setAccessState(data?.is_dev === true ? 'allowed' : 'denied');
+      } catch {
+        if (!cancelled) {
+          setAccessState('denied');
+        }
+      }
+    };
+
+    void verifyAccess();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [allowAccess, profileId, supabase]);
+
+  useEffect(() => {
+    if (accessState !== 'allowed') return;
     void loadData();
-  }, [activeTab]);
+  }, [activeTab, accessState]);
 
   const loadData = useCallback(async (): Promise<void> => {
     setIsLoading(true);
@@ -177,6 +218,22 @@ export default function DevInsightScreen({
       setIsSubmittingFeedback(false);
     }
   }, [feedbackCategory, feedbackBody, feedbackScreen, profileId, supabase, loadData]);
+
+  if (accessState === 'checking') {
+    return (
+      <SafeAreaView style={styles.centerContent}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </SafeAreaView>
+    );
+  }
+
+  if (accessState === 'denied') {
+    return (
+      <SafeAreaView style={styles.centerContent}>
+        <Text style={styles.emptyText}>Access denied</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

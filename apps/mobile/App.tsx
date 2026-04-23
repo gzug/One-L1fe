@@ -16,6 +16,7 @@ import { useAuthSession } from './useAuthSession.ts';
 import { useWearablePermissions } from './useWearablePermissions';
 import DevInsightScreen from './DevInsightScreen.tsx';
 import WeeklyCheckinScreen from './WeeklyCheckinScreen.tsx';
+import { captureAppError, initSentry } from './sentry';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -26,6 +27,8 @@ const controller = createMinimumSliceScreenController({
 });
 
 type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'weekly-checkin' | 'dev-insight';
+
+initSentry();
 
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
@@ -62,6 +65,12 @@ export default function App(): React.JSX.Element {
   useEffect(() => {
     const defaultHandler = ErrorUtils.getGlobalHandler();
     ErrorUtils.setGlobalHandler(async (error, isFatal) => {
+      captureAppError(error, {
+        screen: currentScreen,
+        userId: user?.id,
+        isFatal,
+      });
+
       if (user?.id && isDevUser) {
         try {
           await getMobileSupabaseClient().from('dev_error_log').insert({
@@ -170,7 +179,7 @@ export default function App(): React.JSX.Element {
         ) : activeScreen === 'weekly-checkin' ? (
           <WeeklyCheckinScreen />
         ) : activeScreen === 'dev-insight' && user ? (
-          <DevInsightScreen profileId={user.id} />
+          <DevInsightScreen profileId={user.id} allowAccess={isDevUser} />
         ) : null}
       </View>
     </SafeAreaView>

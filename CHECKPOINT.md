@@ -12,14 +12,15 @@ scope: repo
 
 ## Verdict
 
-The current session closed the wearable sync seam further: `WearableSyncScreen` now builds a real Health Connect observation request through `apps/mobile/healthConnectCollector.ts` and submits it through the shared wearable sync contract. The mobile permission surface was widened to include `RestingHeartRate` and `HeartRateVariabilityRmssd`, and the wearable docs/assertions now align to the canonical metric keys.
+The app is in a testable prototype state with login, minimum-slice submit, weekly check-in, wearable sync UI, and a developer-insight surface. The wearable path is not yet fully production-safe: `WearableSyncScreen` still submits a placeholder payload and must be migrated to the canonical `WearableSyncRequest` contract before real-device rollout.
 
-Remaining gaps: physical Garmin/Health Connect testing and end-to-end Supabase ingest proof on an Android device. The stale GitHub cleanup pass is complete and the local worktree is back on a clean `main` baseline.
+Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase ingest proof on Android, and contract hardening on the wearable sync request path.
 
 ## Current state
 
 - Branch state: `main`, aligned with `origin/main`
-- Active seam: physical-device Health Connect ingest proof
+- HEAD: `913d16ec85efb5ae727fc36cb9b7d638e7c5c1a7`
+- Active seam: physical-device Health Connect ingest proof + wearable sync contract hardening
 
 ## Pending PRs
 
@@ -31,17 +32,23 @@ Remaining gaps: physical Garmin/Health Connect testing and end-to-end Supabase i
 
 - No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
 - End-to-end Supabase ingest still needs an Android device run
+- Wearable sync request in app still uses placeholder payload (`as any`) and is not yet contract-complete
 
 ## Completed this session (2026-04-23)
 
 - ✅ Reviewed `docs/ops/memory-system-v2.md` and executed the closeout checklist steps that were possible in the current worktree
-- ✅ Added `apps/mobile/healthConnectCollector.ts` as the shared Health Connect collector and wired `WearableSyncScreen` to submit a real sync request
+- ✅ Reassessed wearable sync seam; current app still uses a placeholder request payload and needs contract hardening before rollout
 - ✅ Expanded the wearable permission surface and aligned mobile docs/assertions to the canonical sync contract
 - ✅ Promoted durable notes into `MEMORY.md` and wrote/archived `memory/2026-04-23.md`
 - ✅ Closed stale GitHub PRs `#96`, `#97`, `#98`, and `#100` as superseded by later work on `main`
 - ✅ Closed issue `#104` as completed after confirming the runtime scoring call-site is now live on `main`
 - ✅ Restored local `main` to track `origin/main` and ignored local-only files `apps/mobile/.env` and `apps/mobile/android/app/debug.keystore`
 - ✅ Added a canonical Supabase agent workflow at `docs/ops/supabase-agent-workflow.md` and wired `AGENTS.md` to require it for larger Supabase work
+- ✅ Added prototype freeze runbook at `docs/ops/prototype-v1-freeze.md` (Expo start, env, migration baseline, tag/release flow)
+- ✅ Added optional Sentry crash reporting support in mobile app (`EXPO_PUBLIC_SENTRY_DSN`)
+- ✅ Replaced dev-insight visibility-only approach with explicit access guard path in the screen itself
+- ✅ Removed stale ghost-reference claim about `apps/mobile/healthConnectCollector.ts` from active checkpoint text
+- ✅ Ran secrets audit: `git log --all -S "supabase_service_role"` (no matches)
 
 ## Completed previous session (2026-04-22)
 
@@ -65,8 +72,9 @@ Remaining gaps: physical Garmin/Health Connect testing and end-to-end Supabase i
 ## Next steps
 
 1. Run the new wearable collector on a physical Android device and verify one end-to-end sync into Supabase.
-2. Merge `claude/real-app-install-id` when ready.
-3. Triage the remaining draft PRs `#99` and `#101` for merge, split, or closure.
+2. Remove placeholder wearable sync payload in `apps/mobile/WearableSyncScreen.tsx` and wire canonical `WearableSyncRequest`.
+3. Merge `claude/real-app-install-id` when ready.
+4. Triage the remaining draft PRs `#99` and `#101` for merge, split, or closure.
 
 ## Deferred to post-v1
 

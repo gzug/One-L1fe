@@ -16,7 +16,7 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 ## 2026-04-23 — Codex (cleanup + closeout)
 
 - Read and applied the `docs/ops/memory-system-v2.md` closeout checklist as far as the worktree allowed
-- Added `apps/mobile/healthConnectCollector.ts` and wired `WearableSyncScreen` to build and submit a real Health Connect sync request
+- Revalidated wearable sync status: current `WearableSyncScreen` still uses a placeholder request payload and needs contract hardening
 - Expanded the Health Connect permission surface to include `RestingHeartRate` and `HeartRateVariabilityRmssd`
 - Aligned wearable docs, assertions, and sync-client types to the canonical wearable contract
 - Wrote `memory/2026-04-23.md`, archived it to `docs/archive/memory/2026-04-23.md`, and promoted durable notes into `MEMORY.md`
@@ -24,6 +24,8 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Restored the local checkout to a clean `main` tracking `origin/main`
 - Added local-ignore coverage for `apps/mobile/.env` and `apps/mobile/android/app/debug.keystore`
 - Added a canonical Supabase workflow doc and linked it from `AGENTS.md` so future agents load the Realtime prompt for bigger Supabase tasks
+- Added prototype hardening pass: mobile Sentry hook (`EXPO_PUBLIC_SENTRY_DSN`), explicit Dev Insight auth-guard, prototype-v1 freeze runbook, and secrets audit with no `supabase_service_role` hits
+- Current HEAD is `913d16ec85efb5ae727fc36cb9b7d638e7c5c1a7` on `main`; the Sentry/freeze changes are still in the working tree and will be committed in this closeout
 
 ## 2026-04-21 — Claude Haiku (cleanup session)
 

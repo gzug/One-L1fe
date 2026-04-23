@@ -40,7 +40,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - Mobile wearable path on `main`: `useWearableSource`, `useWearableSync`, `WearableSyncScreen`, Android-first Health Connect permission gate
 - `HealthConnectPermissionGate` wired into tab navigation: `useWearablePermissions()` lifted to `App` level; Wearable Sync tab shows lock badge + reduced opacity when `hcStatus` is `denied` or `unavailable`. Gate still renders inline when tab is opened.
 - `WearableSyncScreen` shows `SyncStatus` feedback after sync: success banner (timestamp + `records_inserted`), error banner, disabled button during run. `SyncStatus` type: `idle | running | success | error`.
-- Shared Health Connect collector lives in `apps/mobile/healthConnectCollector.ts` and builds `WearableSyncRequest` values from the canonical `src/lib/wearables/syncContract.ts` types.
+- Shared wearable sync contract lives in `src/lib/wearables/syncContract.ts`; mobile sync helpers must build from that shared type instead of drifting to a second contract.
 - Health Connect permission coverage for Garmin sync includes `Steps`, `HeartRate`, `RestingHeartRate`, `HeartRateVariabilityRmssd`, `ActiveCaloriesBurned`, `Distance`, and `SleepSession`.
 - Canonical wearable metric keys are the shared contract for mobile, docs, and ingest fixtures: `steps_total`, `resting_heart_rate`, `hrv`, `sleep_session`, `sleep_duration`, `active_energy_burned`, `distance_total`.
 - Android: `react-native-health-connect`; iOS explicit stub until HealthKit adapter added
@@ -112,7 +112,7 @@ History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
 - Private use only — two users (owner + brother). No store release planned. No GDPR obligation at current scale.
 - Distribution: no EAS/TestFlight/Play Store pipeline. Target: sideloadable APK for Android or minimal-step guide for brother to install without physical device present here.
 - iOS: personal dev-check device only. Not a target platform for brother. HealthKit prototype broken (package bundle issue) — must fix before next iOS check. No timeline for full iOS feature parity. Android is primary.
-- Observability: no external tool (Sentry etc.) planned. In-app developer/insight interface via separate dev-login — shows error logs, user feedback, feature ideas, basic Supabase metrics (active users, session counts). Not blocking V1.
+- Observability: optional Sentry crash reporting is supported behind `EXPO_PUBLIC_SENTRY_DSN`; default behavior is no-op without a DSN. In-app developer/insight interface via separate dev-login still shows error logs, user feedback, feature ideas, and basic Supabase metrics (active users, session counts). Not blocking V1.
 - E2E tests: no dedicated mobile E2E layer (Detox/Maestro) planned at this stage. Manual device checks on iPhone as needed. Android + Garmin focus.
 - GDPR: explicit decision — private only, no public release, no GDPR obligation until distribution scope changes.
 History: `docs/roadmap/checkpoints/2026-04-13-pre-compact-memory.md`
