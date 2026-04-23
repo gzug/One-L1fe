@@ -2,7 +2,7 @@
 status: current
 canonical_for: agent working rules
 owner: repo
-last_verified: 2026-04-18
+last_verified: 2026-04-23
 supersedes: []
 superseded_by: null
 scope: repo
@@ -26,3 +26,7 @@ Agent operating rules for this repository.
 - Never commit: raw health data, secrets, local scratch files
 - After any session: update CHECKPOINT.md + CONTEXT.md before closing
 - Issues/PRs: close duplicates immediately, do not let them accumulate
+
+## Supabase work
+- For any larger Supabase task or change (schema, migrations, RLS, Realtime, Edge Functions, Auth, Storage, project settings), follow `docs/ops/supabase-agent-workflow.md`.
+- If the task touches Supabase Realtime, include `docs/prompts/supabase-realtime-ai-assistant-guide.md` in the working context before proposing or implementing changes.

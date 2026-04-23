@@ -41,6 +41,7 @@ Remaining gaps: physical Garmin/Health Connect testing and end-to-end Supabase i
 - ✅ Closed stale GitHub PRs `#96`, `#97`, `#98`, and `#100` as superseded by later work on `main`
 - ✅ Closed issue `#104` as completed after confirming the runtime scoring call-site is now live on `main`
 - ✅ Restored local `main` to track `origin/main` and ignored local-only files `apps/mobile/.env` and `apps/mobile/android/app/debug.keystore`
+- ✅ Added a canonical Supabase agent workflow at `docs/ops/supabase-agent-workflow.md` and wired `AGENTS.md` to require it for larger Supabase work
 
 ## Completed previous session (2026-04-22)
 

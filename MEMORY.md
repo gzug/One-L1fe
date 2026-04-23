@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-22
+last_verified: 2026-04-23
 supersedes: []
 superseded_by: null
 scope: repo
@@ -98,6 +98,7 @@ Long-term operating memory for **One L1fe (OL)**.
 - `docs/compliance/data-handling-and-redaction.md`: canonical policy for fixtures, screenshots, logs, smoke tests
 - `docs/ops/openclaw.md`: canonical OpenClaw operating guide
 - `docs/ops/memory-system-v2.md`: canonical memory-system operating rules
+- Bigger Supabase work follows `docs/ops/supabase-agent-workflow.md`; any Realtime task must also load `docs/prompts/supabase-realtime-ai-assistant-guide.md`
 - Keep raw personal health data out of repo
 - Smoke-test user: `g.zugang@hotmail.com` (UID `523b48a4-2aa2-4e4c-97f2-8fa95141ac8b`)
 

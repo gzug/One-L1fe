@@ -17,3 +17,6 @@ policies:
   - topic: OpenClaw repo operations
     canonical: docs/ops/openclaw.md
     scope: OpenClaw usage and truth promotion
+  - topic: Supabase implementation workflow
+    canonical: docs/ops/supabase-agent-workflow.md
+    scope: Supabase schema, RLS, Realtime, edge-function, and runtime-change work

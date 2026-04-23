@@ -23,6 +23,7 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Closed stale GitHub PRs `#96`, `#97`, `#98`, and `#100`; closed issue `#104` as completed
 - Restored the local checkout to a clean `main` tracking `origin/main`
 - Added local-ignore coverage for `apps/mobile/.env` and `apps/mobile/android/app/debug.keystore`
+- Added a canonical Supabase workflow doc and linked it from `AGENTS.md` so future agents load the Realtime prompt for bigger Supabase tasks
 
 ## 2026-04-21 — Claude Haiku (cleanup session)
 
