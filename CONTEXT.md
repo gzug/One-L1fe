@@ -15,6 +15,7 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ## 2026-04-23 — Codex (cleanup + closeout)
 
+- Durchsicht der Codebasis mit vier konkreten Follow-up-Tasks (Tippfehler, Programmierfehler, Doku-Unstimmigkeit, Testverbesserung) in `docs/planning/repo-audit-task-vorschlaege-2026-04-23.md` dokumentiert
 - Read and applied the `docs/ops/memory-system-v2.md` closeout checklist as far as the worktree allowed
 - Revalidated wearable sync status: current `WearableSyncScreen` still uses a placeholder request payload and needs contract hardening
 - Expanded the Health Connect permission surface to include `RestingHeartRate` and `HeartRateVariabilityRmssd`

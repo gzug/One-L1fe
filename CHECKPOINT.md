@@ -36,6 +36,8 @@ Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase inge
 
 ## Completed this session (2026-04-23)
 
+- ✅ Durchsicht der Codebasis durchgeführt und konkrete Aufgabenvorschläge für Tippfehler-, Bug-, Doku-/Kommentar- und Testverbesserung dokumentiert (`docs/planning/repo-audit-task-vorschlaege-2026-04-23.md`)
+
 - ✅ Reviewed `docs/ops/memory-system-v2.md` and executed the closeout checklist steps that were possible in the current worktree
 - ✅ Reassessed wearable sync seam; current app still uses a placeholder request payload and needs contract hardening before rollout
 - ✅ Expanded the wearable permission surface and aligned mobile docs/assertions to the canonical sync contract
