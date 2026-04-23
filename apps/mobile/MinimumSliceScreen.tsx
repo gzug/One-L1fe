@@ -26,6 +26,8 @@ const FIELD_ORDER = [
   { key: 'glucose', label: 'Glucose', keyboardType: 'numeric' },
   { key: 'lpa', label: 'Lp(a)', keyboardType: 'numeric' },
   { key: 'crp', label: 'CRP', keyboardType: 'numeric' },
+  { key: 'b12', label: 'B12', keyboardType: 'numeric' },
+  { key: 'magnesium', label: 'Magnesium', keyboardType: 'numeric' },
   { key: 'source', label: 'Source', keyboardType: 'default' },
 ] as const satisfies ReadonlyArray<{
   key: string;
@@ -69,9 +71,9 @@ export default function MinimumSliceScreen({
       `Interpretation run: ${screenState.submissionSummary.lastResultSummary?.interpretationRunId ?? 'n/a'}`,
       `Entries: ${screenState.submissionSummary.lastResultSummary?.interpretedEntryCount ?? 'n/a'}`,
       `Recommendations: ${screenState.submissionSummary.lastResultSummary?.recommendationCount ?? 'n/a'}`,
-      `Priority score: ${screenState.submissionSummary.lastResultSummary?.runtimePriorityScoreValue ?? screenState.submissionSummary.lastResultSummary?.priorityScoreValue ?? 'n/a'}`,
-      `Evidence class: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceClass ?? 'n/a'}`,
-      `Evidence anchors: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceAnchorCount ?? 'n/a'}`,
+      `Priority Score: ${screenState.submissionSummary.lastResultSummary?.runtimePriorityScoreValue ?? screenState.submissionSummary.lastResultSummary?.priorityScoreValue ?? 'n/a'}`,
+      `Evidence Class: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceClass ?? screenState.submissionSummary.lastResultSummary?.productEvidenceClass ?? 'n/a'}`,
+      `Evidence Anchors: ${screenState.submissionSummary.lastResultSummary?.runtimeEvidenceAnchorCount ?? screenState.submissionSummary.lastResultSummary?.anchorCount ?? 0}`,
       `Top drivers: ${renderTopDrivers(screenState)}`,
     ].join('\n');
   }, [screenState]);
@@ -108,6 +110,14 @@ export default function MinimumSliceScreen({
         patch.crpMeta = createOptionalFieldMetadata('provided');
       }
 
+      if (field === 'b12') {
+        patch.b12Meta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'magnesium') {
+        patch.magnesiumMeta = createOptionalFieldMetadata('provided');
+      }
+
       const nextState = controller.patchDraft(patch as Partial<MinimumSliceScreenModel['draft']>);
       setScreenState(nextState);
     },
@@ -142,14 +152,14 @@ export default function MinimumSliceScreen({
               style={styles.input}
               value={screenState.draft[field.key]}
             />
-            {(field.key === 'lpa' || field.key === 'crp') ? (
+            {(field.key === 'lpa' || field.key === 'crp' || field.key === 'b12' || field.key === 'magnesium') ? (
               <View style={styles.optionRow}>
                 {(['provided', 'missing', 'disabled'] as const).map((stateOption) => {
-                  const isActive = getOptionalMarkerState(screenState, field.key) === stateOption;
+                  const isActive = getOptionalMarkerState(screenState, field.key as OptionalMinimumSliceMarkerKey) === stateOption;
                   return (
                     <Pressable
                       key={stateOption}
-                      onPress={() => handleOptionalMarkerStateChange(field.key, stateOption)}
+                      onPress={() => handleOptionalMarkerStateChange(field.key as OptionalMinimumSliceMarkerKey, stateOption)}
                       style={[styles.optionChip, isActive ? styles.optionChipActive : null]}
                     >
                       <Text style={[styles.optionChipText, isActive ? styles.optionChipTextActive : null]}>
@@ -164,7 +174,7 @@ export default function MinimumSliceScreen({
                 })}
               </View>
             ) : null}
-            {(field.key === 'lpa' || field.key === 'crp') && getOptionalMarkerState(screenState, field.key) !== 'provided' ? (
+            {(field.key === 'lpa' || field.key === 'crp' || field.key === 'b12' || field.key === 'magnesium') && getOptionalMarkerState(screenState, field.key as OptionalMinimumSliceMarkerKey) !== 'provided' ? (
               <Text style={styles.fieldHint}>
                 {getOptionalMarkerState(screenState, field.key) === 'disabled'
                   ? `${field.label} is intentionally excluded from use.`
@@ -187,6 +197,19 @@ export default function MinimumSliceScreen({
           <Text style={styles.errorText}>{localError}</Text>
         ) : null}
       </View>
+
+      {screenState.submissionState.lastResult?.evaluation.recommendations && screenState.submissionState.lastResult.evaluation.recommendations.length > 0 ? (
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Interpretation Insights</Text>
+          {screenState.submissionState.lastResult.evaluation.recommendations.map((rec, i) => (
+            <View key={i} style={styles.insightBox}>
+              <Text style={styles.insightVerdict}>{rec.verdict}</Text>
+              <Text style={styles.insightText}>{rec.text}</Text>
+              <Text style={styles.insightMeta}>Type: {rec.type} • Confidence: {rec.confidence}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
 
       <View style={styles.actions}>
         <Pressable
@@ -333,5 +356,29 @@ const styles = StyleSheet.create({
     color: '#24324a',
     fontSize: 16,
     fontWeight: '600',
+  },
+  insightBox: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4263eb',
+  },
+  insightVerdict: {
+    color: '#152033',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  insightText: {
+    color: '#24324a',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  insightMeta: {
+    color: '#52607a',
+    fontSize: 12,
   },
 });

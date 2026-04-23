@@ -15,6 +15,7 @@ import SessionBar from './SessionBar.tsx';
 import { useAuthSession } from './useAuthSession.ts';
 import { useWearablePermissions } from './useWearablePermissions';
 import DevInsightScreen from './DevInsightScreen.tsx';
+import WeeklyCheckinScreen from './WeeklyCheckinScreen.tsx';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -24,7 +25,7 @@ const controller = createMinimumSliceScreenController({
   functionPath: process.env.EXPO_PUBLIC_ONE_L1FE_FUNCTION_PATH,
 });
 
-type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'dev-insight';
+type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'weekly-checkin' | 'dev-insight';
 
 export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
@@ -99,6 +100,7 @@ export default function App(): React.JSX.Element {
   const screenTabs: ActiveScreen[] = [
     'minimum-slice',
     'wearable-sync',
+    'weekly-checkin',
     ...(isDevUser ? (['dev-insight'] as const) : []),
   ];
 
@@ -120,9 +122,11 @@ export default function App(): React.JSX.Element {
                 ? 'Blood Panel'
                 : screen === 'wearable-sync'
                   ? showLock
-                    ? 'Wearable Sync 🔒'
-                    : 'Wearable Sync'
-                  : 'Dev Insight';
+                    ? 'Wearables 🔒'
+                    : 'Wearables'
+                  : screen === 'weekly-checkin'
+                    ? 'Check-in'
+                    : 'Dev Insight';
 
             return (
               <Pressable
@@ -134,7 +138,9 @@ export default function App(): React.JSX.Element {
                       ? 'MinimumSlice'
                       : screen === 'wearable-sync'
                         ? 'WearableSync'
-                        : 'DevInsight',
+                        : screen === 'weekly-checkin'
+                          ? 'WeeklyCheckin'
+                          : 'DevInsight',
                   );
                 }}
                 style={[
@@ -161,6 +167,8 @@ export default function App(): React.JSX.Element {
           <HealthConnectPermissionGate>
             <WearableSyncScreen />
           </HealthConnectPermissionGate>
+        ) : activeScreen === 'weekly-checkin' ? (
+          <WeeklyCheckinScreen />
         ) : activeScreen === 'dev-insight' && user ? (
           <DevInsightScreen profileId={user.id} />
         ) : null}

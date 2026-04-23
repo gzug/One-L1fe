@@ -398,7 +398,8 @@ function buildEntry(
   });
 
   const definitionWeight = biomarker.priorityWeight ?? 0;
-  const scoreContribution = scoreEligible && severity != null ? severity * definitionWeight : 0;
+  const modifier = biomarker.evidenceConfidenceModifier ?? 1;
+  const scoreContribution = scoreEligible && severity != null ? severity * definitionWeight * modifier : 0;
 
   const ruleIds = thresholdEvaluation?.ruleIds?.length
     ? thresholdEvaluation.ruleIds

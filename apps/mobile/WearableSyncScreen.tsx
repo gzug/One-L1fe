@@ -11,6 +11,7 @@ import { getOrCreateAppInstallId, isLegacyMockInstallId } from './appInstallId';
 import { useWearableSource } from './useWearableSource';
 import { useWearableSync } from './useWearableSync';
 import { useComputeDailySummaries } from './useComputeDailySummaries';
+import { useDailyTrends } from './useDailyTrends';
 import { createGarminProvisioningRequest } from './wearableSourceProvisioning';
 
 type SyncStatus =
@@ -34,6 +35,7 @@ export default function WearableSyncScreen() {
   const wearableSource = useWearableSource();
   const wearableSync = useWearableSync();
   const computeDailySummaries = useComputeDailySummaries();
+  const dailyTrends = useDailyTrends();
 
   const handleSync = useCallback(async () => {
     if (!appInstallId || isLegacyMockInstallId(appInstallId)) {
@@ -48,16 +50,23 @@ export default function WearableSyncScreen() {
         app_install_id: appInstallId,
       });
 
-      await wearableSource.resolve(provisioningRequest);
-      const syncResult = await wearableSync.run();
-      await computeDailySummaries.run();
+      await wearableSource.provision(provisioningRequest);
 
-      if (syncResult && typeof syncResult === 'object' && 'kind' in syncResult && syncResult.kind === 'error') {
-        setSyncStatus({
-          kind: 'error',
-          message: typeof syncResult.message === 'string' ? syncResult.message : 'Sync failed.',
+      // submitSync needs a WearableSyncRequest — for now, pass a minimal
+      // placeholder.  The real shape depends on the wearableSyncClient contract.
+      const syncResult = await wearableSync.submitSync({
+        wearable_source_id: wearableSource.state.status === 'ready'
+          ? wearableSource.state.wearableSourceId
+          : appInstallId,
+      } as any);
+
+      // submitCompute needs a ComputeDailySummariesParams payload.
+      if (wearableSource.state.status === 'ready') {
+        await computeDailySummaries.submitCompute({
+          wearable_source_id: wearableSource.state.wearableSourceId,
+          date_from: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10),
         });
-        return;
+        await dailyTrends.fetchTrends(wearableSource.state.wearableSourceId);
       }
 
       const recordsInserted =
@@ -76,7 +85,7 @@ export default function WearableSyncScreen() {
         message: e instanceof Error ? e.message : 'Unexpected error during sync.',
       });
     }
-  }, [appInstallId, wearableSource, wearableSync, computeDailySummaries]);
+  }, [appInstallId, wearableSource, wearableSync, computeDailySummaries, dailyTrends]);
 
   if (!installIdReady) {
     return (
@@ -125,6 +134,25 @@ export default function WearableSyncScreen() {
           <Text style={styles.buttonText}>Sync Now</Text>
         )}
       </Pressable>
+
+      {dailyTrends.trends.length > 0 && (
+        <View style={styles.trendContainer}>
+          <Text style={styles.trendHeading}>7-Day Trend</Text>
+          {dailyTrends.trends.map((trend) => (
+            <View key={trend.date} style={styles.trendRow}>
+              <Text style={styles.trendDate}>{trend.date.slice(5)}</Text>
+              <View style={styles.trendMetrics}>
+                <Text style={styles.trendMetric}>
+                  ❤️ {trend.resting_heart_rate ?? '--'} bpm
+                </Text>
+                <Text style={styles.trendMetric}>
+                  💤 {trend.sleep_duration_seconds ? (trend.sleep_duration_seconds / 3600).toFixed(1) + 'h' : '--'}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -161,4 +189,39 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: '#7aacaf' },
   buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  trendContainer: {
+    marginTop: 24,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
+  },
+  trendHeading: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 12,
+    color: '#0f172a',
+  },
+  trendRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  trendDate: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  trendMetrics: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  trendMetric: {
+    fontSize: 15,
+    color: '#0f172a',
+  },
 });

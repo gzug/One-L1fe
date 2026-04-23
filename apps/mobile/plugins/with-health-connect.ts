@@ -51,14 +51,17 @@ const withHealthConnectManifest: ConfigPlugin = (config) =>
     }
 
     // 3. Add activity-alias for HC rationale intent filter
-    if (!mainApplication['activity-alias']) {
-      mainApplication['activity-alias'] = [];
+    // Cast to any: activity-alias is valid in AndroidManifest XML but not in
+    // Expo's ManifestApplication type definition.
+    const app = mainApplication as any;
+    if (!app['activity-alias']) {
+      app['activity-alias'] = [];
     }
-    const alreadyHasAlias = mainApplication['activity-alias'].some(
+    const alreadyHasAlias = app['activity-alias'].some(
       (a: any) => a.$?.['android:name'] === 'ViewPermissionUsageActivity'
     );
     if (!alreadyHasAlias) {
-      mainApplication['activity-alias'].push({
+      app['activity-alias'].push({
         $: {
           'android:name': 'ViewPermissionUsageActivity',
           'android:exported': 'true',
@@ -100,16 +103,23 @@ const withHealthConnectMainActivity: ConfigPlugin = (config) =>
       );
     }
 
-    // Add onCreate override before the closing brace of the class
-    const onCreate = `
+    // Inject inside the existing onCreate method, right after super.onCreate
+    if (contents.includes('super.onCreate')) {
+      contents = contents.replace(
+        /super\.onCreate\((.*?)\)/,
+        'super.onCreate($1)\n    HealthConnectPermissionDelegate.setPermissionDelegate(this)'
+      );
+    } else {
+      // Fallback if no onCreate exists (unlikely in Expo)
+      const onCreate = `
   override fun onCreate(savedInstanceState: android.os.Bundle?) {
     super.onCreate(savedInstanceState)
     HealthConnectPermissionDelegate.setPermissionDelegate(this)
   }
 `;
-    // Insert before the last closing brace
-    const lastBrace = contents.lastIndexOf('}');
-    contents = contents.slice(0, lastBrace) + onCreate + contents.slice(lastBrace);
+      const lastBrace = contents.lastIndexOf('}');
+      contents = contents.slice(0, lastBrace) + onCreate + contents.slice(lastBrace);
+    }
 
     mod.modResults.contents = contents;
     return mod;

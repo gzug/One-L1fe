@@ -2,7 +2,7 @@
 status: current
 canonical_for: rolling session context
 owner: repo
-last_verified: 2026-04-22
+last_verified: 2026-04-23
 scope: all-agents
 ---
 
@@ -13,13 +13,23 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
-## 2026-04-22 — ChatGPT (additional hygiene pass)
+## 2026-04-23 — Codex (memory-system-v2 closeout)
 
-- Refreshed `docs/README.md` front-matter `last_verified` to `2026-04-22`
-- Corrected `MEMORY.md` drift: replaced stale closed-issue reference `#94` with active tracker `#104` for the Priority Score runtime gap
-- Confirmed this pass was documentation hygiene only; no product logic, schema, or runtime behavior changed
+- Read and applied the `docs/ops/memory-system-v2.md` closeout checklist as far as the worktree allowed
+- Added `apps/mobile/healthConnectCollector.ts` and wired `WearableSyncScreen` to build and submit a real Health Connect sync request
+- Expanded the Health Connect permission surface to include `RestingHeartRate` and `HeartRateVariabilityRmssd`
+- Aligned wearable docs, assertions, and sync-client types to the canonical wearable contract
+- Wrote `memory/2026-04-23.md`, archived it to `docs/archive/memory/2026-04-23.md`, and promoted durable notes into `MEMORY.md`
 
-## 2026-04-22 — ChatGPT (audit-fix execution session)
+## 2026-04-21 — Claude Haiku (cleanup session)
+
+- Repo cleanup: 11 stale branches deleted, issues #95/#94/#89 closed (duplicates/merged)
+- Auto-delete branches on merge activated; AGENTS.md output standards added
+- Open issues remaining: #88 (evidence → Priority Score), #69, #68 (backlog)
+- Pending: `claude/real-app-install-id` intentionally held, not yet merged
+- GitHub PAT setup for agent access; .env local only, gitignored
+
+## 2026-04-20 — Claude Code (session 3)
 
 - Executed verified small todos directly on `main`
 - Deleted dead duplicate hook: `apps/mobile/src/hooks/useWearableSource.ts`

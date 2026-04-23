@@ -7,12 +7,12 @@ export interface MinimumSliceMobileFieldMetadata {
   stateReason?: FieldStateReason | null;
 }
 
-export type OptionalMinimumSliceMarkerKey = 'lpa' | 'crp';
+export type OptionalMinimumSliceMarkerKey = 'lpa' | 'crp' | 'b12' | 'magnesium';
 
 export interface OptionalMinimumSliceMarkerConfig {
   marker: OptionalMinimumSliceMarkerKey;
   fieldKey: OptionalMinimumSliceMarkerKey;
-  metadataKey: 'lpaMeta' | 'crpMeta';
+  metadataKey: 'lpaMeta' | 'crpMeta' | 'b12Meta' | 'magnesiumMeta';
   label: string;
   unit: string;
 }
@@ -32,6 +32,20 @@ export const OPTIONAL_MINIMUM_SLICE_MARKERS: readonly OptionalMinimumSliceMarker
     label: 'CRP',
     unit: 'mg/L',
   },
+  {
+    marker: 'b12',
+    fieldKey: 'b12',
+    metadataKey: 'b12Meta',
+    label: 'B12',
+    unit: 'pg/mL',
+  },
+  {
+    marker: 'magnesium',
+    fieldKey: 'magnesium',
+    metadataKey: 'magnesiumMeta',
+    label: 'Magnesium',
+    unit: 'mg/dL',
+  },
 ] as const;
 
 export interface MinimumSliceMobileFormDraft {
@@ -45,6 +59,10 @@ export interface MinimumSliceMobileFormDraft {
   lpaMeta?: MinimumSliceMobileFieldMetadata;
   crp?: string;
   crpMeta?: MinimumSliceMobileFieldMetadata;
+  b12?: string;
+  b12Meta?: MinimumSliceMobileFieldMetadata;
+  magnesium?: string;
+  magnesiumMeta?: MinimumSliceMobileFieldMetadata;
   fastingContext?: boolean;
   source?: string;
 }
@@ -167,6 +185,10 @@ export function createMinimumSliceMobileFormDraft(): MinimumSliceMobileFormDraft
     lpaMeta: createOptionalFieldMetadata('missing'),
     crp: '',
     crpMeta: createOptionalFieldMetadata('missing'),
+    b12: '',
+    b12Meta: createOptionalFieldMetadata('missing'),
+    magnesium: '',
+    magnesiumMeta: createOptionalFieldMetadata('missing'),
     fastingContext: true,
     source: 'mobile-manual-entry',
   };

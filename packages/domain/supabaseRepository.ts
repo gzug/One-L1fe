@@ -3,6 +3,7 @@ import { toInterpretationPersistencePayload } from './contracts.ts';
 import { evaluateMinimumSlice, MinimumSlicePanelInput } from './minimumSlice.ts';
 import { persistInterpretationBundle, PersistInterpretationResult, SupabasePersistenceClient } from './supabasePersistence.ts';
 import { toSupabasePersistenceBundle } from './supabasePayload.ts';
+import { loadEvidenceForRules } from './evidenceRegistry.ts';
 
 export interface SaveMinimumSliceInterpretationParams {
   now?: Date;
@@ -24,7 +25,8 @@ export async function saveMinimumSliceInterpretation(
   input: MinimumSlicePanelInput,
   params?: SaveMinimumSliceInterpretationParams,
 ): Promise<SaveMinimumSliceInterpretationResult> {
-  const evaluation = evaluateMinimumSlice(input, params?.now ?? new Date());
+  const now = params?.now ?? new Date();
+  const evaluation = evaluateMinimumSlice(input, now);
   const payload = toInterpretationPersistencePayload(
     evaluation,
     input,

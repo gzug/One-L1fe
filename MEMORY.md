@@ -40,6 +40,9 @@ Long-term operating memory for **One L1fe (OL)**.
 - Mobile wearable path on `main`: `useWearableSource`, `useWearableSync`, `WearableSyncScreen`, Android-first Health Connect permission gate
 - `HealthConnectPermissionGate` wired into tab navigation: `useWearablePermissions()` lifted to `App` level; Wearable Sync tab shows lock badge + reduced opacity when `hcStatus` is `denied` or `unavailable`. Gate still renders inline when tab is opened.
 - `WearableSyncScreen` shows `SyncStatus` feedback after sync: success banner (timestamp + `records_inserted`), error banner, disabled button during run. `SyncStatus` type: `idle | running | success | error`.
+- Shared Health Connect collector lives in `apps/mobile/healthConnectCollector.ts` and builds `WearableSyncRequest` values from the canonical `src/lib/wearables/syncContract.ts` types.
+- Health Connect permission coverage for Garmin sync includes `Steps`, `HeartRate`, `RestingHeartRate`, `HeartRateVariabilityRmssd`, `ActiveCaloriesBurned`, `Distance`, and `SleepSession`.
+- Canonical wearable metric keys are the shared contract for mobile, docs, and ingest fixtures: `steps_total`, `resting_heart_rate`, `hrv`, `sleep_session`, `sleep_duration`, `active_energy_burned`, `distance_total`.
 - Android: `react-native-health-connect`; iOS explicit stub until HealthKit adapter added
 - Early seams: device-free + mockable; readiness docs must distinguish hosted-proof from real device proof
 - Garmin: first provisioning target; still device-free/hosted

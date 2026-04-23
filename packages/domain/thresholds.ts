@@ -360,6 +360,46 @@ export function evaluateDAO(value: number, unit: string): ThresholdEvaluation | 
   };
 }
 
+/**
+ * B12 — SUP-003
+ * optimalMin: 400 pg/mL per Attia / Medicine 3.0.
+ * serum B12 is a weak proxy for functional deficiency; interpreted as bounded signal.
+ */
+export function evaluateB12(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'pg/mL' && unit !== 'ng/L') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 400,
+      goodMin: 300,
+      borderlineMin: 250,
+      highMin: 200,
+    }),
+    ruleIds: ['SUP-003'],
+    notes: ['optimalMin set to 400 pg/mL per Medicine 3.0 framework.'],
+  };
+}
+
+/**
+ * Magnesium — SUP-004
+ * optimalMin: 1.8 mg/dL.
+ * serum Magnesium is a weak proxy for intracellular status.
+ */
+export function evaluateMagnesium(value: number, unit: string): ThresholdEvaluation | null {
+  if (unit !== 'mg/dL') return null;
+
+  return {
+    canonicalStatus: evaluateLowerBoundThresholds(value, {
+      optimalMin: 1.8,
+      goodMin: 1.7,
+      borderlineMin: 1.6,
+      highMin: 1.5,
+    }),
+    ruleIds: ['SUP-004'],
+    notes: ['Serum magnesium is a weak proxy for total body stores.'],
+  };
+}
+
 export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation | null {
   switch (input.marker) {
     case 'apob':
@@ -382,6 +422,10 @@ export function evaluateByThreshold(input: ThresholdInput): ThresholdEvaluation 
       return evaluateTriglycerides(input.value, input.unit);
     case 'dao':
       return evaluateDAO(input.value, input.unit);
+    case 'b12':
+      return evaluateB12(input.value, input.unit);
+    case 'magnesium':
+      return evaluateMagnesium(input.value, input.unit);
     default:
       return null;
   }

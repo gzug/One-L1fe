@@ -21,7 +21,7 @@ export async function getOrCreateAppInstallId(): Promise<string> {
   // Tier 1: native platform identifier
   try {
     if (Platform.OS === 'android') {
-      const androidId = Application.androidId;
+      const androidId = Application.getAndroidId();
       if (typeof androidId === 'string' && androidId.length > 0) {
         return `android-${androidId}`;
       }

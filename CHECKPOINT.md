@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-22
+last_verified: 2026-04-23
 supersedes: []
 superseded_by: null
 scope: repo
@@ -12,18 +12,14 @@ scope: repo
 
 ## Verdict
 
-Minimum-slice mobile seam proven live end to end. Field-state contract complete through `stale` derived-policy layer. Wearable backend seam hosted-proof complete. Evidence registry schema + seeds live (9 sources, 15 rules). Vitamin D + Ferritin seeds added (`20260420091500`). CRP + ApoB/LDL seeds added (`20260420190000`). `isDerivedStale` staleness thresholds extracted as named constants per biomarker type. WearableSyncScreen now shows success/error feedback post-sync. HealthConnectPermissionGate wired into tab navigation — Android users see lock badge when permissions are denied.
+The current session closed the wearable sync seam further: `WearableSyncScreen` now builds a real Health Connect observation request through `apps/mobile/healthConnectCollector.ts` and submits it through the shared wearable sync contract. The mobile permission surface was widened to include `RestingHeartRate` and `HeartRateVariabilityRmssd`, and the wearable docs/assertions now align to the canonical metric keys.
 
-Biomarker scoring architecture audited and implemented (verified 2026-04-22): `evidenceConfidenceModifier` + `scoringClass` are present on `BiomarkerDefinition`; `calculateWeightedScore()` multiplies the confidence modifier; `aggregateTotalPriorityScoreWithEvidence()` exists and enforces non-empty evidence anchors. Full delta in `AUDIT_LOG.md`.
-
-Small audit fixes completed on `main` (2026-04-22): dead duplicate wearable hook removed, README verification date refreshed, `MinimumSliceScreen` developer subtitle removed, architecture + wearables docs clarified, stale date-specific planning docs archived via `docs/archive/planning/` with redirect stubs left in place. Additional hygiene pass completed: `docs/README.md` verification date refreshed and `MEMORY.md` stale open-issue reference updated from closed `#94` to active `#104`.
-
-Remaining gaps: native Android Health Connect wiring, first real device-backed ingest proof, runtime call-site for Priority Score / evidence registry.
+Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase ingest proof on an Android device, and resolving the pre-existing merge/conflict state in the worktree before any commit/push can happen.
 
 ## Current state
 
-- Branch: `main` — all recent work committed directly
-- Active seam: real device-backed wearable ingest proof + Priority Score runtime wire
+- Branch state: detached `HEAD` at `e24867afc0f9dff90c8332b59981bdc5c5c176ff`
+- Active seam: physical-device Health Connect ingest proof and merge-conflict cleanup
 
 ## Pending PRs
 
@@ -31,19 +27,16 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 
 ## Blockers
 
+- Local merge/conflict state is present in the worktree, including pre-existing edits outside this session's narrow scope
 - No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
-- Android native Health Connect requires manual `MainActivity.kt` + `AndroidManifest.xml` changes outside repo
-- Branch protection for `main` needs explicit verification/enforcement
-- Evidence registry not yet wired to Priority Score runtime — `rule_evidence_links` not read at calculation time (WEARABLE-TD-004 / Issue #104)
+- End-to-end Supabase ingest still needs an Android device run
 
-## Completed this session (2026-04-22)
+## Completed this session (2026-04-23)
 
-- ✅ Repo access verified: GitHub account `gzug`; repo `gzug/One-L1fe`; write/admin confirmed
-- ✅ Open-task triage completed: active blockers are Issue #104, #103, #102 (all ADR-heavy)
-- ✅ `CHECKPOINT.md` corrected: removed stale instruction claiming scoring-field implementation was still pending although code already contains it
-- ✅ Small audit fixes executed on `main`: dead code delete, README refresh, dev subtitle removal, architecture/wearables doc clarification, planning archive cleanup
-- ✅ Additional hygiene pass executed on `main`: refreshed `docs/README.md`, corrected stale `MEMORY.md` issue reference
-- ✅ Prioritized next execution target: WEARABLE-TD-004 runtime call-site via dedicated edge function ADR path
+- ✅ Reviewed `docs/ops/memory-system-v2.md` and executed the closeout checklist steps that were possible in the current worktree
+- ✅ Added `apps/mobile/healthConnectCollector.ts` as the shared Health Connect collector and wired `WearableSyncScreen` to submit a real sync request
+- ✅ Expanded the wearable permission surface and aligned mobile docs/assertions to the canonical sync contract
+- ✅ Promoted durable notes into `MEMORY.md` and wrote/archived `memory/2026-04-23.md`
 
 ## Completed previous session (2026-04-22)
 
@@ -54,6 +47,8 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 - ✅ Threshold deltas documented: ApoB optimalMax → 60; Vitamin D optimalMin → 40; HbA1c/Glucose/CRP/LDL synced to `thresholds.ts`
 - ✅ `AUDIT_LOG.md` updated with full delta table + sources
 - ✅ `CHECKPOINT.md` updated
+- ✅ Expo mobile restart path unblocked by adding a runtime JS config-plugin entrypoint at `apps/mobile/plugins/with-health-connect.js`
+- ✅ `npm run start` now reaches Expo project startup in `apps/mobile`
 
 ## Completed previous session (2026-04-21)
 
@@ -64,11 +59,9 @@ Remaining gaps: native Android Health Connect wiring, first real device-backed i
 
 ## Next steps
 
-1. **Resolve WEARABLE-TD-004 with explicit ADR choice** — choose Option A (`compute-priority-score` edge function). Avoid client-only call-site; it breaks auditability and weakens reuse by `compute-health-index`.
-2. **Scaffold runtime call-site** — add `supabase/functions/compute-priority-score/index.ts`, require evidence loading, call `aggregateTotalPriorityScoreWithEvidence()`, and return score + recommendations + evidence links.
-3. **Add thin caller seam** — trigger the new function from `MinimumSliceScreen` or from the existing interpretation flow only after the dedicated edge function exists.
-4. **Add integration proof** — one real rule + one evidence row should produce a non-zero score and non-empty anchors.
-5. **Then unblock wearable domain ADRs** — Issues #102 and #103 remain decision work for `compute-health-index`; do not overbuild before #104 runtime seam is live.
+1. Resolve the existing merge/conflict state in the worktree so a clean commit is possible.
+2. Run the new wearable collector on a physical Android device and verify one end-to-end sync into Supabase.
+3. Merge `claude/real-app-install-id` when ready.
 
 ## Deferred to post-v1
 
