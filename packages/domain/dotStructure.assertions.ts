@@ -1,8 +1,10 @@
 import {
   affectsScoreForStatus,
+  deriveOrbitDisplayState,
   getOrbitDotDisplayLabel,
   MENU_ENTRIES,
   ORBIT_DOTS,
+  resolveDomainDotsForSubDot,
 } from './dotStructure.ts';
 
 function assert(condition: unknown, message: string): void {
@@ -39,9 +41,13 @@ export function runDotStructureAssertions(): void {
     'No Score available must not render as 0.',
   );
 
-  const mindSleep = ORBIT_DOTS.find((dot) => dot.key === 'mind_sleep');
+  const mindAndSleep = ORBIT_DOTS.find((dot) => dot.key === 'mind_and_sleep');
   assert(
-    mindSleep?.subDots.some((dot) => dot.title === 'Habits & Context' && dot.affectsScore === false),
+    mindAndSleep !== undefined,
+    'Mind & Sleep orbit dot must exist under the canonical key mind_and_sleep.',
+  );
+  assert(
+    mindAndSleep?.subDots.some((dot) => dot.title === 'Habits & Context' && dot.affectsScore === false),
     'Habits must be context under Mind & Sleep and must not directly affect score.',
   );
 
@@ -61,4 +67,38 @@ export function runDotStructureAssertions(): void {
 
   assert(!affectsScoreForStatus('planned_locked'), 'Coming Soon/planned_locked must not affect score.');
   assert(!affectsScoreForStatus('excluded'), 'Excluded must not affect score.');
+
+  // Drift guard: every sub-dot that claims a domainDotKeys binding must
+  // resolve to a real DotKey in the dots.ts catalog. Keeps the UI view
+  // model wired to the domain/score catalog without silent rename drift.
+  for (const orbit of ORBIT_DOTS) {
+    for (const subDot of orbit.subDots) {
+      if (!subDot.domainDotKeys) continue;
+      assert(
+        subDot.domainDotKeys.length > 0,
+        `Sub-dot ${orbit.key}/${subDot.key} declares an empty domainDotKeys array.`,
+      );
+      // resolveDomainDotsForSubDot throws for unknown DotKeys.
+      resolveDomainDotsForSubDot(subDot);
+    }
+  }
+
+  // deriveOrbitDisplayState API contract: V1 fallback must never fabricate
+  // a score and must preserve Nutrition as coming_soon.
+  const snapshot = deriveOrbitDisplayState({});
+  assert(snapshot.length === 4, 'deriveOrbitDisplayState must return exactly 4 orbit dots.');
+  assert(
+    snapshot.every((dot) => dot.score === null),
+    'deriveOrbitDisplayState V1 fallback must never synthesize a numeric score.',
+  );
+  const nutritionSnapshot = snapshot.find((dot) => dot.key === 'nutrition');
+  assert(
+    nutritionSnapshot?.displayState === 'coming_soon',
+    'deriveOrbitDisplayState must keep Nutrition in coming_soon.',
+  );
+  const healthSnapshot = snapshot.find((dot) => dot.key === 'health');
+  assert(
+    healthSnapshot?.displayState === 'no_score_available',
+    'deriveOrbitDisplayState V1 fallback must report no_score_available for score-capable orbits.',
+  );
 }

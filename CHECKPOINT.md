@@ -12,14 +12,14 @@ scope: repo
 
 ## Verdict
 
-Increment 4 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the mobile home now uses One L1fe as the central surface, renders only score-capable Orbit Dots (`Health`, `Nutrition`, `Mind & Sleep`, `Activity`), and moves Doctor Prep/Menu/Profile/Score education out of the orbit. Mobile typecheck, domain assertions, and Expo web export pass locally.
+Increment 4 of the Dot/Score refactor is pushed on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home uses One L1fe as the central surface, renders only score-capable Orbit Dots (`Health`, `Nutrition`, `Mind & Sleep`, `Activity`), and moves Doctor Prep/Menu/Profile/Score education out of the orbit. A follow-up refactor/stability slice hardens the Source-of-Truth between `dots.ts` (domain/score catalog) and `dotStructure.ts` (UI view model). Mobile typecheck, domain assertions, and Expo web export pass locally.
 
 ## Active Refactor
 
 - **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
 - **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
 - **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
-- **Working tree:** Increment 4 changes are uncommitted
+- **Working tree:** Increment 4 pushed in `e02e38b`; follow-up refactor/stability slice pushed on the same branch
 
 ## Completed Increments
 
@@ -82,6 +82,17 @@ Increment 4 of the Dot/Score refactor is implemented locally on `claude/opus-ref
 - Live-test whether the Home/Menu affordance is enough or whether the app needs persistent bottom navigation.
 - Decide whether Nutrition should stay UI-only or add a real image picker on Android/web.
 - Live-test the new orbit/menu flow in Expo Web and on Android when available.
+
+## Completed follow-up — Refactor/Stability slice
+
+- `packages/domain/dotStructure.ts` is now marked as UI view model; domain binding is explicit via optional `SubDotDefinition.domainDotKeys` and checked by an assertion against `packages/domain/dots.ts`. No more silent drift between UI and domain catalogs.
+- `deriveOrbitDisplayState(userDotScores)` added as the runtime API the Home surface reads from. V1 returns a "no data" snapshot; future score pipeline feeds user Dot scores without changing the UI call site.
+- Orbit key renamed `mind_sleep` → `mind_and_sleep` across UI code to match the canonical domain DotKey.
+- `SubDotDefinition.kind = 'planned'` variant removed together with its dead branches in `App.tsx`.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+  - `npm --prefix apps/mobile run export:web`
 
 ## Pending PRs
 

@@ -2,8 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ErrorUtils, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
+  deriveOrbitDisplayState,
   MENU_ENTRIES,
-  ORBIT_DOTS,
   getOrbitDot,
   getOrbitDotDisplayLabel,
   getSubDotsForOrbitDot,
@@ -11,6 +11,7 @@ import {
 import type {
   AppScreenKey,
   OrbitDotDefinition,
+  OrbitDotDisplay,
   OrbitDotKey,
   SubDotDefinition,
 } from '../../packages/domain/dotStructure.ts';
@@ -44,7 +45,7 @@ const SCREEN_NAMES: Record<AppScreenKey, string> = {
   one_l1fe: 'OneL1fe',
   health: 'Health',
   nutrition: 'Nutrition',
-  mind_sleep: 'MindSleep',
+  mind_and_sleep: 'MindAndSleep',
   activity: 'Activity',
   doctor_prep: 'DoctorPrep',
   menu: 'Menu',
@@ -79,6 +80,10 @@ export default function App(): React.JSX.Element {
       }),
     [],
   );
+
+  // V1 stub: pass an empty score map. Once the score pipeline feeds real
+  // DotScore values, this memo will take the live map.
+  const orbitDisplay = useMemo(() => deriveOrbitDisplayState({}), []);
 
   useEffect(() => {
     if (!user?.id) {
@@ -183,7 +188,7 @@ export default function App(): React.JSX.Element {
             </View>
           ) : null}
           {activeScreen === 'one_l1fe'
-            ? renderHome(openScreen, scoreView)
+            ? renderHome(openScreen, scoreView, orbitDisplay)
             : activeScreen === 'menu'
               ? renderMenu(openScreen)
               : activeScreen === 'doctor_prep'
@@ -202,6 +207,7 @@ export default function App(): React.JSX.Element {
 function renderHome(
   openScreen: (screen: AppScreenKey) => void,
   scoreView: ReturnType<typeof deriveScoreDisplayState>,
+  orbitDisplay: readonly OrbitDotDisplay[],
 ): React.JSX.Element {
   return (
     <>
@@ -236,7 +242,7 @@ function renderHome(
           <Text style={styles.centerOrbText}>Guide, not diagnosis</Text>
         </View>
         <View style={styles.orbitGrid}>
-          {ORBIT_DOTS.map((dot) => (
+          {orbitDisplay.map((dot) => (
             <Pressable
               key={dot.key}
               onPress={() => openScreen(dot.key)}
@@ -394,7 +400,7 @@ function renderSubDotDetail(
     );
   }
 
-  if (dotKey === 'mind_sleep' && subDot.key === 'check_in') {
+  if (dotKey === 'mind_and_sleep' && subDot.key === 'check_in') {
     return (
       <View style={styles.detailStack}>
         <Text style={styles.detailTitle}>Mind & Sleep Check-in</Text>
@@ -539,14 +545,13 @@ function ScreenHeader({ title, subtitle }: { title: string; subtitle: string }):
 }
 
 function isOrbitDotKey(value: AppScreenKey): value is OrbitDotKey {
-  return value === 'health' || value === 'nutrition' || value === 'mind_sleep' || value === 'activity';
+  return value === 'health' || value === 'nutrition' || value === 'mind_and_sleep' || value === 'activity';
 }
 
 function needsForKind(kind: SubDotDefinition['kind']): string {
   if (kind === 'active') return 'Current app data or a local prototype flow.';
   if (kind === 'needs_data') return 'More input data from the user or a device source.';
   if (kind === 'context') return 'Optional context that can explain data changes.';
-  if (kind === 'planned') return 'A later implementation slice.';
   return 'A later implementation slice and backend support.';
 }
 
@@ -554,7 +559,6 @@ function whyNotActive(kind: SubDotDefinition['kind']): string {
   if (kind === 'active') return 'It is active in the current prototype.';
   if (kind === 'needs_data') return 'Relevant data is missing or incomplete.';
   if (kind === 'context') return 'It is context only and does not directly affect the score.';
-  if (kind === 'planned') return 'The feature is visible, but the functional slice has not been built yet.';
   return 'The concept is visible, but the backend or device wiring is not ready yet.';
 }
 
