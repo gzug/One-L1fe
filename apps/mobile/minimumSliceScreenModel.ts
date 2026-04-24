@@ -86,7 +86,7 @@ export function setOptionalMarkerFieldState(
     ...state,
     draft: {
       ...state.draft,
-      ...(fieldState === 'disabled' ? { [marker]: '' } : {}),
+      ...(fieldState === 'provided' ? {} : { [marker]: '' }),
       [config.metadataKey]: nextMetadata,
     },
   };

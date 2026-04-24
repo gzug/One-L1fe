@@ -12,7 +12,7 @@ scope: repo
 
 ## Verdict
 
-Increment 2 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the signed-in mobile shell now exposes the 5 main tabs, migrates the existing screens into their target tabs, and renders planned-locked Dot affordances from the static Dot catalog. Mobile typecheck, domain assertions, and Expo web export pass locally.
+Increment 3 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the mobile shell now exposes the full visible Dot/Sub-Dot structure, keeps unfinished areas tappable with explicit status labels, and adds the Nutrition prototype path with approximate estimate output. Mobile typecheck, domain assertions, and Expo web export pass locally.
 
 ## Active Refactor
 
@@ -45,12 +45,29 @@ Increment 2 of the Dot/Score refactor is implemented locally on `claude/opus-ref
   - `npm run test:domain`
   - `npm --prefix apps/mobile run export:web`
 
+### Increment 3 — Visible Dot/Sub-Dot Prototype ✅
+- `apps/mobile/App.tsx` now renders the full visible Dot/Sub-Dot structure for all five main dots.
+- Sub-dots are visible, tappable, and status-aware with `ready`, `needs_update`, `missing`, `excluded`, and `planned_locked` labels.
+- The following sub-dot paths now open visible detail panes:
+  - One L1fe Score
+  - Current Update
+  - Blood / Biomarkers
+  - Nutrition
+  - Wearable Sync
+- Added `packages/domain/dotStructure.ts` and assertions so the structure is centralized and testable.
+- Added `packages/domain/nutritionEstimate.ts` plus assertions for bounded confidence and uncertainty-aware mock nutrition output.
+- Added web-safe stubs for wearable permission gating so Expo web no longer trips on native-only imports.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+  - `npm --prefix apps/mobile run export:web`
+
 ## Next Step
 
-**Increment 3 — visual/runtime polish decision**
-- Run the signed-in Expo app on web or device and verify the 5-tab shell visually, especially the fixed top card + embedded `WeeklyCheckinScreen` layout on small screens.
-- Decide whether the 5-tab shell should stay as a custom React Native tab bar for V1 or move to a navigation library after more screens exist.
-- Then wire the first read-only One L1fe score display from Increment 1 domain helpers, without persisting score state.
+**Increment 4 — tighten prototype edges**
+- Add one explicit `excluded` visible sub-dot state in the UI structure if needed for a sharper distinction from `missing`.
+- Decide whether the nutrition prototype should accept a real image picker on Android/web or stay as a UI-only flow for now.
+- Consider a dedicated `DotOverview` screen if the sub-dot list starts feeling too dense inside the main shell.
 
 ## Pending PRs
 

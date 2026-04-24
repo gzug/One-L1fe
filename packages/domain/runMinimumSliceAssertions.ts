@@ -1,4 +1,5 @@
 import { runContractAssertions } from './contracts.assertions.ts';
+import { runDotStructureAssertions } from './dotStructure.assertions.ts';
 import { runDotCatalogAssertions } from './dots.assertions.ts';
 import { runEvidenceRegistrySeedAssertions } from './evidenceSupabaseSeed.assertions.ts';
 import { runFieldValueStateAssertions } from './fieldValueState.assertions.ts';
@@ -9,6 +10,7 @@ import { runMinimumSliceMobileIntegrationAssertions } from './minimumSliceMobile
 import { runMinimumSliceResultSummaryAssertions } from './minimumSliceResultSummary.assertions.ts';
 import { runMinimumSliceAssertions } from './minimumSlice.assertions.ts';
 import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctionContract.assertions.ts';
+import { runNutritionEstimateAssertions } from './nutritionEstimate.assertions.ts';
 import { runScoreAggregationAssertions } from './scoreAggregation.assertions.ts';
 import { runScoreDisplayAssertions } from './scoreDisplay.assertions.ts';
 import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
@@ -29,9 +31,11 @@ async function main(): Promise<void> {
   runEvidenceRegistrySeedAssertions();
   await runSupabasePersistenceAssertions();
   await runSupabaseRepositoryAssertions();
+  runDotStructureAssertions();
   runDotCatalogAssertions();
   runScoreAggregationAssertions();
   runScoreDisplayAssertions();
+  runNutritionEstimateAssertions();
   console.log('All domain assertions passed.');
 }
 

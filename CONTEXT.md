@@ -21,6 +21,15 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Added `FirstCheckinCard` and reusable `LockedFeatureCard`; planned-locked Dot cards render from the static Dot catalog; Settings appears in a static menu card
 - Verified `npm --prefix apps/mobile run typecheck`, `npm run test:domain`, and `npm --prefix apps/mobile run export:web`
 
+## 2026-04-24 — Codex (Increment 3 visible Dot/Sub-Dot prototype)
+
+- Added `packages/domain/dotStructure.ts` for the visible main-dot and sub-dot hierarchy
+- Added `packages/domain/nutritionEstimate.ts` for bounded mock nutrition estimates with confidence, assumptions, and uncertainty notes
+- Reworked `apps/mobile/App.tsx` into a Dot browser shell with tappable sub-dots and detail panes
+- Added `apps/mobile/NutritionScreen.tsx` for the UI-only nutrition prototype path
+- Added web-safe stubs for Health Connect permission gating on web
+- Verified `npm --prefix apps/mobile run typecheck`, `npm run test:domain`, `npm --prefix apps/mobile run export:web`, and a live `localhost:19006` response
+
 ## 2026-04-24 — Perplexity (repo cleanup — Block 1)
 
 - Merged PR #106: aligned AGENTS.md, session-workflow, openclaw, README with memory-system-v2
