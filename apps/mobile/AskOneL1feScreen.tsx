@@ -5,6 +5,7 @@ import {
 } from '../../packages/domain/askOneL1fe.ts';
 import type { AskOneL1feAnswer } from '../../packages/domain/askOneL1fe.ts';
 import { createSyntheticDemoAskOneL1feContext } from '../../packages/domain/syntheticDemoData.ts';
+import { colors, radius, shadow, spacing, touchTarget, type } from './src/theme/tokens.ts';
 
 interface AskOneL1feScreenProps {
   initialQuestion?: string;
@@ -33,7 +34,7 @@ export default function AskOneL1feScreen({ initialQuestion = '' }: AskOneL1feScr
           placeholder="Ask about your health data..."
           multiline
           style={styles.input}
-          placeholderTextColor="#6b7280"
+          placeholderTextColor={colors.textMuted}
         />
         <Pressable onPress={() => setSubmittedQuestion(question)} style={styles.button}>
           <Text style={styles.buttonText}>Ask</Text>
@@ -89,58 +90,104 @@ function AnswerCard({ answer }: { answer: AskOneL1feAnswer }): React.JSX.Element
 }
 
 const styles = StyleSheet.create({
-  stack: { gap: 14 },
+  stack: { gap: spacing.lg },
   card: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
     borderWidth: 1,
-    gap: 12,
-    padding: 14,
+    gap: spacing.md,
+    padding: spacing.lg,
+    ...shadow.card,
   },
-  title: { color: '#152033', fontSize: 20, fontWeight: '800' },
-  sectionTitle: { color: '#152033', fontSize: 15, fontWeight: '800' },
-  body: { color: '#24324a', fontSize: 14, lineHeight: 20 },
+  title: {
+    color: colors.textPrimary,
+    fontSize: type.size.greetingLine,
+    fontWeight: type.weight.semibold,
+    lineHeight: 30,
+  },
+  sectionTitle: {
+    color: colors.warmCoral,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
+    textTransform: 'uppercase',
+  },
+  body: {
+    color: colors.textSecondary,
+    fontSize: type.size.body,
+    lineHeight: 21,
+  },
   input: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#c8d3e1',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.input,
     borderWidth: 1,
-    color: '#152033',
-    fontSize: 15,
+    color: colors.textPrimary,
+    fontSize: type.size.body,
     minHeight: 86,
-    padding: 12,
+    padding: spacing.lg,
     textAlignVertical: 'top',
   },
   button: {
     alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 8,
-    paddingVertical: 12,
+    backgroundColor: colors.warmCoral,
+    borderRadius: radius.pill,
+    minHeight: touchTarget.preferred,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
   },
-  buttonText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
+  buttonText: {
+    color: colors.textInverse,
+    fontSize: type.size.body,
+    fontWeight: type.weight.semibold,
+  },
   metricRow: {
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
     borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: spacing.md,
   },
-  metricLabel: { color: '#52607a', fontSize: 12, fontWeight: '800', textTransform: 'uppercase' },
-  metricValue: { color: '#152033', fontSize: 16, fontWeight: '800' },
+  metricLabel: {
+    color: colors.textMuted,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
+    textTransform: 'uppercase',
+  },
+  metricValue: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
+  },
   sourceRow: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
     borderWidth: 1,
-    gap: 4,
-    padding: 12,
+    gap: spacing.xs,
+    padding: spacing.md,
   },
-  sourceTitle: { color: '#152033', fontSize: 14, fontWeight: '800' },
-  sourceMeta: { color: '#52607a', fontSize: 12, lineHeight: 17 },
-  sourceSummary: { color: '#24324a', fontSize: 13, lineHeight: 18 },
-  bullet: { color: '#24324a', fontSize: 13, lineHeight: 19 },
+  sourceTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.body,
+    fontWeight: type.weight.semibold,
+  },
+  sourceMeta: {
+    color: colors.textMuted,
+    fontSize: type.size.disclaimer,
+    lineHeight: 17,
+  },
+  sourceSummary: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 18,
+  },
+  bullet: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 19,
+  },
 });

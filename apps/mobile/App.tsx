@@ -34,6 +34,8 @@ import AskOneL1feScreen from './AskOneL1feScreen.tsx';
 import FirstRunGuideOverlay from './FirstRunGuideOverlay.tsx';
 import { getFirstRunGuideCompleted, setFirstRunGuideCompleted } from './firstRunGuideStorage.ts';
 import { captureAppError, initSentry } from './sentry';
+import { DotIcon } from './src/icons/DotIcons.tsx';
+import { colors, radius, shadow, spacing, touchTarget, type } from './src/theme/tokens.ts';
 import { SYNTHETIC_DEMO_SNAPSHOT } from '../../packages/domain/syntheticDemoData.ts';
 import type { SyntheticDemoHabitLink } from '../../packages/domain/syntheticDemoData.ts';
 
@@ -290,92 +292,115 @@ function renderHome(
       <View style={styles.homeHeader}>
         <View style={styles.titleRow}>
           <View>
-            <Text style={styles.eyebrow}>One L1fe</Text>
-            <Text style={styles.mainTitle}>Home</Text>
+            <Text style={styles.greetingLine}>Good Morning,</Text>
+            <Text style={styles.greetingName}>Alex</Text>
           </View>
-          <View style={styles.headerActions}>
-            <Pressable onPress={onStartGuide} style={styles.helpButton} accessibilityLabel="Open guide">
-              <Text style={styles.helpButtonText}>i</Text>
-            </Pressable>
-            <Pressable onPress={() => openScreen('menu')} style={styles.iconButton} accessibilityLabel="Open menu">
-              <Text style={styles.iconButtonText}>Menu</Text>
-            </Pressable>
-          </View>
+          <Pressable onPress={onStartGuide} style={styles.helpButton} accessibilityLabel="Open guide">
+            <Text style={styles.helpButtonText}>i</Text>
+          </Pressable>
         </View>
-        <Text style={styles.mainSubtitle}>
-          Your central score surface. Only score-capable domains are shown in the orbit.
-        </Text>
       </View>
 
-      <View style={styles.scorePanel}>
+      <View style={styles.heroCard}>
         <Text style={styles.demoBadge}>{SYNTHETIC_DEMO_SNAPSHOT.periodLabel}</Text>
-        <Text style={styles.scoreLabel}>One L1fe Score</Text>
-        <Text style={styles.scoreValue}>{SYNTHETIC_DEMO_SNAPSHOT.oneL1feScore}</Text>
-        <Text style={styles.scoreMessage}>
-          {SYNTHETIC_DEMO_SNAPSHOT.currentUpdate}
-        </Text>
-      </View>
-
-      <View style={styles.askCard}>
-        <Text style={styles.sectionTitle}>Ask One L1fe</Text>
-        <Text style={styles.detailText}>
-          Ask questions about your available data. Answers must show sources and will not invent missing values.
-        </Text>
-        <TextInput
-          value={askDraft}
-          onChangeText={setAskDraft}
-          placeholder="Ask about your health data..."
-          style={styles.askInput}
-          placeholderTextColor="#6b7280"
-          multiline
-        />
-        <Pressable onPress={() => openScreen('ask_one_l1fe')} style={styles.askButton}>
-          <Text style={styles.askButtonText}>Ask One L1fe</Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.orbitShell}>
-        <View style={styles.centerOrb}>
-          <Text style={styles.centerOrbTitle}>One L1fe</Text>
-          <Text style={styles.centerOrbText}>Guide, not diagnosis</Text>
+        <View style={styles.heroScoreRow}>
+          <Text style={styles.heroScoreValue}>{SYNTHETIC_DEMO_SNAPSHOT.oneL1feScore}</Text>
+          <Text style={styles.heroScoreDenom}>/100</Text>
         </View>
-        <View style={styles.orbitGrid}>
-          {orbitDisplay.map((dot) => (
+        <View style={styles.heroStatusRow}>
+          <Text style={styles.heroVerdict}>{SYNTHETIC_DEMO_SNAPSHOT.heroVerdict}</Text>
+          <Text style={styles.heroDelta}>{SYNTHETIC_DEMO_SNAPSHOT.heroDelta}</Text>
+        </View>
+        <Text style={styles.heroHeadline}>{SYNTHETIC_DEMO_SNAPSHOT.currentUpdateHeadline}</Text>
+        <View style={styles.heroMetaRow}>
+          <View style={styles.heroMetaPill}>
+            <Text style={styles.heroMetaLabel}>Coverage</Text>
+            <Text style={styles.heroMetaValue}>{SYNTHETIC_DEMO_SNAPSHOT.dataCoveragePercent}%</Text>
+          </View>
+          <View style={styles.heroMetaPill}>
+            <Text style={styles.heroMetaLabel}>Confidence</Text>
+            <Text style={styles.heroMetaValue}>{SYNTHETIC_DEMO_SNAPSHOT.confidenceLabel}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.orbitGrid}>
+        {orbitDisplay.map((dot) => {
+          const dotPalette = colors.dot[dot.key];
+          return (
             <Pressable
               key={dot.key}
               onPress={() => openScreen(dot.key)}
-              style={styles.orbitDot}
+              style={[styles.orbitDot, { backgroundColor: dotPalette.tint, borderColor: dotPalette.accent }]}
               accessibilityLabel={`Open ${dot.title}`}
             >
+              <View style={styles.orbitIconShell}>
+                <DotIcon
+                  iconKey={dot.key}
+                  color={dotPalette.accent}
+                  size={30}
+                  backgroundColor={dotPalette.tint}
+                />
+              </View>
               <Text style={styles.orbitDotTitle}>{dot.title}</Text>
-              <Text style={styles.orbitDotMeta}>{getDemoOrbitDotDisplayLabel(dot)}</Text>
+              <Text style={[styles.orbitDotValue, { color: dotPalette.accent }]}>
+                {getDemoOrbitDotValue(dot)}
+              </Text>
+              <Text style={styles.orbitDotMeta}>{getDemoOrbitDotStateLabel(dot)}</Text>
             </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={styles.updateCard}>
+        <Text style={styles.sectionEyebrow}>Current Update</Text>
+        <Text style={styles.sectionTitle}>{SYNTHETIC_DEMO_SNAPSHOT.currentUpdateHeadline}</Text>
+        <Text style={styles.detailText}>
+          {SYNTHETIC_DEMO_SNAPSHOT.currentUpdate}
+        </Text>
+        <View style={styles.metricList}>
+          {SYNTHETIC_DEMO_SNAPSHOT.metrics.slice(0, 3).map((metric) => (
+            <View key={metric.key} style={styles.metricSummaryRow}>
+              <View style={[styles.trendDot, getTrendStyle(metric.trend)]} />
+              <View style={styles.metricSummaryText}>
+                <Text style={styles.metricSummaryLabel}>{metric.label}</Text>
+                <Text style={styles.metricSummaryValue}>{metric.value}</Text>
+              </View>
+            </View>
           ))}
         </View>
       </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>Current update</Text>
-        {SYNTHETIC_DEMO_SNAPSHOT.metrics.slice(0, 3).map((metric) => (
-          <Text key={metric.key} style={styles.bullet}>
-            - {metric.label}: {metric.value}
-          </Text>
-        ))}
+      <View style={styles.askCard}>
+        <Text style={styles.sectionEyebrow}>Ask One L1fe</Text>
+        <Pressable onPress={() => openScreen('ask_one_l1fe')} style={styles.askInputShell}>
+          <TextInput
+            value={askDraft}
+            onChangeText={setAskDraft}
+            placeholder="Ask about your health data..."
+            style={styles.askInput}
+            placeholderTextColor={colors.textMuted}
+            onSubmitEditing={() => openScreen('ask_one_l1fe')}
+            returnKeyType="search"
+          />
+          <Text style={styles.askArrow}>Ask</Text>
+        </Pressable>
       </View>
 
       <View style={styles.homeActions}>
-        <Pressable onPress={() => openScreen('doctor_prep')} style={styles.primaryAction}>
-          <Text style={styles.primaryActionText}>Doctor Prep</Text>
+        <Pressable onPress={() => openScreen('doctor_prep')} style={styles.actionCard}>
+          <Text style={styles.actionCardTitle}>Doctor Prep</Text>
+          <Text style={styles.actionCardText}>Prepare a sourced summary for appointments.</Text>
         </Pressable>
-        <Pressable onPress={() => openScreen('menu')} style={styles.secondaryAction}>
-          <Text style={styles.secondaryActionText}>Menu</Text>
+        <Pressable onPress={() => openScreen('menu')} style={styles.actionCard}>
+          <Text style={styles.actionCardTitle}>Menu</Text>
+          <Text style={styles.actionCardText}>Profile, settings, score details, and tools.</Text>
         </Pressable>
       </View>
 
-      <View style={styles.infoCard}>
-        <Text style={styles.sectionTitle}>Precision nudge</Text>
+      <View style={styles.disclaimerCard}>
         <Text style={styles.detailText}>
-          Add or update data when available. Missing data can reduce precision, but it should never appear as a score of 0.
+          One L1fe is a guide, not medical advice. Missing data may lower precision, but it should never appear as a score of 0.
         </Text>
       </View>
     </>
@@ -456,9 +481,18 @@ function renderOrbitDotDetail(
 
 function DotDetailHeader({ dot }: { dot: OrbitDotDefinition }): React.JSX.Element {
   const scoreLabel = getDemoOrbitDotDisplayLabel(dot);
+  const dotPalette = colors.dot[dot.key];
   return (
-    <View style={styles.mainHeader}>
-      <Text style={styles.eyebrow}>Dot Detail</Text>
+    <View style={styles.dotDetailHeader}>
+      <View style={[styles.dotDetailIcon, { backgroundColor: dotPalette.tint }]}>
+        <DotIcon
+          iconKey={dot.key}
+          color={dotPalette.accent}
+          size={34}
+          backgroundColor={dotPalette.tint}
+        />
+      </View>
+      <Text style={styles.sectionEyebrow}>Dot Detail</Text>
       <Text style={styles.mainTitle}>{dot.title}</Text>
       <Text style={styles.mainSubtitle}>{dot.description}</Text>
       <View style={styles.metricGrid}>
@@ -601,6 +635,27 @@ function getDemoOrbitDotDisplayLabel(dot: OrbitDotDefinition | OrbitDotDisplay):
   return getOrbitDotDisplayLabel(getOrbitDot(dot.key));
 }
 
+function getDemoOrbitDotValue(dot: OrbitDotDisplay): string {
+  if (dot.key === 'health') return `${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.health}`;
+  if (dot.key === 'mind_and_sleep') return `${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.mindSleep}`;
+  if (dot.key === 'activity') return `${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.activity}`;
+  return getOrbitDotDisplayLabel(getOrbitDot(dot.key));
+}
+
+function getDemoOrbitDotStateLabel(dot: OrbitDotDisplay): string {
+  if (dot.key === 'nutrition') return 'No score effect yet';
+  if (dot.displayState === 'excluded') return 'Excluded';
+  if (dot.displayState === 'coming_soon') return 'Coming Soon';
+  if (dot.displayState === 'no_score_available') return 'No Score available';
+  return 'Score available';
+}
+
+function getTrendStyle(trend: SyntheticDemoHabitLink['direction']) {
+  if (trend === 'improving') return styles.trendImproving;
+  if (trend === 'worse') return styles.trendWorse;
+  return styles.trendStable;
+}
+
 function renderProfile(): React.JSX.Element {
   const sections = [
     {
@@ -726,248 +781,513 @@ function getStatusStyle(status: SubDotDefinition['status']) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f4f7fb' },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  safeArea: { flex: 1, backgroundColor: colors.background },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
   appShell: { flex: 1 },
   body: { flex: 1 },
-  bodyContent: { gap: 14, padding: 16, paddingBottom: 60 },
-  topNav: { flexDirection: 'row', gap: 10 },
-  topNavButton: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+  bodyContent: {
+    gap: spacing.xl,
+    padding: spacing.xl,
+    paddingBottom: spacing.hero,
   },
-  topNavButtonText: { color: '#24324a', fontSize: 13, fontWeight: '800' },
-  homeHeader: { gap: 8 },
-  titleRow: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  headerActions: { alignItems: 'center', flexDirection: 'row', gap: 8 },
-  eyebrow: { color: '#4263eb', fontSize: 12, fontWeight: '800', letterSpacing: 0, textTransform: 'uppercase' },
-  mainHeader: { gap: 6 },
-  mainTitle: { color: '#152033', fontSize: 28, fontWeight: '800' },
-  mainSubtitle: { color: '#52607a', fontSize: 15, lineHeight: 21 },
+  topNav: { flexDirection: 'row', gap: spacing.sm },
+  topNavButton: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    minHeight: touchTarget.minimum,
+    paddingHorizontal: spacing.lg,
+    justifyContent: 'center',
+    ...shadow.soft,
+  },
+  topNavButtonText: {
+    color: colors.textPrimary,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
+  homeHeader: { gap: spacing.xs },
+  titleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  greetingLine: {
+    color: colors.textSecondary,
+    fontSize: type.size.greetingLine,
+    fontWeight: type.weight.regular,
+  },
+  greetingName: {
+    color: colors.textPrimary,
+    fontSize: type.size.greetingName,
+    fontWeight: type.weight.semibold,
+    lineHeight: 40,
+  },
+  eyebrow: {
+    color: colors.warmCoral,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
+  sectionEyebrow: {
+    color: colors.warmCoral,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
+  mainHeader: { gap: spacing.sm },
+  mainTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.greetingLine,
+    fontWeight: type.weight.semibold,
+    lineHeight: 30,
+  },
+  mainSubtitle: {
+    color: colors.textSecondary,
+    fontSize: type.size.body,
+    lineHeight: 21,
+  },
   helpButton: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 999,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    height: 36,
+    height: touchTarget.preferred,
     justifyContent: 'center',
-    width: 36,
+    width: touchTarget.preferred,
+    ...shadow.soft,
   },
-  helpButtonText: { color: '#24324a', fontSize: 15, fontWeight: '900' },
-  iconButton: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
+  helpButtonText: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
   },
-  iconButtonText: { color: '#24324a', fontSize: 13, fontWeight: '800' },
-  scorePanel: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+  heroCard: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.cardLarge,
     borderWidth: 1,
-    gap: 8,
-    padding: 16,
+    gap: spacing.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.xxxl,
+    ...shadow.hero,
   },
   demoBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#eef2ff',
-    borderColor: '#c7d2fe',
-    borderRadius: 999,
+    alignSelf: 'center',
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    color: '#3730a3',
-    fontSize: 11,
-    fontWeight: '800',
+    color: colors.textSecondary,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
     overflow: 'hidden',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    textAlign: 'center',
     textTransform: 'uppercase',
   },
-  scoreLabel: { color: '#52607a', fontSize: 13, fontWeight: '800', textTransform: 'uppercase' },
-  scoreValue: { color: '#152033', fontSize: 26, fontWeight: '800' },
-  scoreMessage: { color: '#52607a', fontSize: 14, lineHeight: 20 },
-  askCard: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+  heroScoreRow: {
+    alignItems: 'flex-end',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  heroScoreValue: {
+    color: colors.textPrimary,
+    fontSize: type.size.heroScore,
+    fontVariant: ['tabular-nums'],
+    fontWeight: type.weight.light,
+    lineHeight: 104,
+  },
+  heroScoreDenom: {
+    color: colors.textMuted,
+    fontSize: type.size.heroScoreDenom,
+    fontWeight: type.weight.regular,
+    lineHeight: 58,
+  },
+  heroStatusRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+  },
+  heroVerdict: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
+  },
+  heroDelta: {
+    backgroundColor: colors.dot.health.tint,
+    borderRadius: radius.pill,
+    color: colors.dot.health.accent,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  heroHeadline: {
+    color: colors.textSecondary,
+    fontSize: type.size.body,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  heroMetaPill: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.pill,
     borderWidth: 1,
-    gap: 10,
-    padding: 14,
+    flexGrow: 1,
+    gap: 2,
+    minWidth: 130,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  heroMetaLabel: {
+    color: colors.textMuted,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.medium,
+  },
+  heroMetaValue: {
+    color: colors.textPrimary,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
+  orbitGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  orbitDot: {
+    borderRadius: radius.card,
+    borderWidth: 1,
+    flexBasis: '47%',
+    flexGrow: 1,
+    gap: spacing.xs,
+    minHeight: 150,
+    padding: spacing.lg,
+    ...shadow.soft,
+  },
+  orbitIconShell: {
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    height: 48,
+    justifyContent: 'center',
+    marginBottom: spacing.xs,
+    width: 48,
+  },
+  orbitDotTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.body,
+    fontWeight: type.weight.semibold,
+  },
+  orbitDotValue: {
+    fontSize: type.size.dotScore,
+    fontVariant: ['tabular-nums'],
+    fontWeight: type.weight.semibold,
+    lineHeight: 27,
+  },
+  orbitDotMeta: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.medium,
+    lineHeight: 18,
+  },
+  updateCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    gap: spacing.md,
+    padding: spacing.xl,
+    ...shadow.card,
+  },
+  metricList: {
+    gap: spacing.sm,
+  },
+  metricSummaryRow: {
+    alignItems: 'flex-start',
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  trendDot: {
+    borderRadius: radius.pill,
+    height: 10,
+    marginTop: 4,
+    width: 10,
+  },
+  trendImproving: { backgroundColor: colors.dot.health.accent },
+  trendStable: { backgroundColor: colors.amber },
+  trendWorse: { backgroundColor: colors.warmPink },
+  metricSummaryText: { flex: 1, gap: 2 },
+  metricSummaryLabel: {
+    color: colors.textPrimary,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
+  metricSummaryValue: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 18,
+  },
+  askCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.lg,
+    ...shadow.card,
+  },
+  askInputShell: {
+    alignItems: 'center',
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.input,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: spacing.sm,
+    minHeight: 58,
+    paddingHorizontal: spacing.lg,
   },
   askInput: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#c8d3e1',
-    borderRadius: 8,
-    borderWidth: 1,
-    color: '#152033',
-    fontSize: 15,
-    minHeight: 58,
-    padding: 12,
-    textAlignVertical: 'top',
-  },
-  askButton: {
-    alignItems: 'center',
-    backgroundColor: '#152033',
-    borderRadius: 8,
-    paddingVertical: 12,
-  },
-  askButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
-  orbitShell: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 14,
-    padding: 14,
-  },
-  centerOrb: {
-    alignItems: 'center',
-    alignSelf: 'center',
-    backgroundColor: '#f8fafc',
-    borderColor: '#4263eb',
-    borderRadius: 999,
-    borderWidth: 2,
-    height: 128,
-    justifyContent: 'center',
-    width: 128,
-  },
-  centerOrbTitle: { color: '#152033', fontSize: 17, fontWeight: '900' },
-  centerOrbText: { color: '#52607a', fontSize: 11, fontWeight: '700', textAlign: 'center' },
-  orbitGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  orbitDot: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#c8d3e1',
-    borderRadius: 8,
-    borderWidth: 1,
-    flexBasis: '47%',
-    flexGrow: 1,
-    minHeight: 92,
-    justifyContent: 'center',
-    gap: 6,
-    padding: 12,
-  },
-  orbitDotTitle: { color: '#152033', fontSize: 16, fontWeight: '800' },
-  orbitDotMeta: { color: '#52607a', fontSize: 13, fontWeight: '700' },
-  homeActions: { flexDirection: 'row', gap: 10 },
-  primaryAction: {
-    alignItems: 'center',
-    backgroundColor: '#4263eb',
-    borderRadius: 8,
+    color: colors.textPrimary,
     flex: 1,
-    paddingVertical: 12,
+    fontSize: type.size.body,
+    minHeight: 48,
+    paddingVertical: spacing.sm,
   },
-  primaryActionText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
-  secondaryAction: {
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+  askArrow: {
+    color: colors.warmCoral,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
+  homeActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  actionCard: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
     borderWidth: 1,
     flex: 1,
-    paddingVertical: 12,
+    gap: spacing.xs,
+    minHeight: 104,
+    padding: spacing.lg,
+    ...shadow.soft,
   },
-  secondaryActionText: { color: '#24324a', fontSize: 14, fontWeight: '800' },
-  screenStack: { gap: 14 },
-  infoCard: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+  actionCardTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
+  },
+  actionCardText: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 18,
+  },
+  disclaimerCard: {
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
     borderWidth: 1,
-    gap: 8,
-    padding: 14,
+    padding: spacing.lg,
   },
+  screenStack: { gap: spacing.lg },
   sectionCard: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
     borderWidth: 1,
-    gap: 12,
-    padding: 14,
+    gap: spacing.md,
+    padding: spacing.lg,
+    ...shadow.soft,
   },
   warningCard: {
-    backgroundColor: '#fff7ed',
-    borderColor: '#fed7aa',
-    borderRadius: 8,
+    backgroundColor: '#FFF4E6',
+    borderColor: colors.softApricot,
+    borderRadius: radius.card,
     borderWidth: 1,
-    padding: 14,
+    padding: spacing.lg,
   },
-  warningText: { color: '#7c2d12', fontSize: 13, lineHeight: 19 },
-  sectionTitle: { color: '#152033', fontSize: 16, fontWeight: '800' },
-  helperText: { color: '#52607a', fontSize: 12, lineHeight: 17 },
-  metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingTop: 4 },
+  warningText: {
+    color: '#7A3F11',
+    fontSize: type.size.meta,
+    lineHeight: 19,
+  },
+  sectionTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
+    lineHeight: 23,
+  },
+  helperText: {
+    color: colors.textSecondary,
+    fontSize: type.size.disclaimer,
+    lineHeight: 17,
+  },
+  metricGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    paddingTop: spacing.xs,
+  },
   metricTile: {
-    backgroundColor: '#ffffff',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
     borderWidth: 1,
     flexBasis: '47%',
     flexGrow: 1,
-    gap: 4,
-    padding: 10,
+    gap: spacing.xs,
+    padding: spacing.md,
   },
-  metricLabel: { color: '#52607a', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  metricValue: { color: '#152033', fontSize: 13, fontWeight: '800' },
-  subDotList: { gap: 10 },
-  subDotRow: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 12,
-    gap: 4,
-  },
-  subDotRowActive: {
-    backgroundColor: '#eef2ff',
-    borderColor: '#4263eb',
-  },
-  subDotTitleRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'space-between' },
-  subDotTitle: { color: '#152033', fontSize: 15, fontWeight: '800', flexShrink: 1 },
-  subDotDescription: { color: '#52607a', fontSize: 13, lineHeight: 18 },
-  subDotMeta: { color: '#24324a', fontSize: 12, lineHeight: 16 },
-  statusPill: {
-    borderRadius: 999,
-    overflow: 'hidden',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    fontSize: 11,
-    fontWeight: '800',
+  metricLabel: {
+    color: colors.textMuted,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
     textTransform: 'uppercase',
   },
-  status_ready: { backgroundColor: '#d1fae5', color: '#065f46' },
-  status_needs: { backgroundColor: '#fef3c7', color: '#92400e' },
-  status_missing: { backgroundColor: '#e2e8f0', color: '#334155' },
-  status_excluded: { backgroundColor: '#e5e7eb', color: '#4b5563' },
-  status_coming: { backgroundColor: '#e0e7ff', color: '#3730a3' },
-  detailStack: { gap: 10 },
-  detailTitle: { color: '#152033', fontSize: 18, fontWeight: '800' },
-  detailText: { color: '#24324a', fontSize: 14, lineHeight: 20 },
-  detailMeta: { color: '#52607a', fontSize: 12, lineHeight: 17 },
+  metricValue: {
+    color: colors.textPrimary,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
+  subDotList: { gap: spacing.sm },
+  subDotRow: {
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
+    borderWidth: 1,
+    gap: spacing.xs,
+    padding: spacing.md,
+  },
+  subDotRowActive: {
+    backgroundColor: '#FFF2EA',
+    borderColor: colors.warmCoral,
+  },
+  subDotTitleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    justifyContent: 'space-between',
+  },
+  subDotTitle: {
+    color: colors.textPrimary,
+    flexShrink: 1,
+    fontSize: type.size.body,
+    fontWeight: type.weight.semibold,
+  },
+  subDotDescription: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 18,
+  },
+  subDotMeta: {
+    color: colors.textSecondary,
+    fontSize: type.size.disclaimer,
+    lineHeight: 16,
+  },
+  statusPill: {
+    borderRadius: radius.pill,
+    fontSize: type.size.disclaimer,
+    fontWeight: type.weight.semibold,
+    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    textTransform: 'uppercase',
+  },
+  status_ready: { backgroundColor: colors.dot.health.tint, color: colors.dot.health.accent },
+  status_needs: { backgroundColor: colors.dot.nutrition.tint, color: '#9A6818' },
+  status_missing: { backgroundColor: '#EEF1F2', color: colors.textSecondary },
+  status_excluded: { backgroundColor: '#E8E4DF', color: colors.textSecondary },
+  status_coming: { backgroundColor: colors.dot.mind_and_sleep.tint, color: colors.dot.mind_and_sleep.accent },
+  detailStack: { gap: spacing.md },
+  detailTitle: {
+    color: colors.textPrimary,
+    fontSize: type.size.cardTitle,
+    fontWeight: type.weight.semibold,
+  },
+  detailText: {
+    color: colors.textSecondary,
+    fontSize: type.size.body,
+    lineHeight: 21,
+  },
+  detailMeta: {
+    color: colors.textSecondary,
+    fontSize: type.size.meta,
+    lineHeight: 18,
+  },
   menuRow: {
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
     borderWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 12,
+    padding: spacing.md,
   },
-  menuTitle: { color: '#152033', fontSize: 14, fontWeight: '800', flexShrink: 1 },
-  menuArrow: { color: '#4263eb', fontSize: 12, fontWeight: '800' },
+  menuTitle: {
+    color: colors.textPrimary,
+    flexShrink: 1,
+    fontSize: type.size.body,
+    fontWeight: type.weight.semibold,
+  },
+  menuArrow: {
+    color: colors.warmCoral,
+    fontSize: type.size.meta,
+    fontWeight: type.weight.semibold,
+  },
   staticRow: {
-    backgroundColor: '#f8fafc',
-    borderColor: '#d9e2f2',
-    borderRadius: 8,
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.chip,
     borderWidth: 1,
-    gap: 4,
-    padding: 12,
+    gap: spacing.xs,
+    padding: spacing.md,
   },
-  bullet: { color: '#24324a', fontSize: 14, lineHeight: 20 },
+  bullet: {
+    color: colors.textSecondary,
+    fontSize: type.size.body,
+    lineHeight: 21,
+  },
+  dotDetailHeader: {
+    backgroundColor: colors.surface,
+    borderColor: colors.borderSoft,
+    borderRadius: radius.card,
+    borderWidth: 1,
+    gap: spacing.sm,
+    padding: spacing.lg,
+    ...shadow.card,
+  },
+  dotDetailIcon: {
+    alignItems: 'center',
+    borderRadius: radius.pill,
+    height: 58,
+    justifyContent: 'center',
+    width: 58,
+  },
 });

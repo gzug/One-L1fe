@@ -12,7 +12,7 @@ scope: repo
 
 ## Verdict
 
-Increment 7 of the Dot/Score refactor is implemented on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home includes sourced Ask One L1fe, synthetic 90-day presentation data, context-only Habit links, field-status controls for every biomarker value, and a skipable first-run guided overlay. This sits on top of the pushed refactor/stability slice that hardens the Source-of-Truth between `dots.ts` (domain/score catalog) and `dotStructure.ts` (UI view model). Mobile typecheck, domain assertions, and Expo web export passed locally before push.
+Increment 8 of the Dot/Score refactor is implemented on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home now uses the warm One L1fe design tokens, a greeting header, score hero, 2x2 score-capable Dot grid with icons, source-gated Ask entry, action cards, and Home disclaimer. Ask One L1fe and the first-run guide were restyled to the same system. A simple remote Android sideload guide for the brother/OnePlus 13R tester is drafted in `docs/ops/sideload-guide.md`. Mobile typecheck, domain assertions, Expo web export, and `git diff --check` passed locally.
 
 ## Active Refactor
 
@@ -20,7 +20,9 @@ Increment 7 of the Dot/Score refactor is implemented on `claude/opus-refactor-on
 - **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
 - **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
 - **Remote baseline before guided demo:** `d7878ef` — refactor(domain): harden UI/domain Dot boundary
-- **Working tree:** Increment 7 guided demo onboarding commit being pushed on the same branch
+- **Design seed baseline:** `201f315` — feat(mobile): seed design tokens, dot icons, hero demo fields
+- **Latest app/design work:** `feat(mobile): finish home design refresh`
+- **Working tree:** expected clean after committing current design/docs updates
 
 ## Completed Increments
 
@@ -108,13 +110,29 @@ Increment 7 of the Dot/Score refactor is implemented on `claude/opus-refactor-on
   - `npm --prefix apps/mobile run typecheck`
   - `npm run test:domain`
 
+### Increment 8 — Home Design Refresh 🚧
+- `apps/mobile/src/theme/tokens.ts` and `apps/mobile/src/icons/DotIcons.tsx` provide the warm visual system and dependency-free Dot icons for Health, Nutrition, Mind & Sleep, and Activity.
+- `apps/mobile/App.tsx` now renders the Home surface with `Good Morning, Alex`, a single guide/info button, score hero, coverage/confidence meta, stable 2x2 Dot grid, current-update card, Ask entry, Doctor Prep/Menu action cards, and a Home disclaimer.
+- Nutrition stays visible/tappable but unscored; Doctor Prep and Menu remain Home actions, not Orbit Dots.
+- `apps/mobile/AskOneL1feScreen.tsx` and `apps/mobile/FirstRunGuideOverlay.tsx` were restyled to the same tokenized warm UI.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+  - `npm --prefix apps/mobile run export:web`
+  - `git diff --check`
+
+### Docs — Brother Android Sideload Guide 🚧
+- `docs/ops/sideload-guide.md` rewritten as a simple end-user guide for installing the APK on a OnePlus 13R without same Wi-Fi or physical access.
+- Covers receiving the EAS APK link, downloading on phone, allowing unknown app installs, logging in, first-run guide, Garmin watch pairing, Garmin Connect sync, Garmin-to-Health-Connect sharing, Health-Connect-to-One-L1fe permissions, OnePlus battery settings, updates, and troubleshooting.
+- No validation needed; docs-only change.
+
 ## Next Step
 
-**Next — real source integration + route polish**
+**Next — route polish + real source integration**
+- Live-check the new warm Home layout on Android/Expo Web for small-screen spacing and text fit.
+- Split `App.tsx` into focused screen files before adding more Home behavior.
 - Replace synthetic Ask facts with real latest biomarker evaluation, wearable summaries, and profile/source settings when those flows are proven.
 - Live-check whether the guided overlay feels too long on mobile; 7 steps is the current upper limit.
-- Live-test the new Ask/Home flow in Expo Web and on Android when available.
-- Split `App.tsx` into focused screen files before adding more Home behavior.
 
 ## Completed follow-up — Refactor/Stability slice
 
