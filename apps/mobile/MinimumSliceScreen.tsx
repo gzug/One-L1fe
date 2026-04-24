@@ -35,6 +35,9 @@ const FIELD_ORDER = [
   keyboardType: KeyboardTypeOptions;
 }>;
 
+const FIELD_STATUS_HELPER_TEXT =
+  'Choose how each data point should be handled.\n\nActive values are used in calculations.\nMissing values may reduce score precision.\nNot provided values are intentionally excluded and do not affect your score.';
+
 type FieldKey = (typeof FIELD_ORDER)[number]['key'];
 
 function renderTopDrivers(state: MinimumSliceScreenModel): string {
@@ -145,6 +148,7 @@ export default function MinimumSliceScreen({
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.statusHelper}>{FIELD_STATUS_HELPER_TEXT}</Text>
         {FIELD_ORDER.map((field) => (
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
@@ -422,6 +426,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   fieldHint: {
+    color: '#52607a',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  statusHelper: {
     color: '#52607a',
     fontSize: 13,
     lineHeight: 18,

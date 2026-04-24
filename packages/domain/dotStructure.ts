@@ -1,6 +1,22 @@
-import type { DotStatus, TabKey } from './dots.ts';
+import type { DotStatus } from './dots.ts';
+
+export type OrbitDotKey = 'health' | 'nutrition' | 'mind_sleep' | 'activity';
+
+export type AppScreenKey =
+  | 'one_l1fe'
+  | OrbitDotKey
+  | 'doctor_prep'
+  | 'menu'
+  | 'profile'
+  | 'how_score_works';
 
 export type DotVisibilityStatus = DotStatus;
+
+export type OrbitDisplayState =
+  | 'score_available'
+  | 'no_score_available'
+  | 'coming_soon'
+  | 'excluded';
 
 export interface SubDotDefinition {
   key: string;
@@ -8,201 +24,245 @@ export interface SubDotDefinition {
   description: string;
   status: DotVisibilityStatus;
   affectsScore: boolean;
-  tabKey: TabKey;
-  kind: 'active' | 'planned' | 'needs_data' | 'coming_soon';
+  kind: 'active' | 'planned' | 'needs_data' | 'coming_soon' | 'context';
 }
 
-export interface MainDotDefinition {
-  key: TabKey;
+export interface OrbitDotDefinition {
+  key: OrbitDotKey;
   title: string;
   description: string;
   status: DotVisibilityStatus;
+  displayState: OrbitDisplayState;
+  score: number | null;
   subDots: readonly SubDotDefinition[];
 }
 
-export const MAIN_DOT_STRUCTURE: readonly MainDotDefinition[] = [
+export interface MenuEntryDefinition {
+  key: AppScreenKey;
+  title: string;
+  group: 'primary' | 'account' | 'education';
+}
+
+export const ORBIT_DOTS: readonly OrbitDotDefinition[] = [
   {
-    key: 'one_l1fe',
-    title: 'One L1fe',
-    description: 'Your score, update, freshness, and AI entry point.',
-    status: 'ready',
+    key: 'health',
+    title: 'Health',
+    description: 'Biomarkers, documents, measurements, and medical context.',
+    status: 'missing',
+    displayState: 'no_score_available',
+    score: null,
     subDots: [
       {
-        key: 'one_l1fe_score',
-        title: 'One L1fe Score',
-        description: 'Read-only summary of the current prototype score output.',
+        key: 'blood_biomarkers',
+        title: 'Blood / Biomarkers',
+        description: 'Core lab and biomarker panel.',
         status: 'ready',
         affectsScore: true,
-        tabKey: 'one_l1fe',
         kind: 'active',
       },
       {
-        key: 'current_update',
-        title: 'Current Update',
-        description: 'A brief snapshot of what changed most recently.',
+        key: 'body_measurements',
+        title: 'Body Measurements',
+        description: 'Weight, height, waist, and other body metrics.',
         status: 'needs_update',
-        affectsScore: false,
-        tabKey: 'one_l1fe',
+        affectsScore: true,
         kind: 'needs_data',
       },
       {
-        key: 'data_freshness',
-        title: 'Data Freshness',
-        description: 'Shows which areas are current, stale, or missing.',
-        status: 'ready',
-        affectsScore: true,
-        tabKey: 'one_l1fe',
-        kind: 'active',
-      },
-      {
-        key: 'ask_one_l1fe',
-        title: 'Ask One L1fe',
-        description: 'Prototype prompt surface for later assistant workflows.',
+        key: 'medical_documents',
+        title: 'Medical Documents',
+        description: 'Uploads and sourced medical files.',
         status: 'planned_locked',
         affectsScore: false,
-        tabKey: 'one_l1fe',
         kind: 'coming_soon',
       },
       {
-        key: 'dot_overview',
-        title: 'Dot Overview',
-        description: 'Navigate the complete structure from one place.',
-        status: 'ready',
+        key: 'dna',
+        title: 'DNA',
+        description: 'Genetic context for later use.',
+        status: 'planned_locked',
         affectsScore: false,
-        tabKey: 'one_l1fe',
-        kind: 'active',
+        kind: 'coming_soon',
       },
       {
-        key: 'confidence_coverage',
-        title: 'Confidence / Coverage',
-        description: 'Explains how complete and reliable the current view is.',
+        key: 'urine',
+        title: 'Urine',
+        description: 'Future urinary markers and summaries.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+      {
+        key: 'stool_microbiome',
+        title: 'Stool / Microbiome',
+        description: 'Microbiome and stool-based signals.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+      {
+        key: 'medication',
+        title: 'Medication',
+        description: 'Medication context and history.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+      {
+        key: 'supplements',
+        title: 'Supplements',
+        description: 'Supplement tracking and context.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+    ],
+  },
+  {
+    key: 'nutrition',
+    title: 'Nutrition',
+    description: 'Meal photo and text-based nutrition estimate prototype.',
+    status: 'planned_locked',
+    displayState: 'coming_soon',
+    score: null,
+    subDots: [
+      {
+        key: 'photo_to_nutrition',
+        title: 'Photo to Nutrition',
+        description: 'Upload or select a meal image for an approximate future estimate.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+      {
+        key: 'nutrition_calculator',
+        title: 'Nutrition Calculator',
+        description: 'Describe a meal and see an approximate lifestyle estimate.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'coming_soon',
+      },
+    ],
+  },
+  {
+    key: 'mind_sleep',
+    title: 'Mind & Sleep',
+    description: 'Sleep, stress, energy, and habit context.',
+    status: 'missing',
+    displayState: 'no_score_available',
+    score: null,
+    subDots: [
+      {
+        key: 'check_in',
+        title: 'Check-in',
+        description: 'Current subjective check-in for energy, stress, and sleep context.',
         status: 'needs_update',
         affectsScore: true,
-        tabKey: 'one_l1fe',
+        kind: 'active',
+      },
+      {
+        key: 'sleep',
+        title: 'Sleep',
+        description: 'Sleep duration, quality, and recovery context.',
+        status: 'missing',
+        affectsScore: true,
         kind: 'needs_data',
       },
-    ],
-  },
-  {
-    key: 'doctor_prep',
-    title: 'Doctor Prep',
-    description: 'Visit prep, questions, and export.',
-    status: 'ready',
-    subDots: [
       {
-        key: 'doctor_summary',
-        title: 'Doctor Summary',
-        description: 'Short summary for a clinical visit.',
-        status: 'ready',
-        affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'active',
+        key: 'stress_energy',
+        title: 'Stress & Energy',
+        description: 'Mental load, stress, mood, and energy signals.',
+        status: 'missing',
+        affectsScore: true,
+        kind: 'needs_data',
       },
       {
-        key: 'what_to_show_your_doctor',
-        title: 'What to Show Your Doctor',
-        description: 'Curated signals to bring to the visit.',
+        key: 'habits_context',
+        title: 'Habits & Context',
+        description: 'Habits may explain changes in your data, but do not directly affect your score.',
         status: 'planned_locked',
         affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'coming_soon',
+        kind: 'context',
       },
       {
-        key: 'questions_to_ask',
-        title: 'Questions to Ask',
-        description: 'Conversation prompts for the appointment.',
-        status: 'ready',
-        affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'active',
-      },
-      {
-        key: 'tests_to_discuss',
-        title: 'Tests to Discuss',
-        description: 'Potential follow-up labs or measurements.',
+        key: 'caffeine',
+        title: 'Caffeine',
+        description: 'Caffeine timing and intake context.',
         status: 'planned_locked',
         affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'coming_soon',
+        kind: 'context',
       },
       {
-        key: 'sources_and_dates',
-        title: 'Sources & Dates',
-        description: 'Traceability for all visible information.',
-        status: 'ready',
-        affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'active',
-      },
-      {
-        key: 'export',
-        title: 'Export',
-        description: 'Generate a visit-ready summary export.',
+        key: 'alcohol',
+        title: 'Alcohol',
+        description: 'Alcohol context and moderation tracking.',
         status: 'planned_locked',
         affectsScore: false,
-        tabKey: 'doctor_prep',
-        kind: 'coming_soon',
+        kind: 'context',
       },
-    ],
-  },
-  {
-    key: 'health_data',
-    title: 'Health Data',
-    description: 'Biomarkers, documents, body, and materials.',
-    status: 'ready',
-    subDots: [
-      { key: 'blood_biomarkers', title: 'Blood / Biomarkers', description: 'Core lab and biomarker panel.', status: 'ready', affectsScore: true, tabKey: 'health_data', kind: 'active' },
-      { key: 'medical_documents', title: 'Medical Documents', description: 'Uploads and sourced medical files.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'dna', title: 'DNA', description: 'Genetic context for later use.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'urine', title: 'Urine', description: 'Future urinary markers and summaries.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'stool_microbiome', title: 'Stool / Microbiome', description: 'Microbiome and stool-based signals.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'medication', title: 'Medication', description: 'Medication context and history.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'supplements', title: 'Supplements', description: 'Supplement tracking and context.', status: 'planned_locked', affectsScore: false, tabKey: 'health_data', kind: 'coming_soon' },
-      { key: 'body_measurements', title: 'Body Measurements', description: 'Weight, size, and body metrics.', status: 'needs_update', affectsScore: true, tabKey: 'health_data', kind: 'needs_data' },
-    ],
-  },
-  {
-    key: 'lifestyle',
-    title: 'Lifestyle',
-    description: 'Habits, recovery, and nutrition.',
-    status: 'ready',
-    subDots: [
-      { key: 'nutrition', title: 'Nutrition', description: 'Meal photo or description with approximate estimate.', status: 'ready', affectsScore: false, tabKey: 'lifestyle', kind: 'active' },
-      { key: 'mind_and_sleep', title: 'Mind & Sleep', description: 'Mental load, sleep, energy, and stress context.', status: 'ready', affectsScore: true, tabKey: 'lifestyle', kind: 'active' },
-      { key: 'recovery_illness', title: 'Recovery / Illness', description: 'Recovery or illness context and interruption tracking.', status: 'planned_locked', affectsScore: false, tabKey: 'lifestyle', kind: 'coming_soon' },
-      { key: 'hydration', title: 'Hydration', description: 'Daily fluid context and notes.', status: 'planned_locked', affectsScore: false, tabKey: 'lifestyle', kind: 'coming_soon' },
-      { key: 'caffeine', title: 'Caffeine', description: 'Caffeine timing and intake context.', status: 'planned_locked', affectsScore: false, tabKey: 'lifestyle', kind: 'coming_soon' },
-      { key: 'alcohol', title: 'Alcohol', description: 'Alcohol context and moderation tracking.', status: 'planned_locked', affectsScore: false, tabKey: 'lifestyle', kind: 'coming_soon' },
-      { key: 'habits', title: 'Habits', description: 'Habit-level behavior and consistency.', status: 'planned_locked', affectsScore: false, tabKey: 'lifestyle', kind: 'coming_soon' },
+      {
+        key: 'recovery_illness',
+        title: 'Recovery / Illness',
+        description: 'Recovery or illness context and interruption tracking.',
+        status: 'planned_locked',
+        affectsScore: false,
+        kind: 'context',
+      },
     ],
   },
   {
     key: 'activity',
     title: 'Activity',
     description: 'Movement, wearable sync, and recovery signals.',
-    status: 'ready',
+    status: 'missing',
+    displayState: 'no_score_available',
+    score: null,
     subDots: [
-      { key: 'steps', title: 'Steps', description: 'Daily step volume and trend.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'workouts', title: 'Workouts', description: 'Structured exercise sessions.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'active_minutes', title: 'Active Minutes', description: 'Movement intensity across the day.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'resting_heart_rate', title: 'Resting Heart Rate', description: 'Resting recovery and strain signal.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'hrv', title: 'HRV', description: 'Autonomic recovery signal.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'distance', title: 'Distance', description: 'Distance and movement volume.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'calories', title: 'Calories', description: 'Energy expenditure estimate.', status: 'missing', affectsScore: true, tabKey: 'activity', kind: 'needs_data' },
-      { key: 'wearable_sync', title: 'Wearable Sync', description: 'Android-first Health Connect / Garmin sync path.', status: 'ready', affectsScore: false, tabKey: 'activity', kind: 'active' },
+      { key: 'steps', title: 'Steps', description: 'Daily step volume and trend.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'workouts', title: 'Workouts', description: 'Structured exercise sessions.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'active_minutes', title: 'Active Minutes', description: 'Movement intensity across the day.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'resting_heart_rate', title: 'Resting Heart Rate', description: 'Resting recovery and strain signal.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'hrv', title: 'HRV', description: 'Autonomic recovery signal.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'distance', title: 'Distance', description: 'Distance and movement volume.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'calories', title: 'Calories', description: 'Energy expenditure estimate.', status: 'missing', affectsScore: true, kind: 'needs_data' },
+      { key: 'wearable_sync', title: 'Wearable Sync', description: 'Android-first Health Connect / Garmin sync path.', status: 'ready', affectsScore: false, kind: 'active' },
     ],
   },
 ] as const;
 
-export function getMainDotStructure(tabKey: TabKey): MainDotDefinition {
-  const dot = MAIN_DOT_STRUCTURE.find((candidate) => candidate.key === tabKey);
+export const MENU_ENTRIES: readonly MenuEntryDefinition[] = [
+  { key: 'one_l1fe', title: 'One L1fe', group: 'primary' },
+  { key: 'health', title: 'Health', group: 'primary' },
+  { key: 'nutrition', title: 'Nutrition', group: 'primary' },
+  { key: 'mind_sleep', title: 'Mind & Sleep', group: 'primary' },
+  { key: 'activity', title: 'Activity', group: 'primary' },
+  { key: 'doctor_prep', title: 'Doctor Prep', group: 'primary' },
+  { key: 'profile', title: 'Profile', group: 'account' },
+  { key: 'how_score_works', title: 'How the One L1fe Score Works', group: 'education' },
+] as const;
+
+export function getOrbitDot(key: OrbitDotKey): OrbitDotDefinition {
+  const dot = ORBIT_DOTS.find((candidate) => candidate.key === key);
   if (!dot) {
-    throw new Error(`Unknown main dot tab: ${tabKey}`);
+    throw new Error(`Unknown orbit dot: ${key}`);
   }
   return dot;
 }
 
-export function getSubDotsForTab(tabKey: TabKey): readonly SubDotDefinition[] {
-  return getMainDotStructure(tabKey).subDots;
+export function getSubDotsForOrbitDot(key: OrbitDotKey): readonly SubDotDefinition[] {
+  return getOrbitDot(key).subDots;
 }
 
+export function getOrbitDotDisplayLabel(dot: OrbitDotDefinition): string {
+  if (dot.displayState === 'score_available' && dot.score !== null) {
+    return `Score ${Math.round(dot.score)}`;
+  }
+
+  if (dot.displayState === 'coming_soon') return 'Coming Soon';
+  if (dot.displayState === 'excluded') return 'Excluded';
+  return 'No Score available';
+}
+
+export function affectsScoreForStatus(status: DotVisibilityStatus): boolean {
+  return status !== 'planned_locked' && status !== 'excluded';
+}

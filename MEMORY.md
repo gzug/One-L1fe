@@ -34,9 +34,11 @@ Long-term operating memory for **One L1fe (OL)**.
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
 - Mobile auth: `useAuthSession.ts` owns auth-state and `LoginScreen.tsx` owns sign-in.
-- Mobile signed-in shell: `App.tsx` owns the 5-tab V1 navigation surface from the Dot catalog (`One L1fe`, `Doctor Prep`, `Health Data`, `Lifestyle`, `Activity`) plus dev-only `DevInsightScreen` access for `is_dev=true`.
-- Mobile screen placement: `WeeklyCheckinScreen` lives under One L1fe, `MinimumSliceScreen` under Health Data, and `WearableSyncScreen` under Activity behind the Health Connect permission gate.
-- Visible dot structure: `packages/domain/dotStructure.ts` is the canonical UI hierarchy for visible, tappable main dots and sub-dots.
+- Mobile signed-in shell: `App.tsx` owns the One L1fe Home surface. The Home Orbit is user-facing and must only show score-capable domains: `Health`, `Nutrition`, `Mind & Sleep`, and `Activity`.
+- Mobile navigation placement: `Doctor Prep` is an output/preparation action, not an Orbit Dot. `Menu` is backup navigation. `Profile` contains Settings/App Settings. Dev Insight is not user-facing in the current prototype shell.
+- Mobile screen placement: `MinimumSliceScreen` lives under `Health > Blood / Biomarkers`, `WeeklyCheckinScreen` under `Mind & Sleep`, `NutritionScreen` under `Nutrition`, and `WearableSyncScreen` under `Activity` behind the Health Connect permission gate.
+- Visible dot structure: `packages/domain/dotStructure.ts` is the canonical UI hierarchy for visible Orbit Dots, menu entries, and sub-dot detail structure.
+- Habits are context under `Mind & Sleep`; they may explain data changes but must not directly affect One L1fe Score, Dot Scores, or biomarker priority score.
 - Nutrition prototype: `packages/domain/nutritionEstimate.ts` is the canonical mock nutrition estimate helper; estimates must stay approximate and confidence-based, not exact or medical.
 - Load `react-native-url-polyfill/auto` before `@supabase/supabase-js`
 - Signed-out states vs operational auth errors treated separately in `getFreshAccessToken()`

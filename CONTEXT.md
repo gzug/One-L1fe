@@ -30,6 +30,16 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Added web-safe stubs for Health Connect permission gating on web
 - Verified `npm --prefix apps/mobile run typecheck`, `npm run test:domain`, `npm --prefix apps/mobile run export:web`, and a live `localhost:19006` response
 
+## 2026-04-24 — Codex (Increment 4 One L1fe Home Orbit)
+
+- Refactored the mobile shell so One L1fe is Home, not a peer tab
+- Home Orbit now renders only score-capable domains: Health, Nutrition, Mind & Sleep, Activity
+- Removed user-facing Lifestyle, Habits, Doctor Prep, and Dev Insight from the Orbit; Doctor Prep/Menu are Home actions
+- Added Menu entries for One L1fe, Health, Nutrition, Mind & Sleep, Activity, Doctor Prep, Profile, and How the One L1fe Score Works
+- Added Home/Menu affordance on non-Home screens so detail views remain navigable
+- Profile now has a structured V1 placeholder; Nutrition remains tappable but shows Coming Soon/no score effect
+- Verified `npm --prefix apps/mobile run typecheck`, `npm run test:domain`, and `npm --prefix apps/mobile run export:web`
+
 ## 2026-04-24 — Perplexity (repo cleanup — Block 1)
 
 - Merged PR #106: aligned AGENTS.md, session-workflow, openclaw, README with memory-system-v2
@@ -45,10 +55,3 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Prototype hardening: Sentry hook, dev-insight auth-guard, prototype-v1 freeze runbook, secrets audit (clean)
 - Closed stale PRs #96–#98, #100; closed issue #104
 - HEAD at `913d16ec` on main before this session's Block 1+2 commits
-
-## 2026-04-22 — ChatGPT (repo triage)
-
-- Verified GitHub write/admin access for `gzug/One-L1fe`
-- Corrected stale CHECKPOINT next-step: scoring fields already implemented, runtime call-site was real gap
-- Open issues reviewed: #103 (wearable weighting ADR), #102 (normalization ADR) — ADR-heavy, no risky changes made
-- `claude/real-app-install-id` intentionally held

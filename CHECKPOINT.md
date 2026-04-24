@@ -12,14 +12,14 @@ scope: repo
 
 ## Verdict
 
-Increment 3 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the mobile shell now exposes the full visible Dot/Sub-Dot structure, keeps unfinished areas tappable with explicit status labels, and adds the Nutrition prototype path with approximate estimate output. Mobile typecheck, domain assertions, and Expo web export pass locally.
+Increment 4 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the mobile home now uses One L1fe as the central surface, renders only score-capable Orbit Dots (`Health`, `Nutrition`, `Mind & Sleep`, `Activity`), and moves Doctor Prep/Menu/Profile/Score education out of the orbit. Mobile typecheck, domain assertions, and Expo web export pass locally.
 
 ## Active Refactor
 
 - **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
 - **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
 - **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
-- **Working tree:** Increment 2 changes are uncommitted
+- **Working tree:** Increment 4 changes are uncommitted
 
 ## Completed Increments
 
@@ -62,12 +62,26 @@ Increment 3 of the Dot/Score refactor is implemented locally on `claude/opus-ref
   - `npm run test:domain`
   - `npm --prefix apps/mobile run export:web`
 
+### Increment 4 — One L1fe Home Orbit Simplification ✅
+- `apps/mobile/App.tsx` now treats One L1fe as the Home surface instead of a peer tab.
+- The Home Orbit renders only `Health`, `Nutrition`, `Mind & Sleep`, and `Activity`; `Lifestyle`, `Doctor Prep`, `Habits`, and Dev Insight are not orbit dots.
+- `Doctor Prep` and `Menu` are Home actions. Menu contains `One L1fe`, `Health`, `Nutrition`, `Mind & Sleep`, `Activity`, `Doctor Prep`, `Profile`, and `How the One L1fe Score Works`.
+- Non-Home screens include a small Home/Menu affordance so users are not trapped in detail views.
+- `Profile` is visible as a structured placeholder containing basic information, health context, preferences, connected sources, data choices, and app settings.
+- `Nutrition` is visible and tappable but displays `Coming Soon` on the orbit; its detail path keeps the approximate photo/text nutrition prototype and states that it does not affect score yet.
+- `packages/domain/dotStructure.ts` now exposes `ORBIT_DOTS`, `MENU_ENTRIES`, score-display labels, and score-effect helpers for testable navigation structure.
+- `apps/mobile/MinimumSliceScreen.tsx` includes the shared field-status helper copy for Active / Missing / Not provided.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+  - `npm --prefix apps/mobile run export:web`
+
 ## Next Step
 
-**Increment 4 — tighten prototype edges**
-- Add one explicit `excluded` visible sub-dot state in the UI structure if needed for a sharper distinction from `missing`.
-- Decide whether the nutrition prototype should accept a real image picker on Android/web or stay as a UI-only flow for now.
-- Consider a dedicated `DotOverview` screen if the sub-dot list starts feeling too dense inside the main shell.
+**Increment 5 — route polish and device validation**
+- Live-test whether the Home/Menu affordance is enough or whether the app needs persistent bottom navigation.
+- Decide whether Nutrition should stay UI-only or add a real image picker on Android/web.
+- Live-test the new orbit/menu flow in Expo Web and on Android when available.
 
 ## Pending PRs
 
