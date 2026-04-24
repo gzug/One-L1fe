@@ -13,8 +13,8 @@ import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   createOptionalFieldMetadata,
-  getOptionalFieldMetadata,
-  OptionalMinimumSliceMarkerKey,
+  getStatusFieldMetadata,
+  MinimumSliceStatusMarkerKey,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
 
 const FIELD_ORDER = [
@@ -47,8 +47,8 @@ function renderTopDrivers(state: MinimumSliceScreenModel): string {
     : 'none';
 }
 
-function getOptionalMarkerState(state: MinimumSliceScreenModel, marker: OptionalMinimumSliceMarkerKey): 'provided' | 'missing' | 'disabled' {
-  const meta = getOptionalFieldMetadata(state.draft, marker);
+function getMarkerState(state: MinimumSliceScreenModel, marker: MinimumSliceStatusMarkerKey): 'provided' | 'missing' | 'disabled' {
+  const meta = getStatusFieldMetadata(state.draft, marker);
   if (meta?.fieldState === 'disabled') return 'disabled';
   if (meta?.fieldState === 'provided') return 'provided';
   return 'missing';
@@ -66,7 +66,7 @@ export default function MinimumSliceScreen({
   );
   const [localError, setLocalError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [openOptionalMarker, setOpenOptionalMarker] = useState<OptionalMinimumSliceMarkerKey | null>(null);
+  const [openStatusMarker, setOpenStatusMarker] = useState<MinimumSliceStatusMarkerKey | null>(null);
 
   const helperText = useMemo(() => {
     return [
@@ -122,6 +122,22 @@ export default function MinimumSliceScreen({
         patch.magnesiumMeta = createOptionalFieldMetadata('provided');
       }
 
+      if (field === 'apob') {
+        patch.apobMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'ldl') {
+        patch.ldlMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'hba1c') {
+        patch.hba1cMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'glucose') {
+        patch.glucoseMeta = createOptionalFieldMetadata('provided');
+      }
+
       const nextState = controller.patchDraft(patch as Partial<MinimumSliceScreenModel['draft']>);
       setScreenState(nextState);
     },
@@ -129,10 +145,10 @@ export default function MinimumSliceScreen({
   );
 
   const handleOptionalMarkerStateChange = useCallback(
-    (marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): void => {
+    (marker: MinimumSliceStatusMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): void => {
       const nextState = controller.setOptionalMarkerFieldState(marker, fieldState);
       setScreenState(nextState);
-      setOpenOptionalMarker(null);
+      setOpenStatusMarker(null);
     },
     [controller],
   );
@@ -152,46 +168,46 @@ export default function MinimumSliceScreen({
         {FIELD_ORDER.map((field) => (
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
-            {isOptionalFieldKey(field.key) ? (
+            {isStatusFieldKey(field.key) ? (
               <>
                 <View style={styles.inputShell}>
                   <TextInput
-                    editable={getOptionalMarkerState(screenState, field.key) === 'provided'}
+                    editable={getMarkerState(screenState, field.key) === 'provided'}
                     keyboardType={field.keyboardType}
                     onChangeText={(value: string) => handleChange(field.key, value)}
-                    placeholder={getOptionalMarkerState(screenState, field.key) === 'provided' ? undefined : 'Select a status first'}
+                    placeholder={getMarkerState(screenState, field.key) === 'provided' ? undefined : 'Select a status first'}
                     placeholderTextColor="#94a3b8"
                     style={[
                       styles.input,
                       styles.inputShellValue,
-                      getOptionalMarkerState(screenState, field.key) !== 'provided' && styles.inputShellValueDisabled,
+                      getMarkerState(screenState, field.key) !== 'provided' && styles.inputShellValueDisabled,
                     ]}
                     value={screenState.draft[field.key]}
                   />
                   <Pressable
                     onPress={() =>
-                      setOpenOptionalMarker((current) =>
-                        current === field.key ? null : (field.key as OptionalMinimumSliceMarkerKey),
+                      setOpenStatusMarker((current) =>
+                        current === field.key ? null : (field.key as MinimumSliceStatusMarkerKey),
                       )
                     }
                     style={[
                       styles.modeButton,
-                      openOptionalMarker === field.key && styles.modeButtonActive,
+                      openStatusMarker === field.key && styles.modeButtonActive,
                     ]}
                   >
                     <Text style={styles.modeButtonText}>
-                      {renderOptionalFieldModeLabel(getOptionalMarkerState(screenState, field.key))}
+                      {renderOptionalFieldModeLabel(getMarkerState(screenState, field.key))}
                     </Text>
                   </Pressable>
                 </View>
-                {openOptionalMarker === field.key ? (
+                {openStatusMarker === field.key ? (
                   <View style={styles.modeMenu}>
                     {OPTIONAL_FIELD_MODE_OPTIONS.map((option) => {
-                      const isActive = getOptionalMarkerState(screenState, field.key) === option.value;
+                      const isActive = getMarkerState(screenState, field.key) === option.value;
                       return (
                         <Pressable
                           key={option.value}
-                          onPress={() => handleOptionalMarkerStateChange(field.key as OptionalMinimumSliceMarkerKey, option.value)}
+                          onPress={() => handleOptionalMarkerStateChange(field.key as MinimumSliceStatusMarkerKey, option.value)}
                           style={[styles.modeMenuItem, isActive && styles.modeMenuItemActive]}
                         >
                           <Text style={[styles.modeMenuItemLabel, isActive && styles.modeMenuItemLabelActive]}>
@@ -205,9 +221,9 @@ export default function MinimumSliceScreen({
                     })}
                   </View>
                 ) : null}
-                {getOptionalMarkerState(screenState, field.key) !== 'provided' ? (
+                {getMarkerState(screenState, field.key) !== 'provided' ? (
                   <Text style={styles.fieldHint}>
-                    {getOptionalMarkerState(screenState, field.key) === 'disabled'
+                    {getMarkerState(screenState, field.key) === 'disabled'
                       ? `${field.label} is intentionally not provided and is excluded from active use.`
                       : `${field.label} is intentionally left without a value and should not break calculations.`}
                   </Text>
@@ -528,8 +544,8 @@ const OPTIONAL_FIELD_MODE_OPTIONS: ReadonlyArray<{
   },
 ] as const;
 
-function isOptionalFieldKey(key: FieldKey): key is OptionalMinimumSliceMarkerKey {
-  return key === 'lpa' || key === 'crp' || key === 'b12' || key === 'magnesium';
+function isStatusFieldKey(key: FieldKey): key is MinimumSliceStatusMarkerKey {
+  return key === 'apob' || key === 'ldl' || key === 'hba1c' || key === 'glucose' || key === 'lpa' || key === 'crp' || key === 'b12' || key === 'magnesium';
 }
 
 function renderOptionalFieldModeLabel(

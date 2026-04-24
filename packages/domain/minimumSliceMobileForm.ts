@@ -8,6 +8,8 @@ export interface MinimumSliceMobileFieldMetadata {
 }
 
 export type OptionalMinimumSliceMarkerKey = 'lpa' | 'crp' | 'b12' | 'magnesium';
+export type CoreMinimumSliceMarkerKey = 'apob' | 'ldl' | 'hba1c' | 'glucose';
+export type MinimumSliceStatusMarkerKey = CoreMinimumSliceMarkerKey | OptionalMinimumSliceMarkerKey;
 
 export interface OptionalMinimumSliceMarkerConfig {
   marker: OptionalMinimumSliceMarkerKey;
@@ -48,13 +50,31 @@ export const OPTIONAL_MINIMUM_SLICE_MARKERS: readonly OptionalMinimumSliceMarker
   },
 ] as const;
 
+export interface CoreMinimumSliceMarkerConfig {
+  marker: CoreMinimumSliceMarkerKey;
+  fieldKey: CoreMinimumSliceMarkerKey;
+  metadataKey: 'apobMeta' | 'ldlMeta' | 'hba1cMeta' | 'glucoseMeta';
+  unit: string;
+}
+
+export const CORE_MINIMUM_SLICE_MARKERS: readonly CoreMinimumSliceMarkerConfig[] = [
+  { marker: 'apob', fieldKey: 'apob', metadataKey: 'apobMeta', unit: 'mg/dL' },
+  { marker: 'ldl', fieldKey: 'ldl', metadataKey: 'ldlMeta', unit: 'mg/dL' },
+  { marker: 'hba1c', fieldKey: 'hba1c', metadataKey: 'hba1cMeta', unit: '%' },
+  { marker: 'glucose', fieldKey: 'glucose', metadataKey: 'glucoseMeta', unit: 'mg/dL' },
+] as const;
+
 export interface MinimumSliceMobileFormDraft {
   panelId: string;
   collectedAt: string;
   apob: string;
+  apobMeta?: MinimumSliceMobileFieldMetadata;
   ldl: string;
+  ldlMeta?: MinimumSliceMobileFieldMetadata;
   hba1c: string;
+  hba1cMeta?: MinimumSliceMobileFieldMetadata;
   glucose: string;
+  glucoseMeta?: MinimumSliceMobileFieldMetadata;
   lpa?: string;
   lpaMeta?: MinimumSliceMobileFieldMetadata;
   crp?: string;
@@ -90,12 +110,33 @@ export function getOptionalMarkerConfig(marker: OptionalMinimumSliceMarkerKey): 
   return config;
 }
 
+export function getStatusMarkerConfig(marker: MinimumSliceStatusMarkerKey): CoreMinimumSliceMarkerConfig | OptionalMinimumSliceMarkerConfig {
+  const coreConfig = CORE_MINIMUM_SLICE_MARKERS.find((candidate) => candidate.marker === marker);
+  if (coreConfig) {
+    return coreConfig;
+  }
+
+  return getOptionalMarkerConfig(marker as OptionalMinimumSliceMarkerKey);
+}
+
 export function getOptionalFieldMetadata(
   draft: MinimumSliceMobileFormDraft,
   marker: OptionalMinimumSliceMarkerKey,
 ): MinimumSliceMobileFieldMetadata | undefined {
   const config = getOptionalMarkerConfig(marker);
   return draft[config.metadataKey];
+}
+
+export function getStatusFieldMetadata(
+  draft: MinimumSliceMobileFormDraft,
+  marker: MinimumSliceStatusMarkerKey,
+): MinimumSliceMobileFieldMetadata | undefined {
+  const coreConfig = CORE_MINIMUM_SLICE_MARKERS.find((candidate) => candidate.marker === marker);
+  if (coreConfig) {
+    return draft[coreConfig.metadataKey];
+  }
+
+  return getOptionalFieldMetadata(draft, marker as OptionalMinimumSliceMarkerKey);
 }
 
 export interface BuildMinimumSlicePanelFromDraftOptions {
@@ -173,14 +214,38 @@ function buildOptionalEntry(
   };
 }
 
+function buildStatusEntry(
+  marker: MinimumSlicePanelInput['entries'][number]['marker'],
+  rawValue: string | undefined,
+  field: string,
+  unit: string,
+  metadata: MinimumSliceMobileFieldMetadata | undefined,
+): MinimumSlicePanelInput['entries'][number] {
+  const fieldState = metadata?.fieldState ?? 'provided';
+  const value = fieldState === 'provided' ? parseRequiredNumber(rawValue ?? '', field) : null;
+
+  return {
+    marker,
+    value,
+    unit,
+    ...(metadata?.fieldState !== undefined ? { field_state: metadata.fieldState } : {}),
+    ...(metadata?.valueSource !== undefined ? { value_source: metadata.valueSource } : {}),
+    ...(metadata?.stateReason !== undefined ? { state_reason: metadata.stateReason } : {}),
+  };
+}
+
 export function createMinimumSliceMobileFormDraft(): MinimumSliceMobileFormDraft {
   return {
     panelId: '',
     collectedAt: '',
     apob: '',
+    apobMeta: createOptionalFieldMetadata('provided'),
     ldl: '',
+    ldlMeta: createOptionalFieldMetadata('provided'),
     hba1c: '',
+    hba1cMeta: createOptionalFieldMetadata('provided'),
     glucose: '',
+    glucoseMeta: createOptionalFieldMetadata('provided'),
     lpa: '',
     lpaMeta: createOptionalFieldMetadata('missing'),
     crp: '',
@@ -202,13 +267,19 @@ export function buildMinimumSlicePanelInputFromMobileDraft(
   const collectedAt = requireIsoString(draft.collectedAt, 'collectedAt');
   const profileId = requireNonEmptyString(options.profileId, 'profileId');
 
-  const glucoseEntry: MinimumSlicePanelInput['entries'][number] = {
-    marker: 'glucose',
-    value: parseRequiredNumber(draft.glucose, 'glucose'),
-    unit: 'mg/dL',
-  };
+  const coreEntries = CORE_MINIMUM_SLICE_MARKERS.map((config) =>
+    buildStatusEntry(
+      config.marker,
+      draft[config.fieldKey],
+      config.fieldKey,
+      config.unit,
+      draft[config.metadataKey],
+    ),
+  );
 
-  if (draft.fastingContext !== undefined) {
+  const glucoseEntry = coreEntries.find((entry) => entry.marker === 'glucose');
+
+  if (glucoseEntry !== undefined && draft.fastingContext !== undefined) {
     glucoseEntry.fastingContext = draft.fastingContext;
   }
 
@@ -217,12 +288,7 @@ export function buildMinimumSlicePanelInputFromMobileDraft(
     panelId,
     collectedAt,
     source: draft.source?.trim().length ? draft.source.trim() : options.defaultSource ?? 'mobile-manual-entry',
-    entries: [
-      { marker: 'apob', value: parseRequiredNumber(draft.apob, 'apob'), unit: 'mg/dL' },
-      { marker: 'ldl', value: parseRequiredNumber(draft.ldl, 'ldl'), unit: 'mg/dL' },
-      { marker: 'hba1c', value: parseRequiredNumber(draft.hba1c, 'hba1c'), unit: '%' },
-      glucoseEntry,
-    ],
+    entries: coreEntries,
   };
 
   for (const config of OPTIONAL_MINIMUM_SLICE_MARKERS) {

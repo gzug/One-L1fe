@@ -2,9 +2,9 @@ import {
   buildMinimumSlicePanelInputFromMobileDraft,
   createOptionalFieldMetadata,
   createMinimumSliceMobileFormDraft,
-  getOptionalMarkerConfig,
   MinimumSliceMobileFormDraft,
-  OptionalMinimumSliceMarkerKey,
+  MinimumSliceStatusMarkerKey,
+  getStatusMarkerConfig,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
 import { FieldState } from '../../packages/domain/fieldValueState.ts';
 import {
@@ -76,10 +76,10 @@ export function patchMinimumSliceDraft(
 
 export function setOptionalMarkerFieldState(
   state: MinimumSliceScreenModel,
-  marker: OptionalMinimumSliceMarkerKey,
+  marker: MinimumSliceStatusMarkerKey,
   fieldState: Extract<FieldState, 'provided' | 'missing' | 'disabled'>,
 ): MinimumSliceScreenModel {
-  const config = getOptionalMarkerConfig(marker);
+  const config = getStatusMarkerConfig(marker);
   const nextMetadata = createOptionalFieldMetadata(fieldState);
 
   return {

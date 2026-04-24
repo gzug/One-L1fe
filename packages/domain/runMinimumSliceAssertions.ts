@@ -1,3 +1,4 @@
+import { runAskOneL1feAssertions } from './askOneL1fe.assertions.ts';
 import { runContractAssertions } from './contracts.assertions.ts';
 import { runDotStructureAssertions } from './dotStructure.assertions.ts';
 import { runDotCatalogAssertions } from './dots.assertions.ts';
@@ -16,8 +17,10 @@ import { runScoreDisplayAssertions } from './scoreDisplay.assertions.ts';
 import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
 import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions.ts';
 import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions.ts';
+import { runSyntheticDemoDataAssertions } from './syntheticDemoData.assertions.ts';
 
 async function main(): Promise<void> {
+  runAskOneL1feAssertions();
   runFieldValueStateAssertions();
   runMinimumSliceAssertions();
   runMinimumSliceFunctionContractAssertions();
@@ -36,6 +39,7 @@ async function main(): Promise<void> {
   runScoreAggregationAssertions();
   runScoreDisplayAssertions();
   runNutritionEstimateAssertions();
+  runSyntheticDemoDataAssertions();
   console.log('All domain assertions passed.');
 }
 

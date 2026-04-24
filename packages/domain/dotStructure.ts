@@ -25,6 +25,7 @@ export type OrbitDotKey = 'health' | 'nutrition' | 'mind_and_sleep' | 'activity'
 
 export type AppScreenKey =
   | 'one_l1fe'
+  | 'ask_one_l1fe'
   | OrbitDotKey
   | 'doctor_prep'
   | 'menu'
@@ -234,8 +235,8 @@ export const ORBIT_DOTS: readonly OrbitDotDefinition[] = [
       {
         key: 'habits_context',
         title: 'Habits & Context',
-        description: 'Habits may explain changes in your data, but do not directly affect your score.',
-        status: 'planned_locked',
+        description: 'Habits may explain outliers, positive trends, or negative trends across sleep, activity, recovery, and energy. They do not directly affect your score.',
+        status: 'ready',
         affectsScore: false,
         kind: 'context',
       },

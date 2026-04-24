@@ -12,14 +12,15 @@ scope: repo
 
 ## Verdict
 
-Increment 4 of the Dot/Score refactor is pushed on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home uses One L1fe as the central surface, renders only score-capable Orbit Dots (`Health`, `Nutrition`, `Mind & Sleep`, `Activity`), and moves Doctor Prep/Menu/Profile/Score education out of the orbit. A follow-up refactor/stability slice hardens the Source-of-Truth between `dots.ts` (domain/score catalog) and `dotStructure.ts` (UI view model). Mobile typecheck, domain assertions, and Expo web export pass locally.
+Increment 7 of the Dot/Score refactor is implemented on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home includes sourced Ask One L1fe, synthetic 90-day presentation data, context-only Habit links, field-status controls for every biomarker value, and a skipable first-run guided overlay. This sits on top of the pushed refactor/stability slice that hardens the Source-of-Truth between `dots.ts` (domain/score catalog) and `dotStructure.ts` (UI view model). Mobile typecheck, domain assertions, and Expo web export passed locally before push.
 
 ## Active Refactor
 
 - **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
 - **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
 - **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
-- **Working tree:** Increment 4 pushed in `e02e38b`; follow-up refactor/stability slice pushed on the same branch
+- **Remote baseline before guided demo:** `d7878ef` — refactor(domain): harden UI/domain Dot boundary
+- **Working tree:** Increment 7 guided demo onboarding commit being pushed on the same branch
 
 ## Completed Increments
 
@@ -76,12 +77,44 @@ Increment 4 of the Dot/Score refactor is pushed on `claude/opus-refactor-one-l1f
   - `npm run test:domain`
   - `npm --prefix apps/mobile run export:web`
 
+### Increment 5 — Ask One L1fe Source-Gated Prototype 🚧
+- `apps/mobile/App.tsx` now shows an Ask One L1fe question entry directly on the One L1fe Home surface.
+- `apps/mobile/AskOneL1feScreen.tsx` shows the submitted question, answer, estimate confidence, sources used, missing data, and safety boundaries.
+- `packages/domain/askOneL1fe.ts` defines the shared source/fact context and deterministic answer builder for future backend use.
+- Current V1 behavior is intentionally conservative: without sourced user facts, Ask One L1fe explains that it cannot answer yet and does not invent values.
+- Domain assertions cover no-data refusal, source overview behavior, bounded confidence, excluded source handling, and no fake score-0 behavior.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+
+### Increment 6 — Synthetic 90-Day Presentation Data + Habits Context 🚧
+- `packages/domain/syntheticDemoData.ts` adds explicitly synthetic 90-day presentation data with plausible biomarker, wearable, sleep, HRV, and activity summaries.
+- The One L1fe Home now renders synthetic demo score values for `Health`, `Mind & Sleep`, and `Activity`; `Nutrition` stays `Coming Soon` and has no score effect.
+- Ask One L1fe now uses the synthetic demo context so demo questions can return sourced answers with confidence, sources, missing data, and safety boundaries.
+- `Mind & Sleep > Habits & Context` now explains habit links such as late caffeine, walking consistency, and alcohol near bedtime as awareness context only.
+- `MinimumSliceScreen` now shows the Active / Missing / Not provided selector on every biomarker value, including ApoB, LDL-C, HbA1c, and Glucose.
+- Assertions cover synthetic source citation, Nutrition remaining unscored, habit links staying context-only, and core biomarker Missing mapping to null instead of crashing.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+
+### Increment 7 — First-Run Guided Overlay 🚧
+- Added `apps/mobile/FirstRunGuideOverlay.tsx` with a 7-step first-run guide for Score, Confidence/Coverage, Dots, Ask One L1fe, Doctor Prep, Menu, and first data source CTA.
+- Added `apps/mobile/firstRunGuideStorage.ts` for persistent completed state via AsyncStorage on native and localStorage on web.
+- The guide is skipable, appears on first signed-in run, and can be reopened from the Home `i` button.
+- Step 6 opens the Menu screen behind the overlay so the user sees where backup navigation lives.
+- Step 7 can route to `Activity > Wearable Sync`; Android copy calls out Health Connect, while web/iOS stays honest that Health Connect is Android-only in this prototype.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+
 ## Next Step
 
-**Increment 5 — route polish and device validation**
-- Live-test whether the Home/Menu affordance is enough or whether the app needs persistent bottom navigation.
-- Decide whether Nutrition should stay UI-only or add a real image picker on Android/web.
-- Live-test the new orbit/menu flow in Expo Web and on Android when available.
+**Next — real source integration + route polish**
+- Replace synthetic Ask facts with real latest biomarker evaluation, wearable summaries, and profile/source settings when those flows are proven.
+- Live-check whether the guided overlay feels too long on mobile; 7 steps is the current upper limit.
+- Live-test the new Ask/Home flow in Expo Web and on Android when available.
+- Split `App.tsx` into focused screen files before adding more Home behavior.
 
 ## Completed follow-up — Refactor/Stability slice
 

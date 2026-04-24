@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ErrorUtils, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ErrorUtils, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
   deriveOrbitDisplayState,
   MENU_ENTRIES,
@@ -15,7 +15,6 @@ import type {
   OrbitDotKey,
   SubDotDefinition,
 } from '../../packages/domain/dotStructure.ts';
-import { deriveScoreDisplayState } from '../../packages/domain/scoreDisplay.ts';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
@@ -31,7 +30,12 @@ import { useAuthSession } from './useAuthSession.ts';
 import { useWearablePermissions } from './useWearablePermissions';
 import WeeklyCheckinScreen from './WeeklyCheckinScreen.tsx';
 import NutritionScreen from './NutritionScreen.tsx';
+import AskOneL1feScreen from './AskOneL1feScreen.tsx';
+import FirstRunGuideOverlay from './FirstRunGuideOverlay.tsx';
+import { getFirstRunGuideCompleted, setFirstRunGuideCompleted } from './firstRunGuideStorage.ts';
 import { captureAppError, initSentry } from './sentry';
+import { SYNTHETIC_DEMO_SNAPSHOT } from '../../packages/domain/syntheticDemoData.ts';
+import type { SyntheticDemoHabitLink } from '../../packages/domain/syntheticDemoData.ts';
 
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
@@ -43,6 +47,7 @@ const controller = createMinimumSliceScreenController({
 
 const SCREEN_NAMES: Record<AppScreenKey, string> = {
   one_l1fe: 'OneL1fe',
+  ask_one_l1fe: 'AskOneL1fe',
   health: 'Health',
   nutrition: 'Nutrition',
   mind_and_sleep: 'MindAndSleep',
@@ -62,24 +67,29 @@ export default function App(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<AppScreenKey>('one_l1fe');
   const [activeSubDotKey, setActiveSubDotKey] = useState<string>('blood_biomarkers');
+  const [askDraft, setAskDraft] = useState('');
+  const [guideVisible, setGuideVisible] = useState(false);
+  const [guideStepIndex, setGuideStepIndex] = useState(0);
   const [isDevUser, setIsDevUser] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<string>(SCREEN_NAMES.one_l1fe);
 
   const { status: hcStatus } = useWearablePermissions();
   const hcBlocked = hcStatus === 'denied' || hcStatus === 'unavailable';
 
-  const scoreView = useMemo(
-    () =>
-      deriveScoreDisplayState({
-        score: null,
-        totalEffectiveWeight: 0,
-        eligibleDotCount: 0,
-        coverageRatio: 0,
-        activeLeafTotal: 0,
-        activeLeafWithData: 0,
-      }),
-    [],
-  );
+  const openScreen = (screen: AppScreenKey): void => {
+    setActiveScreen(screen);
+    setCurrentScreen(SCREEN_NAMES[screen]);
+
+    if (isOrbitDotKey(screen)) {
+      setActiveSubDotKey(getSubDotsForOrbitDot(screen)[0]?.key ?? '');
+    }
+  };
+
+  const openWearableSync = (): void => {
+    setActiveScreen('activity');
+    setCurrentScreen(SCREEN_NAMES.activity);
+    setActiveSubDotKey('wearable_sync');
+  };
 
   // V1 stub: pass an empty score map. Once the score pipeline feeds real
   // DotScore values, this memo will take the live map.
@@ -109,6 +119,30 @@ export default function App(): React.JSX.Element {
 
     void fetchProfile();
   }, [user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadGuideState = async (): Promise<void> => {
+      if (authState !== 'signed-in' || !user?.id) {
+        setGuideVisible(false);
+        return;
+      }
+
+      const completed = await getFirstRunGuideCompleted();
+      if (!cancelled && !completed) {
+        setGuideStepIndex(0);
+        setGuideVisible(true);
+        openScreen('one_l1fe');
+      }
+    };
+
+    void loadGuideState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authState, user?.id]);
 
   useEffect(() => {
     if (typeof ErrorUtils === 'undefined' || typeof ErrorUtils.getGlobalHandler !== 'function') {
@@ -158,13 +192,35 @@ export default function App(): React.JSX.Element {
     return <LoginScreen initialError={error} />;
   }
 
-  const openScreen = (screen: AppScreenKey): void => {
-    setActiveScreen(screen);
-    setCurrentScreen(SCREEN_NAMES[screen]);
+  const moveGuideToStep = (nextStepIndex: number): void => {
+    const boundedIndex = Math.max(0, Math.min(nextStepIndex, 6));
+    setGuideStepIndex(boundedIndex);
 
-    if (isOrbitDotKey(screen)) {
-      setActiveSubDotKey(getSubDotsForOrbitDot(screen)[0]?.key ?? '');
+    if (boundedIndex === 5) {
+      openScreen('menu');
+      return;
     }
+
+    if (boundedIndex === 6) {
+      openScreen('one_l1fe');
+    }
+  };
+
+  const completeGuide = async (): Promise<void> => {
+    await setFirstRunGuideCompleted(true);
+    setGuideVisible(false);
+    setGuideStepIndex(0);
+  };
+
+  const startGuide = (): void => {
+    setGuideStepIndex(0);
+    setGuideVisible(true);
+    openScreen('one_l1fe');
+  };
+
+  const handleConnectDataFromGuide = async (): Promise<void> => {
+    await completeGuide();
+    openWearableSync();
   };
 
   return (
@@ -188,17 +244,35 @@ export default function App(): React.JSX.Element {
             </View>
           ) : null}
           {activeScreen === 'one_l1fe'
-            ? renderHome(openScreen, scoreView, orbitDisplay)
+            ? renderHome(openScreen, orbitDisplay, askDraft, setAskDraft, startGuide)
             : activeScreen === 'menu'
               ? renderMenu(openScreen)
-              : activeScreen === 'doctor_prep'
-                ? renderDoctorPrep()
-                : activeScreen === 'profile'
-                  ? renderProfile()
-                  : activeScreen === 'how_score_works'
-                    ? renderHowScoreWorks()
-                    : renderOrbitDotDetail(activeScreen, activeSubDotKey, setActiveSubDotKey, hcBlocked)}
+              : activeScreen === 'ask_one_l1fe'
+                ? <AskOneL1feScreen initialQuestion={askDraft} />
+                : activeScreen === 'doctor_prep'
+                  ? renderDoctorPrep()
+                  : activeScreen === 'profile'
+                    ? renderProfile()
+                    : activeScreen === 'how_score_works'
+                      ? renderHowScoreWorks()
+                      : renderOrbitDotDetail(activeScreen, activeSubDotKey, setActiveSubDotKey, hcBlocked)}
         </ScrollView>
+        <FirstRunGuideOverlay
+          visible={guideVisible}
+          stepIndex={guideStepIndex}
+          platformSupportsHealthConnect={Platform.OS === 'android'}
+          onBack={() => moveGuideToStep(guideStepIndex - 1)}
+          onNext={() => moveGuideToStep(guideStepIndex + 1)}
+          onSkip={() => {
+            void completeGuide();
+          }}
+          onConnectData={() => {
+            void handleConnectDataFromGuide();
+          }}
+          onNotNow={() => {
+            void completeGuide();
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -206,8 +280,10 @@ export default function App(): React.JSX.Element {
 
 function renderHome(
   openScreen: (screen: AppScreenKey) => void,
-  scoreView: ReturnType<typeof deriveScoreDisplayState>,
   orbitDisplay: readonly OrbitDotDisplay[],
+  askDraft: string,
+  setAskDraft: (value: string) => void,
+  onStartGuide: () => void,
 ): React.JSX.Element {
   return (
     <>
@@ -217,9 +293,14 @@ function renderHome(
             <Text style={styles.eyebrow}>One L1fe</Text>
             <Text style={styles.mainTitle}>Home</Text>
           </View>
-          <Pressable onPress={() => openScreen('menu')} style={styles.iconButton} accessibilityLabel="Open menu">
-            <Text style={styles.iconButtonText}>Menu</Text>
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable onPress={onStartGuide} style={styles.helpButton} accessibilityLabel="Open guide">
+              <Text style={styles.helpButtonText}>i</Text>
+            </Pressable>
+            <Pressable onPress={() => openScreen('menu')} style={styles.iconButton} accessibilityLabel="Open menu">
+              <Text style={styles.iconButtonText}>Menu</Text>
+            </Pressable>
+          </View>
         </View>
         <Text style={styles.mainSubtitle}>
           Your central score surface. Only score-capable domains are shown in the orbit.
@@ -227,13 +308,30 @@ function renderHome(
       </View>
 
       <View style={styles.scorePanel}>
+        <Text style={styles.demoBadge}>{SYNTHETIC_DEMO_SNAPSHOT.periodLabel}</Text>
         <Text style={styles.scoreLabel}>One L1fe Score</Text>
-        <Text style={styles.scoreValue}>{scoreView.score === null ? 'No Score available' : Math.round(scoreView.score)}</Text>
+        <Text style={styles.scoreValue}>{SYNTHETIC_DEMO_SNAPSHOT.oneL1feScore}</Text>
         <Text style={styles.scoreMessage}>
-          {scoreView.score === null
-            ? 'Scores are only shown when enough data exists. Missing data lowers precision, not health.'
-            : scoreView.message}
+          {SYNTHETIC_DEMO_SNAPSHOT.currentUpdate}
         </Text>
+      </View>
+
+      <View style={styles.askCard}>
+        <Text style={styles.sectionTitle}>Ask One L1fe</Text>
+        <Text style={styles.detailText}>
+          Ask questions about your available data. Answers must show sources and will not invent missing values.
+        </Text>
+        <TextInput
+          value={askDraft}
+          onChangeText={setAskDraft}
+          placeholder="Ask about your health data..."
+          style={styles.askInput}
+          placeholderTextColor="#6b7280"
+          multiline
+        />
+        <Pressable onPress={() => openScreen('ask_one_l1fe')} style={styles.askButton}>
+          <Text style={styles.askButtonText}>Ask One L1fe</Text>
+        </Pressable>
       </View>
 
       <View style={styles.orbitShell}>
@@ -250,10 +348,19 @@ function renderHome(
               accessibilityLabel={`Open ${dot.title}`}
             >
               <Text style={styles.orbitDotTitle}>{dot.title}</Text>
-              <Text style={styles.orbitDotMeta}>{getOrbitDotDisplayLabel(dot)}</Text>
+              <Text style={styles.orbitDotMeta}>{getDemoOrbitDotDisplayLabel(dot)}</Text>
             </Pressable>
           ))}
         </View>
+      </View>
+
+      <View style={styles.infoCard}>
+        <Text style={styles.sectionTitle}>Current update</Text>
+        {SYNTHETIC_DEMO_SNAPSHOT.metrics.slice(0, 3).map((metric) => (
+          <Text key={metric.key} style={styles.bullet}>
+            - {metric.label}: {metric.value}
+          </Text>
+        ))}
       </View>
 
       <View style={styles.homeActions}>
@@ -348,7 +455,7 @@ function renderOrbitDotDetail(
 }
 
 function DotDetailHeader({ dot }: { dot: OrbitDotDefinition }): React.JSX.Element {
-  const scoreLabel = getOrbitDotDisplayLabel(dot);
+  const scoreLabel = getDemoOrbitDotDisplayLabel(dot);
   return (
     <View style={styles.mainHeader}>
       <Text style={styles.eyebrow}>Dot Detail</Text>
@@ -356,9 +463,9 @@ function DotDetailHeader({ dot }: { dot: OrbitDotDefinition }): React.JSX.Elemen
       <Text style={styles.mainSubtitle}>{dot.description}</Text>
       <View style={styles.metricGrid}>
         <MetricTile label="Dot Score" value={scoreLabel} />
-        <MetricTile label="Confidence" value="Not enough data" />
-        <MetricTile label="Coverage" value="Not enough data" />
-        <MetricTile label="Freshness" value={dot.status === 'planned_locked' ? 'Coming Soon' : 'Needs update'} />
+        <MetricTile label="Confidence" value={dot.key === 'nutrition' ? 'Coming Soon' : 'Demo confidence'} />
+        <MetricTile label="Coverage" value={dot.key === 'nutrition' ? 'No Score available' : 'Synthetic 90 days'} />
+        <MetricTile label="Freshness" value={dot.status === 'planned_locked' ? 'Coming Soon' : 'Current demo'} />
       </View>
     </View>
   );
@@ -405,6 +512,20 @@ function renderSubDotDetail(
       <View style={styles.detailStack}>
         <Text style={styles.detailTitle}>Mind & Sleep Check-in</Text>
         <WeeklyCheckinScreen />
+      </View>
+    );
+  }
+
+  if (dotKey === 'mind_and_sleep' && subDot.key === 'habits_context') {
+    return (
+      <View style={styles.detailStack}>
+        <Text style={styles.detailTitle}>Habits & Context</Text>
+        <Text style={styles.detailText}>
+          Habits are explanatory context. They can help connect unusual days, positive trends, or negative dips across sleep, activity, recovery, and energy, but they do not directly change the One L1fe Score.
+        </Text>
+        {SYNTHETIC_DEMO_SNAPSHOT.habitLinks.map((link) => (
+          <HabitLinkCard key={link.habit} link={link} />
+        ))}
       </View>
     );
   }
@@ -460,6 +581,24 @@ function renderDoctorPrep(): React.JSX.Element {
       </View>
     </View>
   );
+}
+
+function HabitLinkCard({ link }: { link: SyntheticDemoHabitLink }): React.JSX.Element {
+  return (
+    <View style={styles.staticRow}>
+      <Text style={styles.menuTitle}>{link.habit}</Text>
+      <Text style={styles.detailMeta}>Linked areas: {link.linkedAreas.join(', ')}</Text>
+      <Text style={styles.detailText}>{link.observation}</Text>
+      <Text style={styles.detailMeta}>Score effect: context only.</Text>
+    </View>
+  );
+}
+
+function getDemoOrbitDotDisplayLabel(dot: OrbitDotDefinition | OrbitDotDisplay): string {
+  if (dot.key === 'health') return `Score ${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.health}`;
+  if (dot.key === 'mind_and_sleep') return `Score ${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.mindSleep}`;
+  if (dot.key === 'activity') return `Score ${SYNTHETIC_DEMO_SNAPSHOT.orbitScores.activity}`;
+  return getOrbitDotDisplayLabel(getOrbitDot(dot.key));
 }
 
 function renderProfile(): React.JSX.Element {
@@ -604,10 +743,22 @@ const styles = StyleSheet.create({
   topNavButtonText: { color: '#24324a', fontSize: 13, fontWeight: '800' },
   homeHeader: { gap: 8 },
   titleRow: { alignItems: 'flex-start', flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  headerActions: { alignItems: 'center', flexDirection: 'row', gap: 8 },
   eyebrow: { color: '#4263eb', fontSize: 12, fontWeight: '800', letterSpacing: 0, textTransform: 'uppercase' },
   mainHeader: { gap: 6 },
   mainTitle: { color: '#152033', fontSize: 28, fontWeight: '800' },
   mainSubtitle: { color: '#52607a', fontSize: 15, lineHeight: 21 },
+  helpButton: {
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderColor: '#d9e2f2',
+    borderRadius: 999,
+    borderWidth: 1,
+    height: 36,
+    justifyContent: 'center',
+    width: 36,
+  },
+  helpButtonText: { color: '#24324a', fontSize: 15, fontWeight: '900' },
   iconButton: {
     backgroundColor: '#ffffff',
     borderColor: '#d9e2f2',
@@ -625,9 +776,49 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 16,
   },
+  demoBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#eef2ff',
+    borderColor: '#c7d2fe',
+    borderRadius: 999,
+    borderWidth: 1,
+    color: '#3730a3',
+    fontSize: 11,
+    fontWeight: '800',
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    textTransform: 'uppercase',
+  },
   scoreLabel: { color: '#52607a', fontSize: 13, fontWeight: '800', textTransform: 'uppercase' },
   scoreValue: { color: '#152033', fontSize: 26, fontWeight: '800' },
   scoreMessage: { color: '#52607a', fontSize: 14, lineHeight: 20 },
+  askCard: {
+    backgroundColor: '#ffffff',
+    borderColor: '#d9e2f2',
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 10,
+    padding: 14,
+  },
+  askInput: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#c8d3e1',
+    borderRadius: 8,
+    borderWidth: 1,
+    color: '#152033',
+    fontSize: 15,
+    minHeight: 58,
+    padding: 12,
+    textAlignVertical: 'top',
+  },
+  askButton: {
+    alignItems: 'center',
+    backgroundColor: '#152033',
+    borderRadius: 8,
+    paddingVertical: 12,
+  },
+  askButtonText: { color: '#ffffff', fontSize: 14, fontWeight: '800' },
   orbitShell: {
     backgroundColor: '#ffffff',
     borderColor: '#d9e2f2',

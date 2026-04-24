@@ -8,7 +8,7 @@ import {
   submitMinimumSliceScreen,
 } from './minimumSliceScreenModel.ts';
 import { ONE_L1FE_SUPABASE_PROJECT_REF, getOneL1feSupabaseUrl } from './minimumSliceHostedConfig.ts';
-import { MinimumSliceMobileFormDraft, OptionalMinimumSliceMarkerKey } from '../../packages/domain/minimumSliceMobileForm.ts';
+import { MinimumSliceMobileFormDraft, MinimumSliceStatusMarkerKey } from '../../packages/domain/minimumSliceMobileForm.ts';
 
 export interface MinimumSliceAuthenticatedUser {
   id: string;
@@ -33,7 +33,7 @@ export interface MinimumSliceScreenControllerOptions {
 export interface MinimumSliceScreenController {
   getState(): MinimumSliceScreenModel;
   patchDraft(patch: Partial<MinimumSliceMobileFormDraft>): MinimumSliceScreenModel;
-  setOptionalMarkerFieldState(marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel;
+  setOptionalMarkerFieldState(marker: MinimumSliceStatusMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel;
   reset(): MinimumSliceScreenModel;
   submit(): Promise<MinimumSliceScreenModel>;
 }
@@ -64,7 +64,7 @@ export function createMinimumSliceScreenController(
       return state;
     },
 
-    setOptionalMarkerFieldState(marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel {
+    setOptionalMarkerFieldState(marker: MinimumSliceStatusMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): MinimumSliceScreenModel {
       state = setOptionalMarkerFieldState(state, marker, fieldState);
       return state;
     },
