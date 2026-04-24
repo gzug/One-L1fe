@@ -13,6 +13,14 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
+## 2026-04-24 — Codex (Increment 2 mobile tabs)
+
+- Switched to `claude/opus-refactor-one-l1fe-BjSjj`; parked unrelated detached-HEAD conflict state in stash `pre-increment2-detached-head-conflicted-state`
+- Implemented the 5 main mobile tabs in `apps/mobile/App.tsx` from `TAB_ORDER`: One L1fe, Doctor Prep, Health Data, Lifestyle, Activity
+- Migrated existing screens by placement only: weekly check-in under One L1fe, minimum-slice under Health Data, wearable sync under Activity, dev insight still dev-only
+- Added `FirstCheckinCard` and reusable `LockedFeatureCard`; planned-locked Dot cards render from the static Dot catalog; Settings appears in a static menu card
+- Verified `npm --prefix apps/mobile run typecheck`, `npm run test:domain`, and `npm --prefix apps/mobile run export:web`
+
 ## 2026-04-24 — Perplexity (repo cleanup — Block 1)
 
 - Merged PR #106: aligned AGENTS.md, session-workflow, openclaw, README with memory-system-v2

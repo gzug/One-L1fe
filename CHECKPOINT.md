@@ -12,13 +12,14 @@ scope: repo
 
 ## Verdict
 
-Increment 1 of the Dot/Score refactor is complete. The domain foundation (dots, score aggregation, score display) is built, typecheck and assertions pass locally, and PR #108 is open as Draft. The app's existing screens (login, minimum-slice, weekly check-in, wearable sync, dev-insight) remain untouched and working.
+Increment 2 of the Dot/Score refactor is implemented locally on `claude/opus-refactor-one-l1fe-BjSjj`: the signed-in mobile shell now exposes the 5 main tabs, migrates the existing screens into their target tabs, and renders planned-locked Dot affordances from the static Dot catalog. Mobile typecheck, domain assertions, and Expo web export pass locally.
 
 ## Active Refactor
 
 - **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
 - **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
-- **Commit:** `0360e79` — feat(domain): add Dot/Score architecture foundation
+- **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
+- **Working tree:** Increment 2 changes are uncommitted
 
 ## Completed Increments
 
@@ -29,15 +30,27 @@ Increment 1 of the Dot/Score refactor is complete. The domain foundation (dots, 
 - Assertion tests wired into `runMinimumSliceAssertions.ts`
 - `tsc --noEmit` green, test suite green
 
+### Increment 2 — 5-Tab Navigation ✅
+- `apps/mobile/App.tsx` now uses the Dot catalog `TAB_ORDER` as the 5 main tab order: One L1fe / Doctor Prep / Health Data / Lifestyle / Activity.
+- Existing screens are migrated without changing their internals:
+  - `WeeklyCheckinScreen` lives under One L1fe
+  - `MinimumSliceScreen` lives under Health Data
+  - `WearableSyncScreen` lives under Activity behind the existing Health Connect permission gate
+  - `DevInsightScreen` remains available only for `is_dev=true`
+- Added `apps/mobile/FirstCheckinCard.tsx` on the One L1fe tab.
+- Added reusable `apps/mobile/LockedFeatureCard.tsx` and render planned-locked Dots from the static catalog.
+- Added static Menu card with Settings entry.
+- Verified locally:
+  - `npm --prefix apps/mobile run typecheck`
+  - `npm run test:domain`
+  - `npm --prefix apps/mobile run export:web`
+
 ## Next Step
 
-**Increment 2 — 5-Tab Navigation** (`apps/mobile/App.tsx`)
-- Replace current 2-3 tab bar with 5 main tabs: One L1fe / Doctor Prep / Health Data / Lifestyle / Activity
-- Dev tab remains hidden for `is_dev=true`
-- Static menu entry including Settings
-- `LockedFeatureCard` reusable component for all `planned_locked` Dots
-- `FirstCheckinCard` on Tab 1 alongside existing `WeeklyCheckinScreen` (untouched)
-- Screen migration: `MinimumSliceScreen` → Health Data, `WearableSyncScreen` → Activity, `WeeklyCheckinScreen` → One L1fe Tab
+**Increment 3 — visual/runtime polish decision**
+- Run the signed-in Expo app on web or device and verify the 5-tab shell visually, especially the fixed top card + embedded `WeeklyCheckinScreen` layout on small screens.
+- Decide whether the 5-tab shell should stay as a custom React Native tab bar for V1 or move to a navigation library after more screens exist.
+- Then wire the first read-only One L1fe score display from Increment 1 domain helpers, without persisting score state.
 
 ## Pending PRs
 

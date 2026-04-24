@@ -33,7 +33,9 @@ Long-term operating memory for **One L1fe (OL)**.
 - Keep shared domain imports cross-runtime safe (Node tests + Supabase Edge Functions)
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
-- Mobile auth: `useAuthSession.ts` owns auth-state, `LoginScreen.tsx` sign-in, `MinimumSliceScreen.tsx` signed-in form, `App.tsx` auth-gate shell
+- Mobile auth: `useAuthSession.ts` owns auth-state and `LoginScreen.tsx` owns sign-in.
+- Mobile signed-in shell: `App.tsx` owns the 5-tab V1 navigation surface from the Dot catalog (`One L1fe`, `Doctor Prep`, `Health Data`, `Lifestyle`, `Activity`) plus dev-only `DevInsightScreen` access for `is_dev=true`.
+- Mobile screen placement: `WeeklyCheckinScreen` lives under One L1fe, `MinimumSliceScreen` under Health Data, and `WearableSyncScreen` under Activity behind the Health Connect permission gate.
 - Load `react-native-url-polyfill/auto` before `@supabase/supabase-js`
 - Signed-out states vs operational auth errors treated separately in `getFreshAccessToken()`
 - Wearable work: reuse `apps/mobile/mobileSupabaseAuth.ts`, no second Supabase client
