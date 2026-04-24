@@ -24,6 +24,10 @@ export interface SyntheticDemoSnapshot {
   isSynthetic: true;
   periodLabel: string;
   oneL1feScore: number;
+  heroVerdict: string;
+  heroDelta: string;
+  dataCoveragePercent: number;
+  confidenceLabel: string;
   orbitScores: {
     health: number;
     mindSleep: number;
@@ -33,12 +37,18 @@ export interface SyntheticDemoSnapshot {
   metrics: readonly SyntheticDemoMetric[];
   habitLinks: readonly SyntheticDemoHabitLink[];
   currentUpdate: string;
+  currentUpdateHeadline: string;
 }
 
 export const SYNTHETIC_DEMO_SNAPSHOT: SyntheticDemoSnapshot = {
   isSynthetic: true,
   periodLabel: 'Synthetic 90-day presentation data',
   oneL1feScore: 70,
+  heroVerdict: 'Good',
+  heroDelta: '+4 vs last week',
+  dataCoveragePercent: 62,
+  confidenceLabel: 'Medium',
+  currentUpdateHeadline: "You're on a positive trend.",
   orbitScores: {
     health: 74,
     mindSleep: 66,
