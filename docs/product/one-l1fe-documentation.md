@@ -1,253 +1,291 @@
 # One-L1fe Dokumentation
 
-## Konkurrenz
+Diese Datei erklärt One-L1fe in einfacher Sprache. Sie richtet sich an Familie, Freunde und interessierte Menschen ohne technischen Hintergrund.
 
-### 1. Anbieter, die gerade aktiv im Gesundheits- und KI-Bereich sichtbar werden
+## Kurz gesagt
 
-Diese Beispiele wurden im Projektkontext sichtbar, ohne dass aktiv eine vollständige Konkurrenzanalyse gesucht wurde. Das ist ein Hinweis darauf, dass sich im Bereich digitale Gesundheit, KI-Auswertung und persönliche Gesundheitsdaten gerade viel bewegt. Besonders auffällig ist, dass nicht nur kleine Apps, sondern auch große Unternehmen versuchen, sich in diesem Feld zu positionieren.
+One-L1fe ist eine App, die persönliche Gesundheitsdaten sammelt, ordnet und verständlich macht.
 
-- **Doktor SV App mit Gemini — El Salvador für chronisch kranke Patienten**
-  - Eine Gesundheits-App, die offenbar KI-Unterstützung von Gemini nutzt.
-  - Fokus: Unterstützung von chronisch kranken Patienten.
-  - USP: Kombination aus staatlich/medizinisch wirkender Versorgung und KI-Unterstützung.
+Die App soll nicht sagen: „Du bist krank“ oder „Du brauchst Behandlung X“. Sie soll helfen, verstreute Daten besser zu verstehen, Entwicklungen über Zeit zu sehen und sich besser auf Arztgespräche vorzubereiten.
 
-- **Perplexity Health**
-  - Gesundheitsbezogene Suche und Antworten auf Basis von KI.
-  - Fokus: Informationen schneller finden, Fragen verständlich beantworten.
-  - USP: schnelle, quellennahe Gesundheitsrecherche statt klassischer Google-Suche.
+Der Kerngedanke:
 
-- **Anthropic Claude**
-  - Allgemeines KI-System, das auch für Gesundheitsfragen, Zusammenfassungen und Erklärungen genutzt werden kann.
-  - Fokus: verständliche Textarbeit, Analyse, Erklärungen, Dokumente.
-  - USP: starke Sprach- und Erklärfähigkeit, aber nicht speziell als persönliches Gesundheitssystem gebaut.
+**Many Dots. One L1fe.**
 
-- **Apple Health**
-  - Apple sammelt und zeigt viele Gesundheitsdaten direkt auf dem iPhone.
-  - Dazu gehören unter anderem Aktivität, Schlaf, Herzwerte, Trends und inzwischen auch Arzt- bzw. Gesundheitsdokumente.
-  - Auffällig ist, wie viel dort bereits abgedeckt wird: Tracking, Trendanalyse, Gesundheitsdaten, Dokumente und Integration mit Geräten.
-  - USP: sehr tiefe Integration ins Apple-Ökosystem.
+Viele einzelne Datenpunkte ergeben erst zusammen ein klares Bild.
 
-### 2. Weitere Systeme, die beim Arbeiten an One-L1fe als relevante Vergleichspunkte aufgefallen sind
+## Was ist das Problem?
 
-- **Oura Developer App**
-  - Oura bietet über Entwicklerzugänge Zugriff auf Ring-Daten wie Schlaf, Erholung, Aktivität und Herzwerte.
-  - USP: sehr gute Wearable-Daten, besonders rund um Schlaf und Regeneration.
+Viele Menschen haben Gesundheitsdaten an vielen Orten:
 
-- **Levels App**
-  - App mit starkem Fokus auf Ernährung und Blutzuckerreaktionen.
-  - USP: verständlich machen, wie Essen den Körper beeinflusst.
+- Laborberichte,
+- Arztbriefe,
+- Wearable-Daten von Garmin, Apple Health, Oura oder ähnlichen Geräten,
+- Schlafdaten,
+- Bewegungsdaten,
+- Ernährung,
+- DNA-Tests,
+- Urintests,
+- Stuhl- und Mikrobiomtests,
+- eigene Notizen zu Energie, Stress, Symptomen oder Gewohnheiten.
 
-### Einordnung für One-L1fe
+Das Problem: Diese Daten liegen meistens getrennt voneinander. Man sieht einzelne Werte, aber nicht den Zusammenhang.
 
-One-L1fe ist nicht einfach eine weitere Health-App. Der Unterschied liegt im langfristigen Ziel: Aus persönlichen Langzeitdaten soll ein **Digital Avatar** entstehen.
+One-L1fe soll diese einzelnen Punkte verbinden.
 
-Mit Digital Avatar meinen wir kein Spielbild und keinen Chatbot. Gemeint ist ein persönliches Gesundheitsmodell, das über längere Zeit lernt:
+## Was war die Ausgangslage?
 
-- welche Werte regelmäßig gemessen werden,
-- welche Werte sich verändern,
-- welche Lebensumstände dazu passen,
-- welche Muster sich wiederholen,
-- welche Fragen man gezielter mit Ärzten, Familie oder für sich selbst klären sollte.
+Am Anfang gab es einen MVP in Notion.
 
-Wichtig: One-L1fe soll keine Diagnose stellen und keinen Arzt ersetzen. Es soll helfen, eigene Gesundheitsdaten besser zu verstehen, Entwicklungen sichtbar zu machen und bessere Fragen zu stellen.
+MVP bedeutet: eine sehr einfache erste Version, mit der man eine Idee testet.
 
-## Tech Stack
+Notion war gut, um schnell Tabellen, Notizen und erste Strukturen zu bauen. Aber Notion ist keine richtige App und keine stabile technische Grundlage für Gesundheitsdaten.
 
-Der Tech Stack ist die technische Grundlage des Projekts. Einfach gesagt: Das sind die Bausteine, aus denen die App besteht.
-
-### Mobile App
-
-- **React Native / Expo**
-  - Damit bauen wir die App.
-  - Vorteil: Eine technische Grundlage kann später für Android und iPhone genutzt werden.
-  - Aktueller Schwerpunkt: Android, weil dort Garmin-/Health-Connect-Daten zuerst getestet werden sollen.
-
-### Backend
-
-- **Supabase**
-  - Supabase ist der Server- und Datenbankteil des Projekts.
-  - Dort liegen Nutzerkonten, gespeicherte Werte, Regeln, Auswertungen und technische Funktionen.
-  - Die Datenbank wird nicht manuell im Dashboard verwaltet, sondern über Dateien im Repo: `supabase/migrations/`.
-
-### Datenbank
-
-- **Postgres**
-  - Das ist die Datenbank hinter Supabase.
-  - Dort werden strukturierte Daten gespeichert, zum Beispiel Laborwerte, Wearable-Werte, Check-ins und spätere Auswertungen.
-
-### Backend-Funktionen
-
-- **Supabase Edge Functions**
-  - Das sind kleine Server-Funktionen.
-  - Sie laufen nicht direkt in der App, sondern auf dem Server.
-  - Vorteil: sensible Logik und spätere KI-Aufrufe bleiben geschützt.
-
-### Gemeinsame Gesundheitslogik
-
-- **packages/domain**
-  - Das ist die gemeinsame Regel- und Logikschicht.
-  - Dort stehen Definitionen für Biomarker, Einheiten, Grenzwerte, Bewertungslogik und Verträge zwischen App und Backend.
-  - Vorteil: Die App, das Backend und Tests nutzen dieselbe Grundlage.
-
-### KI
-
-- **OpenAI / KI-Schicht geplant**
-  - Die Architektur sieht vor, KI später über das Backend einzubinden.
-  - Aktuell ist diese Schicht nicht als produktiver Nutzerpfad fertig verdrahtet.
-  - Das ist bewusst so, damit zuerst Datenstruktur, Sicherheit und klare Regeln stabil werden.
-
-### Wearables
-
-- **Health Connect / Garmin-Pfad**
-  - Wearable-Daten sollen zuerst über Android Health Connect verarbeitet werden.
-  - Garmin ist ein wichtiger erster Zielpfad.
-  - Relevante Werte sind zum Beispiel Schritte, Ruhepuls, HRV, Schlafdauer, Distanz und aktive Kalorien.
-
-## Design
-
-Design wird noch ergänzt.
-
-Geplant sind hier:
-
-- Farben,
-- Schrift- und Sprachstil,
-- einfache Erklärlogik,
-- UI-Richtung,
-- Tonalität der App,
-- Darstellung von Gesundheitswerten,
-- Darstellung von Unsicherheit und Vertrauen.
-
-Wichtig für das Design: Die App soll nicht wie ein medizinisches Kontrollzentrum wirken. Sie soll ruhig, verständlich und vertrauenswürdig sein. Menschen sollen erkennen, was ihre Daten bedeuten, ohne sich durch Fachsprache oder Warnfarben überfordert zu fühlen.
-
-## Ausgangslage: Notion-MVP
-
-Am Anfang stand kein fertiges Produkt, sondern ein MVP in Notion.
-
-MVP bedeutet: Minimum Viable Product. Einfach gesagt: eine erste einfache Version, mit der man prüfen kann, ob eine Idee Sinn ergibt.
-
-Notion war dafür gut, weil man schnell Tabellen, Notizen und erste Strukturen bauen konnte. Man konnte Gesundheitswerte sammeln, Kategorien anlegen und überlegen, welche Zusammenhänge wichtig sind.
-
-Aber Notion hatte klare Grenzen:
+Grenzen von Notion:
 
 - keine echte App-Erfahrung,
 - keine saubere Nutzeranmeldung,
+- keine automatische Wearable-Synchronisierung,
 - keine stabile Datenbanklogik,
-- keine automatische Verarbeitung von Wearable-Daten,
-- keine klare Trennung zwischen Rohdaten, Auswertung und Empfehlungen,
-- keine sichere Backend-Struktur,
 - zu viel manuelle Pflege,
-- zu wenig Schutz vor unklarer oder doppelter Logik.
+- keine klare Trennung zwischen Rohdaten, Auswertung und Empfehlungen.
 
-Die wichtigste Entscheidung war deshalb: Notion bleibt nicht der versteckte Motor des Systems. Die eigentliche Logik wird in Code, Datenbank und Backend verlagert.
+Die wichtigste Verbesserung ist deshalb: Die Logik wandert aus Notion heraus in eine echte App, ein Backend, eine Datenbank und wiederverwendbare Regeln.
 
-## Was One-L1fe heute ist
+## Was wurde bisher erreicht?
 
-One-L1fe ist ein privates Gesundheitsdaten- und Interpretationsprojekt.
+Aktuell ist One-L1fe ein testbarer Prototyp.
 
-Es sammelt und strukturiert persönliche Gesundheitsinformationen, zum Beispiel:
+Bereits vorhanden:
 
-- Laborwerte,
-- Biomarker,
-- subjektive Check-ins,
-- Wearable-Daten,
-- Kontextnotizen,
-- spätere Empfehlungen und Interpretationen.
+- Login,
+- erste Eingabe von Gesundheitswerten,
+- Weekly Check-in,
+- Wearable-Sync-Oberfläche,
+- Garmin-/Health-Connect-Vorbereitung,
+- Supabase-Anbindung,
+- Datenbank-Migrationen,
+- Biomarker-Logik,
+- erste Score-/Dot-Architektur in Arbeit,
+- Developer-Insight-Bereich für technische Kontrolle,
+- Dokumentation zu Architektur, Betrieb und Grenzen.
 
-Biomarker sind messbare Gesundheitswerte. Beispiele sind Vitamin D, Ferritin, CRP, ApoB, LDL, HbA1c oder Glukose.
+Noch offen:
 
-Das Ziel ist nicht, einzelne Werte isoliert anzuschauen. Das Ziel ist, über Zeit Muster zu erkennen.
+- echter Android-Test mit Garmin / Health Connect / Supabase,
+- vollständige Wearable-Verarbeitung,
+- vollständige Doctor-Prep-Funktion,
+- Uploads für Dokumente, DNA, Urin, Stuhl / Mikrobiom,
+- echte KI-Auswertung,
+- finales Design,
+- öffentliche Veröffentlichung.
 
-Beispiel:
+Wichtig: Die neue Dot-/Score-Struktur liegt aktuell als offene Arbeit in PR #108 und ist noch nicht komplett in `main` angekommen.
 
-- Ein einzelner schlechter Schlafwert sagt wenig.
-- Viele Schlafwerte über Wochen sagen mehr.
-- Wenn dazu noch Stress, Training, Ernährung, Laborwerte und Energielevel kommen, entsteht ein besseres Bild.
+## Was ist der „One L1fe Score“?
 
-Dieses langfristige Bild ist die Grundlage für den Digital Avatar.
+Der One L1fe Score soll später ein einfacher Überblick sein.
 
-## Die größere Vision: Digital Me / Holistic Person
+Er soll nicht heißen: „So gesund bist du.“
 
-Langfristig soll One-L1fe nicht nur Blutwerte und Wearable-Daten anzeigen. Die App soll möglichst viele relevante Datenarten zusammenführen, damit ein umfassenderes persönliches Gesundheitsbild entsteht.
+Er soll eher zeigen:
 
-Dazu können gehören:
-
-- Blutwerte und Laborberichte,
-- DNA-Testdaten,
-- Urintests,
-- Stuhlproben und Mikrobiomdaten,
-- Wearable-Daten,
-- Schlafdaten,
-- Ernährung,
-- Bewegung,
-- subjektive Angaben wie Energie, Stimmung, Stress oder Symptome,
-- Arztbriefe und andere medizinische Dokumente.
-
-Die Idee dahinter: Der Mensch soll nicht nur über einzelne Werte betrachtet werden, sondern als ganzheitliche Person. Deshalb passt der Begriff **Digital Me** oder **Digital Avatar**: Es entsteht ein datenbasiertes Abbild der eigenen gesundheitlichen Entwicklung.
-
-Wichtig: Dieses Abbild ist nie vollständig und nie unfehlbar. Es hängt davon ab, welche Daten vorhanden sind, wie aktuell sie sind und wie gut sie zusammenpassen.
-
-## Wofür die App später helfen soll
-
-One-L1fe soll Menschen helfen, ihre Situation besser einzuordnen. Besonders relevant kann das sein:
-
-- wenn man akut krank ist,
-- wenn man schneller wieder gesund werden möchte,
-- wenn man chronisch krank ist,
-- wenn man über längere Zeit Veränderungen bemerkt,
-- wenn mehrere Werte langsam schlechter werden,
-- wenn man sich auf einen Arzttermin vorbereiten möchte.
-
-Mögliche Ausgaben der App:
-
-- verständliche Zusammenfassung der wichtigsten Daten,
-- Hinweise, welche Werte auffällig oder unvollständig sind,
-- Fragen, die man beim Arzt stellen sollte,
-- ein kompaktes Dokument für den Arzttermin,
-- Hinweise, welche Daten fehlen,
-- Tipps zu Ernährung und Lebensweise,
-- Erklärung, welche Empfehlungen nur möglich sind, wenn bestimmte Daten vorhanden sind.
-
-Beispiele:
-
-- „Wenn du zum Arzt gehst, sprich diese drei Punkte an.“
-- „Für eine bessere Einschätzung fehlen aktuelle Entzündungswerte.“
-- „Diese Empfehlung ist nur möglich, wenn Stuhlproben- oder Mikrobiomdaten vorhanden sind.“
-- „Diese DNA-Information ändert sich kaum, aber ihre Interpretation kann sich ändern, wenn neue Forschung oder neue Gesundheitsdaten hinzukommen.“
-- „Diese Urintest-Daten sind nur kurzfristig aussagekräftig und sollten nicht über Monate hinweg als aktuell betrachtet werden.“
-
-## Unterschiedliche Daten sind unterschiedlich lange nützlich
-
-Nicht jede Datenart ist gleich lange aussagekräftig.
-
-Beispiele:
-
-- **DNA-Daten** verändern sich normalerweise nicht. Sie können langfristig relevant bleiben. Aber was daraus folgt, hängt von Forschung, Lebensstil, Alter, Symptomen und anderen Daten ab.
-- **Blutwerte** sind Momentaufnahmen. Manche bleiben länger relevant, andere müssen nach Wochen oder Monaten neu geprüft werden.
-- **Urintests** können sehr kurzfristig sein. Sie können etwas über den aktuellen Zustand sagen, sind aber oft schnell veraltet.
-- **Stuhlproben / Mikrobiomdaten** können Hinweise auf Verdauung, Ernährung und Darmflora geben. Sie sind aber abhängig von Ernährung, Medikamenten, Infekten und Zeit.
-- **Wearable-Daten** sind besonders gut für Verlauf und Alltag: Schlaf, Puls, Schritte, Belastung, Erholung.
-- **Subjektive Angaben** wie Energie, Stimmung oder Stress sind wichtig, weil sie erklären können, warum Werte sich verändern.
-
-Deshalb soll One-L1fe nicht nur fragen: „Welche Daten liegen vor?“, sondern auch: „Sind diese Daten noch frisch genug, um daraus etwas Sinnvolles abzuleiten?“
-
-## Funktionen, die von bestimmten Daten abhängen
-
-Nicht jede Funktion kann immer verfügbar sein.
-
-Beispiele:
-
-- Ernährungstipps können besser werden, wenn Blutwerte, Glukosewerte, Stuhlprobe oder Mikrobiomdaten vorhanden sind.
-- Hinweise zu genetischen Veranlagungen sind nur möglich, wenn DNA-Daten vorliegen.
-- Aussagen zur Regeneration werden besser, wenn Schlaf, Ruhepuls und HRV vorhanden sind.
-- Arztzusammenfassungen werden besser, wenn Laborwerte, Symptome, Medikamente und relevante Dokumente vorliegen.
-
-Die App soll deshalb transparent sagen:
-
-- welche Aussage möglich ist,
-- welche Aussage unsicher ist,
+- welche Daten aktuell vorhanden sind,
+- welche Bereiche gut abgedeckt sind,
 - welche Daten fehlen,
-- welche Daten zu alt sind,
-- wann neue Daten sinnvoll wären.
+- welche Daten veraltet sein könnten,
+- wie sicher oder unsicher die Einschätzung ist.
+
+Fehlende Daten sollen nicht als schlechter Gesundheitszustand gezählt werden. Wenn Daten fehlen, bedeutet das nur: Die Aussage ist weniger präzise.
+
+## Dots: die Struktur der App
+
+Die App soll mit Dots arbeiten. Ein Dot steht für einen Gesundheitsbereich.
+
+Geplanter Kern:
+
+- **Health**: Blutwerte, Biomarker, Dokumente, DNA, Urin, Stuhl / Mikrobiom, Medikamente, Supplements.
+- **Nutrition**: Mahlzeiten, Foto-Upload, Textbeschreibung, grobe Ernährungsschätzung, Hydration.
+- **Mind & Sleep**: Schlaf, Energie, Stress, Stimmung, Symptome, Gewohnheiten als Kontext.
+- **Activity**: Schritte, Training, Puls, HRV, Distanz, Kalorien, Wearable Sync.
+
+In der Mitte steht **One L1fe** als Gesamtbild.
+
+Doctor Prep ist kein normaler Messbereich, sondern ein eigener Vorbereitungsbereich für Arztgespräche.
+
+## Doctor Prep
+
+Doctor Prep soll einer der wichtigsten praktischen Bereiche werden.
+
+Ziel: Nutzer sollen Arzttermine besser vorbereiten können.
+
+Geplante Funktionen:
+
+- Dokumente hochladen,
+- Laborberichte, PDFs oder Bilder sammeln,
+- wichtige Daten für den Arzt zusammenfassen,
+- Fragen für den Arzt vorbereiten,
+- mögliche Tests zur Besprechung vorschlagen,
+- E-Mail-Entwurf an den Arzt erstellen,
+- Arztkontakte lokal im Prototyp speichern,
+- Terminnotiz oder Kalender-Eintrag vorbereiten.
+
+Wichtig: Die App soll nicht sagen „Mach Test X“. Sie soll sagen: „Du könntest mit deinem Arzt besprechen, ob Test X sinnvoll wäre.“
+
+## Nutrition / Meals
+
+Nutrition soll Mahlzeiten erfassbar machen.
+
+Geplant sind drei Wege:
+
+- Foto einer Mahlzeit hochladen,
+- Mahlzeit per Text beschreiben,
+- Foto plus Beschreibung kombinieren.
+
+Die App soll daraus nur eine grobe Schätzung machen, zum Beispiel Kalorienbereich und Makros wie Protein, Kohlenhydrate und Fett.
+
+Wichtig: Diese Schätzung ist nicht exakt. Die App soll immer anzeigen, wie unsicher die Einschätzung ist und wie man sie verbessern kann, zum Beispiel durch Portionsgrößen, Zutaten oder Zubereitungsart.
+
+## Habits
+
+Habits sind Gewohnheiten oder Verhaltensweisen, die helfen können, Veränderungen zu erklären.
+
+Beispiele:
+
+- smoking,
+- alcohol,
+- caffeine,
+- late eating,
+- fasting,
+- meditation,
+- walking.
+
+Habits sollen den Score nicht direkt beeinflussen.
+
+Sie dienen als Kontext. Beispiel: Wenn Schlaf schlechter wird und in derselben Woche häufiger Alkohol eingetragen wurde, kann die App darauf hinweisen, dass das ein möglicher Zusammenhang sein könnte. Es ist aber kein Beweis.
+
+## Datenstatus: Active, Missing, Not provided
+
+Für Daten soll klar sein, wie die App sie behandelt.
+
+- **Active**: Dieser Wert wird genutzt.
+- **Missing**: Der Wert wäre relevant, ist aber aktuell nicht vorhanden.
+- **Not provided**: Der Nutzer möchte diesen Wert bewusst nicht angeben.
+
+Wichtig: Not provided zählt nicht als Fehler und verschlechtert den Score nicht.
+
+## Tech Stack einfach erklärt
+
+### GitHub
+
+GitHub ist der Ort, an dem der Code liegt.
+
+Dort sieht man:
+
+- was gebaut wurde,
+- wer etwas geändert hat,
+- welche Aufgaben noch offen sind,
+- welche Änderungen geprüft werden,
+- welche Version aktuell ist.
+
+Ein Pull Request, kurz PR, ist ein Änderungsvorschlag. Erst wenn er geprüft und übernommen wird, landet er im Hauptstand der App.
+
+### Supabase
+
+Supabase ist der Backend-Teil.
+
+Ein Backend ist der technische Bereich hinter der App. Dort laufen Anmeldung, Datenbank, Berechtigungen und Server-Funktionen.
+
+Supabase nutzt Postgres als Datenbank.
+
+Postgres ist eine sehr verbreitete Datenbank, in der strukturierte Daten gespeichert werden können, zum Beispiel Nutzer, Laborwerte, Check-ins oder Wearable-Daten.
+
+### Migrations
+
+Migrations sind Änderungsdateien für die Datenbank.
+
+Sie sorgen dafür, dass die Datenbank nachvollziehbar verändert wird. Dadurch weiß man später, wann welche Tabelle oder Regel eingeführt wurde.
+
+Wichtig: Die Datenbank soll nicht einfach manuell im Supabase-Dashboard geändert werden. Die wichtigste Quelle ist das Repo, besonders `supabase/migrations/`.
+
+### React Native / Expo
+
+React Native ist die Grundlage für die mobile App.
+
+Expo ist ein Werkzeug, das die Entwicklung und das Testen der App einfacher macht.
+
+Ziel ist zuerst Android, weil Garmin / Health Connect dort aktuell der wichtigste Testpfad ist.
+
+### Domain Layer
+
+Der Domain Layer ist die gemeinsame Gesundheitslogik.
+
+Einfach gesagt: Dort stehen Regeln, Einheiten, Grenzwerte, Scores und Datenverträge.
+
+Das verhindert, dass App, Backend und Auswertung jeweils eigene widersprüchliche Regeln verwenden.
+
+### Edge Functions
+
+Edge Functions sind kleine Server-Funktionen in Supabase.
+
+Sie laufen nicht auf dem Handy, sondern serverseitig. Das ist wichtig, weil sensible Logik und spätere KI-Aufrufe nicht direkt in der App liegen sollten.
+
+### KI / LLM
+
+LLM steht für Large Language Model. Das ist ein KI-Sprachmodell wie ChatGPT, Claude oder Gemini.
+
+In One-L1fe ist KI geplant, aber streng begrenzt:
+
+- keine Diagnose,
+- keine Behandlungsempfehlung,
+- keine Notfallentscheidung,
+- keine echten sensiblen Gesundheitsdaten an freie Testmodelle.
+
+Im Prototyp können KI-Funktionen zunächst nur mit Testdaten oder Mock-Antworten geprüft werden.
+
+## Konkurrenz / Vergleichspunkte
+
+Diese Beispiele zeigen, dass rund um digitale Gesundheit und KI gerade viel passiert.
+
+### Doktor SV App mit Gemini
+
+Eine Gesundheits-App aus El Salvador, die offenbar Gemini-KI nutzt und chronisch kranke Patienten unterstützen soll.
+
+### Perplexity Health
+
+Gesundheitsbezogene KI-Suche. Fokus: schnellere Antworten und Recherche mit Quellen.
+
+### Anthropic Claude
+
+Allgemeines KI-System, stark bei Erklärungen, Zusammenfassungen und Dokumenten. Nicht speziell als persönliche Health-App gebaut.
+
+### Apple Health
+
+Apple Health sammelt sehr viele Gesundheitsdaten direkt auf dem iPhone: Aktivität, Schlaf, Trends, Herzwerte und auch Gesundheitsdokumente. Auffällig ist, wie viel dort bereits abgedeckt wird.
+
+### Oura Developer App
+
+Oura bietet Zugriff auf Ring-Daten wie Schlaf, Erholung, Aktivität und Herzwerte. Stark bei Schlaf und Regeneration.
+
+### Levels
+
+Levels fokussiert sich stark auf Ernährung und Blutzuckerreaktionen. Es erklärt, wie Essen den Körper beeinflusst.
+
+## Unterschied zu diesen Angeboten
+
+One-L1fe soll nicht nur ein einzelner Tracker sein.
+
+Der Fokus liegt auf dem Zusammenführen vieler Datenquellen:
+
+- Blutwerte,
+- Wearables,
+- Check-ins,
+- Ernährung,
+- Dokumente,
+- Arztvorbereitung,
+- später DNA, Urin und Stuhl / Mikrobiom.
+
+Ziel ist ein persönliches, datenbasiertes Gesamtbild — kein einzelnes Dashboard und kein digitaler Arzt.
 
 ## Was One-L1fe ausdrücklich nicht ist
 
@@ -259,241 +297,37 @@ One-L1fe ist:
 - kein Notfall-System,
 - kein Ersatz für professionelle medizinische Einschätzung.
 
-Die App soll helfen, Daten besser zu verstehen. Sie soll nicht entscheiden, ob jemand krank ist oder welche Behandlung nötig ist.
+One-L1fe soll helfen, Daten zu organisieren, Muster sichtbar zu machen und bessere Fragen vorzubereiten.
 
-Auch wenn Daten auf Risiken oder ungünstige Entwicklungen hinweisen können, darf die App daraus keine sichere Vorhersage machen. Sie kann Hinweise geben, Unsicherheit erklären und helfen, die richtigen nächsten Fragen zu stellen.
+## Was als nächstes kommt
 
-## Was bisher erreicht wurde
+Kurzfristig wichtig:
 
-### 1. Aus Notion wurde eine echte technische Grundlage
+- Dot-/Score-Struktur stabil fertigstellen,
+- One-L1fe-Home mit Dots sauber umsetzen,
+- Doctor Prep weiter ausbauen,
+- Nutrition mit Foto/Text-Mock umsetzen,
+- Habits als Kontext erfassen,
+- Wearable Sync auf echtem Android-Gerät testen,
+- Garmin / Health Connect Ende-zu-Ende prüfen,
+- klare Erklärtexte zu Score, Confidence, Coverage und Datenstatus ergänzen.
 
-Die alte Notion-Struktur wurde in ein echtes Softwareprojekt überführt.
+Langfristig:
 
-Verbesserung:
-
-- vorher: Tabellen und manuelle Struktur,
-- jetzt: App, Backend, Datenbank, Regeln und Tests.
-
-### 2. Eine Mobile App existiert als Prototyp
-
-Der aktuelle Prototyp enthält:
-
-- Login,
-- erste Dateneingabe,
-- Weekly Check-in,
-- Wearable-Sync-Oberfläche,
-- Developer-Insight-Bereich für technische Kontrolle.
-
-Das heißt: Es ist nicht mehr nur ein Konzept. Es gibt eine testbare App-Struktur.
-
-### 3. Supabase ist als Backend eingebunden
-
-Supabase übernimmt:
-
-- Nutzerkonten,
-- Datenbank,
-- Zugriffsregeln,
-- Backend-Funktionen,
-- Speicherung von Gesundheitsdaten.
-
-Wichtig: Die Datenbankstruktur wird über Migrationen im Repo gepflegt. Dadurch bleibt nachvollziehbar, was wann geändert wurde.
-
-### 4. Die Gesundheitslogik wurde aus der Oberfläche herausgezogen
-
-Ein großer Fortschritt ist die gemeinsame Domain-Schicht.
-
-Einfach erklärt: Regeln wie „welcher Wert ist wichtig“, „welche Einheit wird genutzt“, „wie wird ein Wert bewertet“ oder „welche Daten sind zu alt“ liegen nicht zufällig an verschiedenen Stellen. Sie werden zentral definiert.
-
-Das verhindert später widersprüchliche Auswertungen.
-
-### 5. Biomarker und Priorisierung wurden strukturiert
-
-Es gibt Regeln und Gewichtungen für Gesundheitswerte.
-
-Beispiel:
-
-- Manche Werte sind sehr wichtig und gut belegt.
-- Andere Werte sind interessant, aber weniger sicher.
-- Das System soll diese Unterschiede sichtbar machen.
-
-Dafür gibt es unter anderem:
-
-- Evidenz-Stufen,
-- Gewichtungen,
-- Prioritätslogik,
-- Unterscheidung zwischen starken und schwächeren Markern.
-
-Evidenz bedeutet: Wie gut ist etwas belegt?
-
-### 6. Wearable-Daten wurden vorbereitet
-
-Der Wearable-Bereich ist teilweise gebaut.
-
-Vorbereitet sind unter anderem:
-
-- Schritte,
-- Ruhepuls,
-- HRV,
-- Schlaf,
-- aktive Kalorien,
-- Distanz.
-
-HRV bedeutet Herzratenvariabilität. Vereinfacht: Sie beschreibt, wie stark sich die Abstände zwischen Herzschlägen verändern. Das kann Hinweise auf Erholung, Stress oder Belastung geben, ist aber kein einzelner Diagnosewert.
-
-Noch offen: Der komplette Test mit echtem Android-Gerät, Health Connect und Supabase muss noch sauber durchlaufen.
-
-### 7. Sicherheit und Grenzen wurden dokumentiert
-
-Das Projekt hat bewusst klare Grenzen:
-
-- private Nutzung,
-- keine öffentlichen Gesundheitsclaims,
-- keine Diagnoseversprechen,
-- keine rohen persönlichen Gesundheitsdaten im Repo,
-- klare Trennung zwischen Daten, Interpretation und Empfehlung.
-
-Das ist wichtig, weil Gesundheitsdaten sensibel sind.
-
-## Was sich gegenüber Notion verbessert hat
-
-### Vorher: Notion als flexible Tabelle
-
-Notion war gut zum Denken und Strukturieren. Aber es war keine stabile technische Produktgrundlage.
-
-### Jetzt: App plus Backend plus Regeln
-
-Die wichtigsten Verbesserungen:
-
-- echte App statt Tabellenansicht,
-- Nutzerlogin statt manuellem Zugriff,
-- Supabase-Datenbank statt Notion-Tabelle,
-- zentrale Regeln statt verstreuter Logik,
-- bessere Nachvollziehbarkeit über GitHub,
-- spätere Wearable-Anbindung möglich,
-- spätere KI-Anbindung kontrollierbar,
-- klare Produktgrenzen,
-- bessere Grundlage für Datenschutz und Sicherheit,
-- strukturierte Roadmap statt lose Ideen.
-
-## Wie das System einfach funktioniert
-
-### Schritt 1: Nutzer gibt Daten ein oder verbindet später Quellen
-
-Zum Beispiel:
-
-- Laborwert,
-- Energielevel,
-- Schlaf,
-- Schritte,
-- Notiz zum Tag,
-- DNA-Test,
-- Urintest,
-- Stuhlprobe,
-- Arztbrief.
-
-### Schritt 2: Die App sendet die Daten an Supabase
-
-Supabase speichert die Daten sicherer und strukturierter als eine einfache Tabelle.
-
-### Schritt 3: Die Domain-Logik bewertet die Daten
-
-Das System prüft zum Beispiel:
-
-- Welche Einheit hat der Wert?
-- Ist der Wert aktuell oder veraltet?
-- Ist der Wert stark oder schwach belegt?
-- Gibt es bekannte Regeln für diesen Wert?
-- Welche Datenarten fehlen für eine bessere Einschätzung?
-
-### Schritt 4: Das System erstellt eine verständliche Einordnung
-
-Nicht im Sinne von Diagnose, sondern zum Beispiel:
-
-- „Dieser Wert ist auffällig.“
-- „Dieser Wert ist alt und sollte nicht überbewertet werden.“
-- „Dieser Bereich ist gut belegt.“
-- „Hier fehlt noch Kontext.“
-- „Für Ernährungstipps wären Stuhlprobe oder Glukosedaten hilfreich.“
-- „Für den Arzttermin wären diese fünf Punkte relevant.“
-
-### Schritt 5: Langfristig entsteht der Digital Avatar
-
-Je länger Daten gesammelt werden, desto besser kann das System Muster erkennen.
-
-Der Digital Avatar soll langfristig nicht nur einzelne Datenpunkte anzeigen, sondern persönliche Entwicklung verständlich machen.
-
-## Aktueller Stand
-
-Aktuell ist One-L1fe ein testbarer Prototyp.
-
-Fertig bzw. vorhanden:
-
-- Repo-Struktur,
-- Mobile-App-Grundlage,
-- Login,
-- erste Dateneingabe,
-- Weekly Check-in,
-- Supabase-Anbindung,
-- Datenbank-Migrationen,
-- Domain-Schicht,
-- Biomarker-Logik,
-- Evidence Registry,
-- Wearable-Sync-Oberfläche,
-- Developer-Insight-Bereich,
-- Dokumentation zu Architektur, Compliance und Betrieb.
-
-Noch nicht vollständig fertig:
-
-- echter End-to-End-Test mit Garmin / Health Connect / Android / Supabase,
-- vollständige produktive Wearable-Verarbeitung,
-- Integration von DNA-, Urin- und Stuhlprobendaten,
-- Arzttermin-Zusammenfassungen als fertiges Produktfeature,
-- saubere Nutzeroberfläche für alle Interpretationen,
-- produktiv verdrahtete KI-Schicht,
-- finales Design,
-- öffentliche Distribution.
+- Dokumenten-Upload,
+- Arzt-E-Mail-Entwurf,
+- Kalender-/Terminunterstützung,
+- bessere Ernährungsauswertung,
+- Upload von DNA-, Urin- und Stuhltestdaten,
+- KI-Auswertung mit strengen Sicherheitsregeln,
+- vollständiger Digital-Me-Ansatz aus Langzeitdaten.
 
 ## Warum das Projekt relevant ist
 
-Viele Menschen haben heute Gesundheitsdaten an vielen Stellen:
+Gesundheitsdaten werden immer mehr, aber sie sind selten verständlich verbunden.
 
-- Laborberichte,
-- Arztbriefe,
-- Apple Health,
-- Garmin,
-- Oura,
-- Ernährungsdaten,
-- Schlafdaten,
-- DNA-Tests,
-- Urintests,
-- Stuhlproben,
-- eigene Notizen.
+One-L1fe versucht, aus vielen einzelnen Datenpunkten ein verständliches Bild zu machen.
 
-Das Problem: Die Daten liegen verstreut. Sie werden selten langfristig zusammengeführt. Man sieht oft Werte, aber nicht den Zusammenhang.
+Nicht als Diagnose.
 
-One-L1fe versucht genau dort anzusetzen:
-
-- Daten sammeln,
-- verständlich machen,
-- Verlauf zeigen,
-- Unsicherheit sichtbar machen,
-- bessere persönliche Fragen ermöglichen,
-- Vorbereitung auf Arztgespräche verbessern,
-- individuelle Hinweise zu Ernährung und Lebensweise ermöglichen,
-- langfristig ein eigenes Gesundheitsmodell aufbauen.
-
-## Nächster Dokumentationsbedarf
-
-Diese Datei ist der verständliche Überblick für Familie, Freunde und interessierte Menschen.
-
-Sie soll regelmäßig ergänzt werden, wenn sich der reale Projektstand ändert.
-
-Als nächstes sollten ergänzt werden:
-
-- Design: Farben, Sprache, UI-Richtung,
-- Screenshots oder einfache Skizzen,
-- ein konkretes Beispiel: „Ein Nutzer gibt Wert X ein und sieht Y“,
-- Erklärung der wichtigsten Biomarker in Alltagssprache,
-- Erklärung des Digital Avatar anhand eines realistischen Tages- oder Wochenbeispiels,
-- konkrete Beispielausgabe für einen Arzttermin,
-- einfache Erklärung, welche Datenarten welche Funktionen freischalten.
+Sondern als bessere Orientierung für das eigene Leben, die eigenen Routinen und Gespräche mit Ärzten.
