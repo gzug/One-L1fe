@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-23
+last_verified: 2026-04-24
 supersedes: []
 superseded_by: null
 scope: repo
@@ -33,7 +33,16 @@ Long-term operating memory for **One L1fe (OL)**.
 - Keep shared domain imports cross-runtime safe (Node tests + Supabase Edge Functions)
 - Mobile: Expo first, avoid `expo-router` until concrete navigation need
 - `apps/mobile/` auth via `mobileSupabaseAuth.ts` with real Expo env keys
-- Mobile auth: `useAuthSession.ts` owns auth-state, `LoginScreen.tsx` sign-in, `MinimumSliceScreen.tsx` signed-in form, `App.tsx` auth-gate shell
+- Mobile auth: `useAuthSession.ts` owns auth-state and `LoginScreen.tsx` owns sign-in.
+- Mobile signed-in shell: `App.tsx` owns the One L1fe Home surface. The Home Orbit is user-facing and must only show score-capable domains: `Health`, `Nutrition`, `Mind & Sleep`, and `Activity`.
+- First-run mobile guide: keep it short, skipable, persistent, and reopenable from Home. Seven steps is the current upper limit; do not add per-sub-dot explanations to onboarding.
+- Mobile navigation placement: `Doctor Prep` is an output/preparation action, not an Orbit Dot. `Menu` is backup navigation. `Profile` contains Settings/App Settings. Dev Insight is not user-facing in the current prototype shell.
+- Mobile screen placement: `MinimumSliceScreen` lives under `Health > Blood / Biomarkers`, `WeeklyCheckinScreen` under `Mind & Sleep`, `NutritionScreen` under `Nutrition`, and `WearableSyncScreen` under `Activity` behind the Health Connect permission gate.
+- Visible dot structure: `packages/domain/dotStructure.ts` is the canonical UI hierarchy for visible Orbit Dots, menu entries, and sub-dot detail structure.
+- Ask One L1fe belongs on the One L1fe Home surface as a question interface, not generic app search. `packages/domain/askOneL1fe.ts` is the shared source-gated answer seam. V1 must refuse personalized health answers without sourced facts, show sources/missing data, and avoid diagnosis/treatment advice.
+- Synthetic presentation data is allowed for the brother/private demo only when explicitly synthetic in code/UI. It may show plausible 90-day trends and sourced demo answers, but must not replace real source integration or imply real user results.
+- Habits are context under `Mind & Sleep`; they may explain data changes but must not directly affect One L1fe Score, Dot Scores, or biomarker priority score.
+- Nutrition prototype: `packages/domain/nutritionEstimate.ts` is the canonical mock nutrition estimate helper; estimates must stay approximate and confidence-based, not exact or medical.
 - Load `react-native-url-polyfill/auto` before `@supabase/supabase-js`
 - Signed-out states vs operational auth errors treated separately in `getFreshAccessToken()`
 - Wearable work: reuse `apps/mobile/mobileSupabaseAuth.ts`, no second Supabase client

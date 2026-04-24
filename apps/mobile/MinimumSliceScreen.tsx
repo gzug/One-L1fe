@@ -13,8 +13,8 @@ import { MinimumSliceScreenModel } from './minimumSliceScreenModel.ts';
 import { MinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   createOptionalFieldMetadata,
-  getOptionalFieldMetadata,
-  OptionalMinimumSliceMarkerKey,
+  getStatusFieldMetadata,
+  MinimumSliceStatusMarkerKey,
 } from '../../packages/domain/minimumSliceMobileForm.ts';
 
 const FIELD_ORDER = [
@@ -35,6 +35,9 @@ const FIELD_ORDER = [
   keyboardType: KeyboardTypeOptions;
 }>;
 
+const FIELD_STATUS_HELPER_TEXT =
+  'Choose how each data point should be handled.\n\nActive values are used in calculations.\nMissing values may reduce score precision.\nNot provided values are intentionally excluded and do not affect your score.';
+
 type FieldKey = (typeof FIELD_ORDER)[number]['key'];
 
 function renderTopDrivers(state: MinimumSliceScreenModel): string {
@@ -44,8 +47,8 @@ function renderTopDrivers(state: MinimumSliceScreenModel): string {
     : 'none';
 }
 
-function getOptionalMarkerState(state: MinimumSliceScreenModel, marker: OptionalMinimumSliceMarkerKey): 'provided' | 'missing' | 'disabled' {
-  const meta = getOptionalFieldMetadata(state.draft, marker);
+function getMarkerState(state: MinimumSliceScreenModel, marker: MinimumSliceStatusMarkerKey): 'provided' | 'missing' | 'disabled' {
+  const meta = getStatusFieldMetadata(state.draft, marker);
   if (meta?.fieldState === 'disabled') return 'disabled';
   if (meta?.fieldState === 'provided') return 'provided';
   return 'missing';
@@ -63,6 +66,7 @@ export default function MinimumSliceScreen({
   );
   const [localError, setLocalError] = useState<string | undefined>();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openStatusMarker, setOpenStatusMarker] = useState<MinimumSliceStatusMarkerKey | null>(null);
 
   const helperText = useMemo(() => {
     return [
@@ -118,6 +122,22 @@ export default function MinimumSliceScreen({
         patch.magnesiumMeta = createOptionalFieldMetadata('provided');
       }
 
+      if (field === 'apob') {
+        patch.apobMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'ldl') {
+        patch.ldlMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'hba1c') {
+        patch.hba1cMeta = createOptionalFieldMetadata('provided');
+      }
+
+      if (field === 'glucose') {
+        patch.glucoseMeta = createOptionalFieldMetadata('provided');
+      }
+
       const nextState = controller.patchDraft(patch as Partial<MinimumSliceScreenModel['draft']>);
       setScreenState(nextState);
     },
@@ -125,9 +145,10 @@ export default function MinimumSliceScreen({
   );
 
   const handleOptionalMarkerStateChange = useCallback(
-    (marker: OptionalMinimumSliceMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): void => {
+    (marker: MinimumSliceStatusMarkerKey, fieldState: 'provided' | 'missing' | 'disabled'): void => {
       const nextState = controller.setOptionalMarkerFieldState(marker, fieldState);
       setScreenState(nextState);
+      setOpenStatusMarker(null);
     },
     [controller],
   );
@@ -143,44 +164,79 @@ export default function MinimumSliceScreen({
       </View>
 
       <View style={styles.card}>
+        <Text style={styles.statusHelper}>{FIELD_STATUS_HELPER_TEXT}</Text>
         {FIELD_ORDER.map((field) => (
           <View key={field.key} style={styles.fieldGroup}>
             <Text style={styles.label}>{field.label}</Text>
-            <TextInput
-              keyboardType={field.keyboardType}
-              onChangeText={(value: string) => handleChange(field.key, value)}
-              style={styles.input}
-              value={screenState.draft[field.key]}
-            />
-            {(field.key === 'lpa' || field.key === 'crp' || field.key === 'b12' || field.key === 'magnesium') ? (
-              <View style={styles.optionRow}>
-                {(['provided', 'missing', 'disabled'] as const).map((stateOption) => {
-                  const isActive = getOptionalMarkerState(screenState, field.key as OptionalMinimumSliceMarkerKey) === stateOption;
-                  return (
-                    <Pressable
-                      key={stateOption}
-                      onPress={() => handleOptionalMarkerStateChange(field.key as OptionalMinimumSliceMarkerKey, stateOption)}
-                      style={[styles.optionChip, isActive ? styles.optionChipActive : null]}
-                    >
-                      <Text style={[styles.optionChipText, isActive ? styles.optionChipTextActive : null]}>
-                        {stateOption === 'provided'
-                          ? 'Active'
-                          : stateOption === 'missing'
-                            ? 'Missing'
-                            : 'Not provided'}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : null}
-            {(field.key === 'lpa' || field.key === 'crp' || field.key === 'b12' || field.key === 'magnesium') && getOptionalMarkerState(screenState, field.key as OptionalMinimumSliceMarkerKey) !== 'provided' ? (
-              <Text style={styles.fieldHint}>
-                {getOptionalMarkerState(screenState, field.key) === 'disabled'
-                  ? `${field.label} is intentionally excluded from use.`
-                  : `${field.label} is currently unavailable and should not break calculations.`}
-              </Text>
-            ) : null}
+            {isStatusFieldKey(field.key) ? (
+              <>
+                <View style={styles.inputShell}>
+                  <TextInput
+                    editable={getMarkerState(screenState, field.key) === 'provided'}
+                    keyboardType={field.keyboardType}
+                    onChangeText={(value: string) => handleChange(field.key, value)}
+                    placeholder={getMarkerState(screenState, field.key) === 'provided' ? undefined : 'Select a status first'}
+                    placeholderTextColor="#94a3b8"
+                    style={[
+                      styles.input,
+                      styles.inputShellValue,
+                      getMarkerState(screenState, field.key) !== 'provided' && styles.inputShellValueDisabled,
+                    ]}
+                    value={screenState.draft[field.key]}
+                  />
+                  <Pressable
+                    onPress={() =>
+                      setOpenStatusMarker((current) =>
+                        current === field.key ? null : (field.key as MinimumSliceStatusMarkerKey),
+                      )
+                    }
+                    style={[
+                      styles.modeButton,
+                      openStatusMarker === field.key && styles.modeButtonActive,
+                    ]}
+                  >
+                    <Text style={styles.modeButtonText}>
+                      {renderOptionalFieldModeLabel(getMarkerState(screenState, field.key))}
+                    </Text>
+                  </Pressable>
+                </View>
+                {openStatusMarker === field.key ? (
+                  <View style={styles.modeMenu}>
+                    {OPTIONAL_FIELD_MODE_OPTIONS.map((option) => {
+                      const isActive = getMarkerState(screenState, field.key) === option.value;
+                      return (
+                        <Pressable
+                          key={option.value}
+                          onPress={() => handleOptionalMarkerStateChange(field.key as MinimumSliceStatusMarkerKey, option.value)}
+                          style={[styles.modeMenuItem, isActive && styles.modeMenuItemActive]}
+                        >
+                          <Text style={[styles.modeMenuItemLabel, isActive && styles.modeMenuItemLabelActive]}>
+                            {option.label}
+                          </Text>
+                          <Text style={[styles.modeMenuItemDescription, isActive && styles.modeMenuItemDescriptionActive]}>
+                            {option.description}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                ) : null}
+                {getMarkerState(screenState, field.key) !== 'provided' ? (
+                  <Text style={styles.fieldHint}>
+                    {getMarkerState(screenState, field.key) === 'disabled'
+                      ? `${field.label} is intentionally not provided and is excluded from active use.`
+                      : `${field.label} is intentionally left without a value and should not break calculations.`}
+                  </Text>
+                ) : null}
+              </>
+            ) : (
+              <TextInput
+                keyboardType={field.keyboardType}
+                onChangeText={(value: string) => handleChange(field.key, value)}
+                style={styles.input}
+                value={screenState.draft[field.key]}
+              />
+            )}
           </View>
         ))}
       </View>
@@ -281,6 +337,84 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
+  inputShell: {
+    alignItems: 'stretch',
+    backgroundColor: '#f8fafc',
+    borderColor: '#c8d3e1',
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  inputShellValue: {
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+    borderRadius: 0,
+    borderWidth: 0,
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  inputShellValueDisabled: {
+    color: '#94a3b8',
+  },
+  modeButton: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    backgroundColor: '#eef2ff',
+    borderLeftColor: '#c8d3e1',
+    borderLeftWidth: 1,
+    justifyContent: 'center',
+    minWidth: 112,
+    paddingHorizontal: 12,
+  },
+  modeButtonActive: {
+    backgroundColor: '#dbe4ff',
+  },
+  modeButtonText: {
+    color: '#24324a',
+    fontSize: 13,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  modeMenu: {
+    backgroundColor: '#ffffff',
+    borderColor: '#c8d3e1',
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+    marginTop: 8,
+    padding: 8,
+  },
+  modeMenuItem: {
+    backgroundColor: '#f8fafc',
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  modeMenuItemActive: {
+    backgroundColor: '#eef2ff',
+    borderColor: '#4263eb',
+  },
+  modeMenuItemLabel: {
+    color: '#152033',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  modeMenuItemLabelActive: {
+    color: '#24324a',
+  },
+  modeMenuItemDescription: {
+    color: '#52607a',
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  modeMenuItemDescriptionActive: {
+    color: '#334155',
+  },
   optionRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -308,6 +442,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   fieldHint: {
+    color: '#52607a',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  statusHelper: {
     color: '#52607a',
     fontSize: 13,
     lineHeight: 18,
@@ -382,3 +521,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 });
+
+const OPTIONAL_FIELD_MODE_OPTIONS: ReadonlyArray<{
+  value: 'provided' | 'missing' | 'disabled';
+  label: string;
+  description: string;
+}> = [
+  {
+    value: 'provided',
+    label: 'Active',
+    description: 'Enter and use a numeric value for this metric.',
+  },
+  {
+    value: 'missing',
+    label: 'Missing',
+    description: 'Keep it explicitly blank without breaking calculations.',
+  },
+  {
+    value: 'disabled',
+    label: 'Not provided',
+    description: 'Exclude it intentionally from active use.',
+  },
+] as const;
+
+function isStatusFieldKey(key: FieldKey): key is MinimumSliceStatusMarkerKey {
+  return key === 'apob' || key === 'ldl' || key === 'hba1c' || key === 'glucose' || key === 'lpa' || key === 'crp' || key === 'b12' || key === 'magnesium';
+}
+
+function renderOptionalFieldModeLabel(
+  fieldState: 'provided' | 'missing' | 'disabled',
+): string {
+  if (fieldState === 'provided') return 'Active';
+  if (fieldState === 'missing') return 'Missing';
+  return 'Not provided';
+}

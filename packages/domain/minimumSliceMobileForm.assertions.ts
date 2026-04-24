@@ -103,6 +103,25 @@ export function runMinimumSliceMobileFormAssertions(): void {
   assert(disabledOptionalInput.entries[4]?.field_state === 'disabled', 'Disabled optional entry should keep disabled field_state.');
   assert(disabledOptionalInput.entries[5]?.field_state === 'missing', 'Missing optional entry should keep missing field_state.');
 
+  const missingCoreInput = buildMinimumSlicePanelInputFromMobileDraft(
+    {
+      panelId: 'panel_mobile_2c',
+      collectedAt: '2026-04-13T09:00:00.000Z',
+      apob: '118',
+      apobMeta: { fieldState: 'missing', valueSource: 'unknown', stateReason: 'not_available' },
+      ldl: '120',
+      hba1c: '5.4',
+      glucose: '95',
+    },
+    {
+      profileId: 'profile_mobile_2c',
+    },
+  );
+
+  assert(missingCoreInput.entries[0]?.marker === 'apob', 'Core status entry should preserve marker order.');
+  assert(missingCoreInput.entries[0]?.value === null, 'Missing core entry should map to null value.');
+  assert(missingCoreInput.entries[0]?.field_state === 'missing', 'Missing core entry should preserve field_state.');
+
   assertThrows(
     () =>
       buildMinimumSlicePanelInputFromMobileDraft(
