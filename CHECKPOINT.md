@@ -12,19 +12,37 @@ scope: repo
 
 ## Verdict
 
-The app is in a testable prototype state with login, minimum-slice submit, weekly check-in, wearable sync UI, and a developer-insight surface. The wearable path is not yet fully production-safe: `WearableSyncScreen` still submits a placeholder payload and must be migrated to the canonical `WearableSyncRequest` contract before real-device rollout.
+Increment 1 of the Dot/Score refactor is complete. The domain foundation (dots, score aggregation, score display) is built, typecheck and assertions pass locally, and PR #108 is open as Draft. The app's existing screens (login, minimum-slice, weekly check-in, wearable sync, dev-insight) remain untouched and working.
 
-Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase ingest proof on Android, and contract hardening on the wearable sync request path.
+## Active Refactor
 
-## Current state
+- **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
+- **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
+- **Commit:** `0360e79` — feat(domain): add Dot/Score architecture foundation
 
-- Branch: `main`
-- Commit baseline: use Git history / PR merge metadata for exact HEAD; do not duplicate self-referential commit SHAs here
-- Active seam: physical-device Health Connect ingest proof + wearable sync contract hardening
+## Completed Increments
+
+### Increment 1 — Domain Foundation ✅
+- `packages/domain/dots.ts` — DotStatus (incl. `planned_locked`), DotScore, DotDefinition, full static Dot catalog. Mind & Sleep folded as sub-group under Lifestyle (5-tab constraint). Doctor Prep and Symptoms carry `scoreContribution: 'output'` — never enter aggregate formula.
+- `packages/domain/scoreAggregation.ts` — `aggregateOneL1feScore()` using `effectiveWeight = baseWeight × coverage × freshness × confidence`. Only `ready`/`needs_update` leaf Dots count. `planned_locked`, `excluded`, `missing` never penalized.
+- `packages/domain/scoreDisplay.ts` — `no_data`/`starter`/`usable`/`strong` mapping with named coverage thresholds. Never renders raw 0 for missing data.
+- Assertion tests wired into `runMinimumSliceAssertions.ts`
+- `tsc --noEmit` green, test suite green
+
+## Next Step
+
+**Increment 2 — 5-Tab Navigation** (`apps/mobile/App.tsx`)
+- Replace current 2-3 tab bar with 5 main tabs: One L1fe / Doctor Prep / Health Data / Lifestyle / Activity
+- Dev tab remains hidden for `is_dev=true`
+- Static menu entry including Settings
+- `LockedFeatureCard` reusable component for all `planned_locked` Dots
+- `FirstCheckinCard` on Tab 1 alongside existing `WeeklyCheckinScreen` (untouched)
+- Screen migration: `MinimumSliceScreen` → Health Data, `WearableSyncScreen` → Activity, `WeeklyCheckinScreen` → One L1fe Tab
 
 ## Pending PRs
 
-- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID replacing `MOCK_APP_INSTALL_ID`; intentionally held
+- `#108` — Dot/Score domain foundation (active, Draft)
+- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID; intentionally held
 - `#99 feat: user-configurable panel preferences` — open, draft
 - `#101 feat: mobile scoring and build tooling` — open, draft
 
@@ -32,15 +50,23 @@ Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase inge
 
 - No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
 - End-to-end Supabase ingest still needs an Android device run
-- Wearable sync request in app still uses placeholder payload (`as any`), not yet contract-complete
+- Wearable sync request still uses placeholder payload (`as any`) — not blocking Increment 2
 
-## Next steps
+## Decisions Made (Increment 1)
 
-1. Run the new wearable collector on a physical Android device and verify one end-to-end sync into Supabase.
-2. Remove placeholder wearable sync payload in `apps/mobile/WearableSyncScreen.tsx` and wire canonical `WearableSyncRequest`.
-3. Merge `claude/real-app-install-id` when ready.
-4. Triage draft PRs `#99` and `#101` for merge, split, or closure.
+- `planned_locked` replaces `planned` as sole DotStatus value for future features — forces locked UI
+- Only leaf Dots aggregate into `oneLIfeScore` — top-level groups are display rollups only
+- `WeeklyCheckinScreen` stays untouched — `FirstCheckinCard` wrapper added alongside it
+- Doctor Prep is read-only output Dot — no score input, no own data entry
+- Dot catalog lives as static array in `packages/domain/dots.ts` (not Supabase table) — V1.5 can migrate
+- Symptoms: stored as free text, not scored in V1 — Doctor Prep context only
+- Score display thresholds: coverage < 0.3 = starter, < 0.7 = usable, ≥ 0.7 = strong
+- One L1fe Score calculated at render time, not persisted
 
 ## Deferred to post-v1
 
-- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002); blocked on physical Garmin device and Terra OAuth credentials; not on critical path for sideload-to-brother milestone
+- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002)
+- Orbit animation (V1.5)
+- Ask One L1fe real LLM backend — V1 = UI stub + mocked response only
+- Server-side Dot score aggregation (V1 = client-side)
+- Supabase table for Dot catalog (V1 = static domain array)
