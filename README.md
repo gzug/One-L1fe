@@ -2,7 +2,7 @@
 status: current
 canonical_for: project entry point
 owner: repo
-last_verified: 2026-04-22
+last_verified: 2026-04-24
 supersedes: []
 superseded_by: null
 scope: repo
@@ -20,13 +20,17 @@ Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
 ## Start here
 
-This file is for broad human orientation.
-For meaningful repo work, use `CHECKPOINT.md` as the primary startup file.
+This file is for broad human orientation only — not required for agent startup.
 
-1. Start with [CHECKPOINT.md](./CHECKPOINT.md)
-2. Read [README.md](./README.md) only when you need broad repo orientation
-3. Read [MEMORY.md](./MEMORY.md) only for durable truth
-4. Read [docs/README.md](./docs/README.md) only when you need deeper docs navigation
+For any repo work, use this startup order:
+
+1. [CHECKPOINT.md](./CHECKPOINT.md) — current state, active seam, next steps, blockers
+2. [CONTEXT.md](./CONTEXT.md) — rolling summary of the last 2–3 sessions
+3. [MEMORY.md](./MEMORY.md) — only if you need durable boundaries or architecture rules
+4. [docs/README.md](./docs/README.md) — only when you need deeper docs navigation
+
+Full session and memory rules: [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)  
+Agent working rules: [AGENTS.md](./AGENTS.md)
 
 ## Repo structure
 
@@ -45,11 +49,11 @@ One-L1fe/
 │   ├── planning/              # Backlog and next-step execution docs
 │   ├── research/              # Evidence gathering and unresolved questions
 │   ├── compliance/            # Intended-use and boundary-sensitive material
-│   ├── ops/                   # OpenClaw and repo operating guidance
+│   ├── ops/                   # Session workflow, memory system, and operating guidance
 │   ├── notion/                # Notion-specific design and migration notes
 │   ├── roadmap/               # Phased progress and checkpoints
 │   └── archive/               # Superseded docs kept for context
-├── memory/                    # Short-term working memory and daily notes
+├── memory/                    # Session scratch — daily notes only, never startup context
 ├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
 ├── MEMORY.md
 ├── CONTEXT.md
@@ -61,12 +65,13 @@ One-L1fe/
 
 Use each file layer for one job:
 
-- [README.md](./README.md) = broad project entry point and orientation
+- [README.md](./README.md) = broad project entry point and orientation (human, not agent startup)
 - [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
-- [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions
 - [CONTEXT.md](./CONTEXT.md) = rolling 2–3 session summary for fast agent startup
-- [`memory/`](./memory/) = short-term working notes and daily notes (scratch only)
-- [`docs/ops/`](./docs/ops/) = session workflow and operating guidance
+- [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions (on demand)
+- [`memory/`](./memory/) = session scratch — daily notes only, archived at closeout
+- [`docs/ops/memory-system-v2.md`](./docs/ops/memory-system-v2.md) = canonical session and memory rules
+- [`docs/ops/`](./docs/ops/) = operating guidance (session workflow, OpenClaw)
 - [`docs/architecture/`](./docs/architecture/) = technical decisions that should stay true over time
 - [`docs/planning/`](./docs/planning/) = backlog and next work
 - [`docs/research/`](./docs/research/) = evidence gathering and unresolved questions
@@ -104,16 +109,22 @@ This repo uses a lightweight solo-founder workflow:
 - let CI validate typecheck and domain tests
 - update the real source-of-truth file when behavior or rules change
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
+Agent working rules: [AGENTS.md](./AGENTS.md)  
+Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Core project docs
 
 ### Orientation
 - [CHECKPOINT.md](./CHECKPOINT.md)
-- [MEMORY.md](./MEMORY.md)
 - [CONTEXT.md](./CONTEXT.md)
+- [MEMORY.md](./MEMORY.md)
 - [AGENTS.md](./AGENTS.md)
 - [docs/README.md](./docs/README.md)
+
+### Session & memory ops
+- [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)
+- [docs/ops/session-workflow.md](./docs/ops/session-workflow.md)
+- [docs/ops/openclaw.md](./docs/ops/openclaw.md)
 
 ### Architecture
 - [docs/architecture/overview.md](./docs/architecture/overview.md)
@@ -146,9 +157,6 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the operating rules.
 - [docs/research/v1-targeted-research-reconciliation-2026-04-12.md](./docs/research/v1-targeted-research-reconciliation-2026-04-12.md)
 - [docs/compliance/intended-use.md](./docs/compliance/intended-use.md)
 - [docs/compliance/data-handling-and-redaction.md](./docs/compliance/data-handling-and-redaction.md)
-- [docs/ops/openclaw.md](./docs/ops/openclaw.md)
-- [docs/ops/session-workflow.md](./docs/ops/session-workflow.md)
-- [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)
 
 ## Working constraints
 
