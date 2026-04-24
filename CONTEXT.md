@@ -2,55 +2,36 @@
 status: current
 canonical_for: rolling session context
 owner: repo
-last_verified: 2026-04-23
+last_verified: 2026-04-24
 scope: all-agents
 ---
 
 # CONTEXT.md — Rolling Session Summary
 
-Last 2–3 sessions. Hard cap: 60 lines. Updated every session by the closing agent.
+Last 2–3 sessions. Hard cap: 60 lines. Max 5 bullets per entry. Updated every session by the closing agent.
 For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at startup.
 
 ---
 
-## 2026-04-23 — Codex (cleanup + closeout)
+## 2026-04-24 — Perplexity (repo cleanup — Block 1)
 
-- Read and applied the `docs/ops/memory-system-v2.md` closeout checklist as far as the worktree allowed
-- Revalidated wearable sync status: current `WearableSyncScreen` still uses a placeholder request payload and needs contract hardening
-- Expanded the Health Connect permission surface to include `RestingHeartRate` and `HeartRateVariabilityRmssd`
-- Aligned wearable docs, assertions, and sync-client types to the canonical wearable contract
-- Wrote `memory/2026-04-23.md`, archived it to `docs/archive/memory/2026-04-23.md`, and promoted durable notes into `MEMORY.md`
-- Closed stale GitHub PRs `#96`, `#97`, `#98`, and `#100`; closed issue `#104` as completed
-- Restored the local checkout to a clean `main` tracking `origin/main`
-- Added local-ignore coverage for `apps/mobile/.env` and `apps/mobile/android/app/debug.keystore`
-- Added a canonical Supabase workflow doc and linked it from `AGENTS.md` so future agents load the Realtime prompt for bigger Supabase tasks
-- Added prototype hardening pass: mobile Sentry hook (`EXPO_PUBLIC_SENTRY_DSN`), explicit Dev Insight auth-guard, prototype-v1 freeze runbook, and secrets audit with no `supabase_service_role` hits
-- Current HEAD is `913d16ec85efb5ae727fc36cb9b7d638e7c5c1a7` on `main`; the Sentry/freeze changes are still in the working tree and will be committed in this closeout
+- Merged PR #106: aligned AGENTS.md, session-workflow, openclaw, README with memory-system-v2
+- AGENTS.md now has explicit 5-line default startup rule (CHECKPOINT → CONTEXT → MEMORY on demand)
+- session-workflow.md updated to v2 4-layer model; Daily Notes removed as startup context
+- openclaw.md reduced to addendum; delegates general rules to AGENTS + v2
+- README "Start here" now says "agentic repo work" and includes CONTEXT.md in startup order
 
-## 2026-04-21 — Claude Haiku (cleanup session)
+## 2026-04-23 — Codex (prototype hardening + closeout)
 
-- Repo cleanup: 11 stale branches deleted, issues #95/#94/#89 closed (duplicates/merged)
-- Auto-delete branches on merge activated; AGENTS.md output standards added
-- Open issues remaining: #88 (evidence → Priority Score), #69, #68 (backlog)
-- Pending: `claude/real-app-install-id` intentionally held, not yet merged
-- GitHub PAT setup for agent access; .env local only, gitignored
+- Wearable sync seam revalidated: `WearableSyncScreen` still uses placeholder payload, needs contract hardening
+- Health Connect permission surface expanded (`RestingHeartRate`, `HRV RMSSD`)
+- Prototype hardening: Sentry hook, dev-insight auth-guard, prototype-v1 freeze runbook, secrets audit (clean)
+- Closed stale PRs #96–#98, #100; closed issue #104
+- HEAD at `913d16ec` on main before this session's Block 1+2 commits
 
-## 2026-04-20 — Claude Code (session 3)
+## 2026-04-22 — ChatGPT (repo triage)
 
-- Executed verified small todos directly on `main`
-- Deleted dead duplicate hook: `apps/mobile/src/hooks/useWearableSource.ts`
-- Refreshed `README.md` front-matter `last_verified` to `2026-04-22`
-- Removed production-visible developer subtitle from `apps/mobile/MinimumSliceScreen.tsx`
-- Updated `docs/architecture/overview.md`: bumped `last_verified`, marked OpenAI layer as planned/not yet wired, added wearable ingest layer note
-- Updated `docs/planning/wearables-hard-facts-and-automation.md`: bumped `last_verified`, clarified Garmin Android path should be treated as Health Connect mediated in V1
-- Confirmed `memory/2026-04-17.md` was already archived; no action needed
-- Confirmed stale `GLOSSARY.md` README reference was already gone; no action needed
-- Archived three stale date-specific planning docs under `docs/archive/planning/`; direct deletion was blocked by safety layer, so lightweight redirect stubs remain at original paths
-
-## 2026-04-22 — ChatGPT (repo-access + task triage session)
-
-- Verified GitHub connector identity and permissions: account `gzug`, repo `gzug/One-L1fe`, write/admin confirmed
-- Reviewed open issues: #104 (Priority Score runtime call-site), #103 (wearable weighting ADR), #102 (normalization ADR)
-- Determined current open work is ADR-heavy; avoided risky code changes without settled decision points
-- Corrected stale `CHECKPOINT.md` next-step content: scoring fields are already implemented in code, runtime call-site is the real remaining gap
-- Recommended execution order: resolve #104 first via dedicated `compute-priority-score` edge function, then thin caller seam, then integration proof
+- Verified GitHub write/admin access for `gzug/One-L1fe`
+- Corrected stale CHECKPOINT next-step: scoring fields already implemented, runtime call-site was real gap
+- Open issues reviewed: #103 (wearable weighting ADR), #102 (normalization ADR) — ADR-heavy, no risky changes made
+- `claude/real-app-install-id` intentionally held
