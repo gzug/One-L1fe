@@ -22,7 +22,7 @@ Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
 This file is for broad human orientation only — not required for agent startup.
 
-For any repo work, use this startup order:
+For **agentic repo work**, use this startup order:
 
 1. [CHECKPOINT.md](./CHECKPOINT.md) — current state, active seam, next steps, blockers
 2. [CONTEXT.md](./CONTEXT.md) — rolling summary of the last 2–3 sessions
