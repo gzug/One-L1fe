@@ -165,6 +165,90 @@ Beispiel:
 
 Dieses langfristige Bild ist die Grundlage für den Digital Avatar.
 
+## Die größere Vision: Digital Me / Holistic Person
+
+Langfristig soll One-L1fe nicht nur Blutwerte und Wearable-Daten anzeigen. Die App soll möglichst viele relevante Datenarten zusammenführen, damit ein umfassenderes persönliches Gesundheitsbild entsteht.
+
+Dazu können gehören:
+
+- Blutwerte und Laborberichte,
+- DNA-Testdaten,
+- Urintests,
+- Stuhlproben und Mikrobiomdaten,
+- Wearable-Daten,
+- Schlafdaten,
+- Ernährung,
+- Bewegung,
+- subjektive Angaben wie Energie, Stimmung, Stress oder Symptome,
+- Arztbriefe und andere medizinische Dokumente.
+
+Die Idee dahinter: Der Mensch soll nicht nur über einzelne Werte betrachtet werden, sondern als ganzheitliche Person. Deshalb passt der Begriff **Digital Me** oder **Digital Avatar**: Es entsteht ein datenbasiertes Abbild der eigenen gesundheitlichen Entwicklung.
+
+Wichtig: Dieses Abbild ist nie vollständig und nie unfehlbar. Es hängt davon ab, welche Daten vorhanden sind, wie aktuell sie sind und wie gut sie zusammenpassen.
+
+## Wofür die App später helfen soll
+
+One-L1fe soll Menschen helfen, ihre Situation besser einzuordnen. Besonders relevant kann das sein:
+
+- wenn man akut krank ist,
+- wenn man schneller wieder gesund werden möchte,
+- wenn man chronisch krank ist,
+- wenn man über längere Zeit Veränderungen bemerkt,
+- wenn mehrere Werte langsam schlechter werden,
+- wenn man sich auf einen Arzttermin vorbereiten möchte.
+
+Mögliche Ausgaben der App:
+
+- verständliche Zusammenfassung der wichtigsten Daten,
+- Hinweise, welche Werte auffällig oder unvollständig sind,
+- Fragen, die man beim Arzt stellen sollte,
+- ein kompaktes Dokument für den Arzttermin,
+- Hinweise, welche Daten fehlen,
+- Tipps zu Ernährung und Lebensweise,
+- Erklärung, welche Empfehlungen nur möglich sind, wenn bestimmte Daten vorhanden sind.
+
+Beispiele:
+
+- „Wenn du zum Arzt gehst, sprich diese drei Punkte an.“
+- „Für eine bessere Einschätzung fehlen aktuelle Entzündungswerte.“
+- „Diese Empfehlung ist nur möglich, wenn Stuhlproben- oder Mikrobiomdaten vorhanden sind.“
+- „Diese DNA-Information ändert sich kaum, aber ihre Interpretation kann sich ändern, wenn neue Forschung oder neue Gesundheitsdaten hinzukommen.“
+- „Diese Urintest-Daten sind nur kurzfristig aussagekräftig und sollten nicht über Monate hinweg als aktuell betrachtet werden.“
+
+## Unterschiedliche Daten sind unterschiedlich lange nützlich
+
+Nicht jede Datenart ist gleich lange aussagekräftig.
+
+Beispiele:
+
+- **DNA-Daten** verändern sich normalerweise nicht. Sie können langfristig relevant bleiben. Aber was daraus folgt, hängt von Forschung, Lebensstil, Alter, Symptomen und anderen Daten ab.
+- **Blutwerte** sind Momentaufnahmen. Manche bleiben länger relevant, andere müssen nach Wochen oder Monaten neu geprüft werden.
+- **Urintests** können sehr kurzfristig sein. Sie können etwas über den aktuellen Zustand sagen, sind aber oft schnell veraltet.
+- **Stuhlproben / Mikrobiomdaten** können Hinweise auf Verdauung, Ernährung und Darmflora geben. Sie sind aber abhängig von Ernährung, Medikamenten, Infekten und Zeit.
+- **Wearable-Daten** sind besonders gut für Verlauf und Alltag: Schlaf, Puls, Schritte, Belastung, Erholung.
+- **Subjektive Angaben** wie Energie, Stimmung oder Stress sind wichtig, weil sie erklären können, warum Werte sich verändern.
+
+Deshalb soll One-L1fe nicht nur fragen: „Welche Daten liegen vor?“, sondern auch: „Sind diese Daten noch frisch genug, um daraus etwas Sinnvolles abzuleiten?“
+
+## Funktionen, die von bestimmten Daten abhängen
+
+Nicht jede Funktion kann immer verfügbar sein.
+
+Beispiele:
+
+- Ernährungstipps können besser werden, wenn Blutwerte, Glukosewerte, Stuhlprobe oder Mikrobiomdaten vorhanden sind.
+- Hinweise zu genetischen Veranlagungen sind nur möglich, wenn DNA-Daten vorliegen.
+- Aussagen zur Regeneration werden besser, wenn Schlaf, Ruhepuls und HRV vorhanden sind.
+- Arztzusammenfassungen werden besser, wenn Laborwerte, Symptome, Medikamente und relevante Dokumente vorliegen.
+
+Die App soll deshalb transparent sagen:
+
+- welche Aussage möglich ist,
+- welche Aussage unsicher ist,
+- welche Daten fehlen,
+- welche Daten zu alt sind,
+- wann neue Daten sinnvoll wären.
+
 ## Was One-L1fe ausdrücklich nicht ist
 
 One-L1fe ist:
@@ -176,6 +260,8 @@ One-L1fe ist:
 - kein Ersatz für professionelle medizinische Einschätzung.
 
 Die App soll helfen, Daten besser zu verstehen. Sie soll nicht entscheiden, ob jemand krank ist oder welche Behandlung nötig ist.
+
+Auch wenn Daten auf Risiken oder ungünstige Entwicklungen hinweisen können, darf die App daraus keine sichere Vorhersage machen. Sie kann Hinweise geben, Unsicherheit erklären und helfen, die richtigen nächsten Fragen zu stellen.
 
 ## Was bisher erreicht wurde
 
@@ -299,7 +385,11 @@ Zum Beispiel:
 - Energielevel,
 - Schlaf,
 - Schritte,
-- Notiz zum Tag.
+- Notiz zum Tag,
+- DNA-Test,
+- Urintest,
+- Stuhlprobe,
+- Arztbrief.
 
 ### Schritt 2: Die App sendet die Daten an Supabase
 
@@ -313,6 +403,7 @@ Das System prüft zum Beispiel:
 - Ist der Wert aktuell oder veraltet?
 - Ist der Wert stark oder schwach belegt?
 - Gibt es bekannte Regeln für diesen Wert?
+- Welche Datenarten fehlen für eine bessere Einschätzung?
 
 ### Schritt 4: Das System erstellt eine verständliche Einordnung
 
@@ -322,6 +413,8 @@ Nicht im Sinne von Diagnose, sondern zum Beispiel:
 - „Dieser Wert ist alt und sollte nicht überbewertet werden.“
 - „Dieser Bereich ist gut belegt.“
 - „Hier fehlt noch Kontext.“
+- „Für Ernährungstipps wären Stuhlprobe oder Glukosedaten hilfreich.“
+- „Für den Arzttermin wären diese fünf Punkte relevant.“
 
 ### Schritt 5: Langfristig entsteht der Digital Avatar
 
@@ -353,6 +446,8 @@ Noch nicht vollständig fertig:
 
 - echter End-to-End-Test mit Garmin / Health Connect / Android / Supabase,
 - vollständige produktive Wearable-Verarbeitung,
+- Integration von DNA-, Urin- und Stuhlprobendaten,
+- Arzttermin-Zusammenfassungen als fertiges Produktfeature,
 - saubere Nutzeroberfläche für alle Interpretationen,
 - produktiv verdrahtete KI-Schicht,
 - finales Design,
@@ -369,6 +464,9 @@ Viele Menschen haben heute Gesundheitsdaten an vielen Stellen:
 - Oura,
 - Ernährungsdaten,
 - Schlafdaten,
+- DNA-Tests,
+- Urintests,
+- Stuhlproben,
 - eigene Notizen.
 
 Das Problem: Die Daten liegen verstreut. Sie werden selten langfristig zusammengeführt. Man sieht oft Werte, aber nicht den Zusammenhang.
@@ -380,6 +478,8 @@ One-L1fe versucht genau dort anzusetzen:
 - Verlauf zeigen,
 - Unsicherheit sichtbar machen,
 - bessere persönliche Fragen ermöglichen,
+- Vorbereitung auf Arztgespräche verbessern,
+- individuelle Hinweise zu Ernährung und Lebensweise ermöglichen,
 - langfristig ein eigenes Gesundheitsmodell aufbauen.
 
 ## Nächster Dokumentationsbedarf
@@ -394,4 +494,6 @@ Als nächstes sollten ergänzt werden:
 - Screenshots oder einfache Skizzen,
 - ein konkretes Beispiel: „Ein Nutzer gibt Wert X ein und sieht Y“,
 - Erklärung der wichtigsten Biomarker in Alltagssprache,
-- Erklärung des Digital Avatar anhand eines realistischen Tages- oder Wochenbeispiels.
+- Erklärung des Digital Avatar anhand eines realistischen Tages- oder Wochenbeispiels,
+- konkrete Beispielausgabe für einen Arzttermin,
+- einfache Erklärung, welche Datenarten welche Funktionen freischalten.
