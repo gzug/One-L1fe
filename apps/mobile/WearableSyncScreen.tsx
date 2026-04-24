@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { getOrCreateAppInstallId, isLegacyMockInstallId } from './appInstallId';
-import { useWearableSource } from './useWearableSource';
+import { useWearableSource } from './src/hooks/useWearableSource';
 import { useWearableSync } from './useWearableSync';
 import { useComputeDailySummaries } from './useComputeDailySummaries';
 import { useDailyTrends } from './useDailyTrends';
