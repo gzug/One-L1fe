@@ -18,8 +18,8 @@ Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase inge
 
 ## Current state
 
-- Branch: `main`, aligned with `origin/main`
-- HEAD: `3e4406e47f95bdbd6e06ff69d1779e85239f3367`
+- Branch: `main`
+- Commit baseline: use Git history / PR merge metadata for exact HEAD; do not duplicate self-referential commit SHAs here
 - Active seam: physical-device Health Connect ingest proof + wearable sync contract hardening
 
 ## Pending PRs
