@@ -2,13 +2,16 @@
 status: current
 canonical_for: OpenClaw repo operations
 owner: repo
-last_verified: 2026-04-18
+last_verified: 2026-04-24
 supersedes: []
 superseded_by: null
 scope: ops
+note: OpenClaw-specific addendum only. General session and memory rules are in docs/ops/memory-system-v2.md and AGENTS.md.
 ---
 
 # OpenClaw operations guide
+
+> Addendum for OpenClaw-specific behaviour only. Default startup order, memory model, and session rules are defined in [`AGENTS.md`](../../AGENTS.md) and [`docs/ops/memory-system-v2.md`](./memory-system-v2.md).
 
 ## Verdict
 
@@ -16,40 +19,38 @@ Use OpenClaw as a thin layer over clean repo truth. Do not rely on OpenClaw memo
 
 ## Startup order
 
+Follow the default startup defined in `AGENTS.md`:
 1. `CHECKPOINT.md`
-2. `README.md` — only when broad repo orientation is needed
-3. Only the most relevant deeper file for the task
+2. `CONTEXT.md`
+3. `MEMORY.md` — only if the task requires durable rules or architecture context
+4. One specific `docs/...` file — only if directly relevant
 
-- `MEMORY.md` only for durable truth or old decisions
-- Do not read broad parts of `docs/` by default
-- Use the read-on-demand map in `CHECKPOINT.md`
+Do **not** use `memory/YYYY-MM-DD.md` as startup context or for session continuity.
 
 ## Truth layers
 
 | Layer | File | Use for |
 |---|---|---|
-| Current execution truth | `CHECKPOINT.md` | Current state, active seam, next step, blockers, startup map |
+| Current execution truth | `CHECKPOINT.md` | Current state, active seam, next step, blockers |
+| Fast session context | `CONTEXT.md` | Rolling 2–3 session summary for quick startup |
 | Durable truth | `MEMORY.md` | Stable assumptions, durable architecture + repo rules |
-| Short-term working memory | `memory/YYYY-MM-DD.md` | Daily notes, temporary findings, handoff context |
+| Session scratch | `memory/YYYY-MM-DD.md` | Temporary findings — archive at closeout, never load at startup |
 | Deep reference | `docs/` | Architecture, planning, compliance, research — on demand only |
 
 ## Promotion rules
 
-Promote into `CHECKPOINT.md` when it becomes:
-- the real current state, active seam, next best step, current blocker, or startup-critical guardrail
+Promote into `CHECKPOINT.md` when it becomes the real current state, active seam, next best step, current blocker, or startup-critical guardrail.
 
-Promote into `MEMORY.md` when it becomes:
-- a durable product boundary, architecture decision, or repo operations rule
+Promote into `MEMORY.md` when it becomes a durable product boundary, architecture decision, or repo operations rule.
 
-Keep in `memory/YYYY-MM-DD.md` when it is:
-- recent, provisional, still being validated, or useful near-term but not yet durable
+Keep in `memory/YYYY-MM-DD.md` when it is recent, provisional, or useful near-term but not yet durable.
 
 ## OpenClaw feature posture
 
 **Good fit now:**
-- Startup on `CHECKPOINT.md`
+- Startup on `CHECKPOINT.md` + `CONTEXT.md`
 - Durable recall against `MEMORY.md`
-- Session continuity via daily notes in `memory/`
+- Session closeout via daily notes (scratch only, then archive)
 
 **Good fit later (after source cleanup):**
 - Richer compiled memory over canonical docs
@@ -66,10 +67,6 @@ Keep in `memory/YYYY-MM-DD.md` when it is:
 - **Founder/operator chat:** persistent sessions appropriate; still write important outcomes into repo files
 - **One-shot tasks / narrow workers:** minimal context; do not treat as durable memory surface
 - **Multiple user conversations:** keep sessions isolated when conversations should not share working memory
-
-## Heartbeat guidance
-
-Keep heartbeat behavior minimal. Repo files are the durable layer — not status chatter.
 
 ## Safety and privacy
 
