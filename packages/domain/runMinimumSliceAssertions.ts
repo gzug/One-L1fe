@@ -1,4 +1,5 @@
 import { runContractAssertions } from './contracts.assertions.ts';
+import { runDotCatalogAssertions } from './dots.assertions.ts';
 import { runEvidenceRegistrySeedAssertions } from './evidenceSupabaseSeed.assertions.ts';
 import { runFieldValueStateAssertions } from './fieldValueState.assertions.ts';
 import { runMinimumSliceAppClientAssertions } from './minimumSliceAppClient.assertions.ts';
@@ -8,6 +9,8 @@ import { runMinimumSliceMobileIntegrationAssertions } from './minimumSliceMobile
 import { runMinimumSliceResultSummaryAssertions } from './minimumSliceResultSummary.assertions.ts';
 import { runMinimumSliceAssertions } from './minimumSlice.assertions.ts';
 import { runMinimumSliceFunctionContractAssertions } from './minimumSliceFunctionContract.assertions.ts';
+import { runScoreAggregationAssertions } from './scoreAggregation.assertions.ts';
+import { runScoreDisplayAssertions } from './scoreDisplay.assertions.ts';
 import { runSupabasePayloadAssertions } from './supabasePayload.assertions.ts';
 import { runSupabasePersistenceAssertions } from './supabasePersistence.assertions.ts';
 import { runSupabaseRepositoryAssertions } from './supabaseRepository.assertions.ts';
@@ -26,6 +29,9 @@ async function main(): Promise<void> {
   runEvidenceRegistrySeedAssertions();
   await runSupabasePersistenceAssertions();
   await runSupabaseRepositoryAssertions();
+  runDotCatalogAssertions();
+  runScoreAggregationAssertions();
+  runScoreDisplayAssertions();
   console.log('All domain assertions passed.');
 }
 
