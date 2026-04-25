@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { useWearablePermissions } from './useWearablePermissions';
@@ -33,6 +34,11 @@ import {
   type Theme,
   type ThemeName,
 } from './healthOsTheme';
+import {
+  clearMarathonNotes,
+  loadMarathonNotes,
+  saveMarathonNotes,
+} from './marathonNotesStorage';
 
 type SyncUiState =
   | { kind: 'idle' }
@@ -43,50 +49,16 @@ type SyncUiState =
 const DATA_MODE_OPTIONS: DataMode[] = ['real', 'demo-filled'];
 const THEME_OPTIONS: ThemeName[] = ['light', 'dark'];
 
-interface PlannedModule {
-  title: string;
-  summary: string;
-  source: string;
-}
-
-const PLANNED_MODULES: PlannedModule[] = [
-  {
-    title: 'Recovery & Wearable Hub',
-    summary:
-      'Sleep, HRV, resting heart rate, and cardiovascular load tracked as a recovery surface for training load decisions.',
-    source: 'docs/architecture/wearable-metric-keys-v1.md',
-  },
-  {
-    title: 'Biomarker Hub',
-    summary:
-      'Longitudinal lipid, iron, and inflammation panels with bounded interpretation. Relevant for endurance bottlenecks like ferritin and LDL.',
-    source: 'docs/architecture/biomarker-model.md',
-  },
-  {
-    title: 'Data Coverage Hub',
-    summary:
-      'Tracks freshness and missingness across wearable and lab sources so reports never silently degrade.',
-    source: 'docs/architecture/v1-rule-matrix.md',
-  },
-  {
-    title: 'Clinician Handoff',
-    summary:
-      'Generates a doctor-summary export from the same data the assistant-coach view reads from.',
-    source: 'docs/product/one-l1fe-documentation.md',
-  },
-  {
-    title: 'Genetics / DNA Module',
-    summary:
-      'Planned future integration of DNA-test data into the longitudinal profile. Not active in V1 Marathon.',
-    source: 'docs/product/one-l1fe-documentation.md',
-  },
-];
 
 export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   const { status, request } = useWearablePermissions();
   const [dataMode, setDataMode] = useState<DataMode>('real');
   const [themeName, setThemeName] = useState<ThemeName>('dark');
   const [syncState, setSyncState] = useState<SyncUiState>({ kind: 'idle' });
+  const [expandedSignals, setExpandedSignals] = useState<Set<string>>(new Set());
+  const [expandedProgressRows, setExpandedProgressRows] = useState<Set<string>>(new Set());
+  const [notesText, setNotesText] = useState('');
+  const [notesFeedback, setNotesFeedback] = useState<string | null>(null);
 
   const theme = useMemo(() => getTheme(themeName), [themeName]);
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -102,6 +74,47 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     [healthConnectResult, dataMode],
   );
   const biomarkerProgressRows = useMemo(() => buildBiomarkerProgressRows(), []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    void loadMarathonNotes().then((savedNotes) => {
+      if (mounted) setNotesText(savedNotes);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const toggleSignalCard = (key: string): void => {
+    setExpandedSignals((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const toggleProgressCard = (key: string): void => {
+    setExpandedProgressRows((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const handleSaveNotes = async (): Promise<void> => {
+    await saveMarathonNotes(notesText);
+    setNotesFeedback('Saved locally on this device.');
+  };
+
+  const handleClearNotes = async (): Promise<void> => {
+    await clearMarathonNotes();
+    setNotesText('');
+    setNotesFeedback('Cleared.');
+  };
 
   const handleReadHealthConnect = async (): Promise<void> => {
     setSyncState({ kind: 'reading' });
@@ -123,8 +136,8 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>Marathon Prototype</Text>
-          <Text style={styles.title}>One L1fe — V1 Marathon</Text>
+          <Text style={styles.eyebrow}>MARATHON PROTOTYPE</Text>
+          <Text style={styles.title}>One L1fe</Text>
           <Text style={styles.subtitle}>
             Feature-reduced prototype for training toward the Brisbane Marathon. It connects blood markers, Garmin / Health Connect signals, and training goals into a focused assistant-coach view.
           </Text>
@@ -199,7 +212,13 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </Text>
           <View style={styles.signalGrid}>
             {signalRows.map((signal) => (
-              <SignalRowCard key={signal.key} signal={signal} styles={styles} />
+              <SignalRowCard
+                key={signal.key}
+                signal={signal}
+                styles={styles}
+                isExpanded={expandedSignals.has(signal.key)}
+                onToggle={() => toggleSignalCard(signal.key)}
+              />
             ))}
           </View>
         </Section>
@@ -243,7 +262,13 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
               2023 to 2025 comparison. Values are compared only when the prototype has an explicit safe conversion or equivalence rule.
             </Text>
             {biomarkerProgressRows.map((row) => (
-              <BiomarkerProgressCard key={row.marker} row={row} styles={styles} />
+              <BiomarkerProgressCard
+                key={row.marker}
+                row={row}
+                styles={styles}
+                isExpanded={expandedProgressRows.has(row.marker)}
+                onToggle={() => toggleProgressCard(row.marker)}
+              />
             ))}
           </View>
         </Section>
@@ -290,20 +315,21 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </Text>
         </Section>
 
-        <Section title="Planned Modules" styles={styles}>
-          <Text style={styles.bodyText}>
-            Future hubs documented in the repo. Listed for orientation only — they are not part of the V1 Marathon prototype.
-          </Text>
-          <View style={styles.plannedList}>
-            {PLANNED_MODULES.map((module) => (
-              <View key={module.title} style={styles.plannedCard}>
-                <Text style={styles.plannedTitle}>{module.title}</Text>
-                <Text style={styles.plannedSummary}>{module.summary}</Text>
-                <Text style={styles.plannedSource}>{module.source}</Text>
-              </View>
-            ))}
-          </View>
-        </Section>
+        <NotesIdeasSection
+          styles={styles}
+          notesText={notesText}
+          feedback={notesFeedback}
+          onChangeText={(next) => {
+            setNotesText(next);
+            setNotesFeedback(null);
+          }}
+          onSave={() => {
+            void handleSaveNotes();
+          }}
+          onClear={() => {
+            void handleClearNotes();
+          }}
+        />
 
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>Not medical advice</Text>
@@ -373,18 +399,40 @@ function HealthConnectResultCard({ result, styles }: { result: HealthConnectGarm
   );
 }
 
-function SignalRowCard({ signal, styles }: { signal: HealthConnectSignalRow; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+function SignalRowCard({
+  signal,
+  styles,
+  isExpanded,
+  onToggle,
+}: {
+  signal: HealthConnectSignalRow;
+  styles: ReturnType<typeof createStyles>;
+  isExpanded: boolean;
+  onToggle: () => void;
+}): React.JSX.Element {
   const missing = signal.sourceStatus === 'Not available';
   return (
-    <View style={[styles.signalCard, signal.isSynthetic ? styles.signalCardSynthetic : null]}>
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: isExpanded }}
+      style={[styles.signalCard, signal.isSynthetic ? styles.signalCardSynthetic : null]}
+    >
       <View style={styles.signalTopRow}>
         <Text style={styles.signalLabel}>{signal.label}</Text>
         <Text style={[styles.signalPill, signal.isSynthetic ? styles.signalPillSynthetic : null, missing ? styles.signalPillMissing : null]}>{signal.sourceStatus}</Text>
       </View>
       <Text style={styles.signalValue}>{signal.value}{signal.unit ? ` ${signal.unit}` : ''}</Text>
-      <Text style={styles.signalMeta}>{signal.source}</Text>
       <Text style={styles.signalUsage}>{signal.scoreUsage}</Text>
-    </View>
+      {isExpanded ? (
+        <View style={styles.expandedDetails}>
+          <DetailRow styles={styles} label="Source" value={signal.source} />
+          <DetailRow styles={styles} label="Status" value={signal.sourceStatus} />
+          <DetailRow styles={styles} label="Score usage" value={signal.scoreUsage} />
+        </View>
+      ) : null}
+      <Text style={styles.expandHint}>{isExpanded ? 'Hide details' : 'Show details'}</Text>
+    </Pressable>
   );
 }
 
@@ -396,9 +444,24 @@ function BiomarkerTileView({ tile, styles }: { tile: BiomarkerTile; styles: Retu
   return <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}><Text style={styles.metricLabel}>{tile.label}</Text><Text style={styles.metricValue}>{tile.valueText}</Text><Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>{tile.caption}</Text></View>;
 }
 
-function BiomarkerProgressCard({ row, styles }: { row: BiomarkerProgressRow; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+function BiomarkerProgressCard({
+  row,
+  styles,
+  isExpanded,
+  onToggle,
+}: {
+  row: BiomarkerProgressRow;
+  styles: ReturnType<typeof createStyles>;
+  isExpanded: boolean;
+  onToggle: () => void;
+}): React.JSX.Element {
   return (
-    <View style={styles.progressCard}>
+    <Pressable
+      onPress={onToggle}
+      accessibilityRole="button"
+      accessibilityState={{ expanded: isExpanded }}
+      style={styles.progressCard}
+    >
       <View style={styles.progressHeader}>
         <Text style={styles.progressMarker}>{row.label}</Text>
         <Text style={styles.progressStatus}>{row.status}</Text>
@@ -414,7 +477,67 @@ function BiomarkerProgressCard({ row, styles }: { row: BiomarkerProgressRow; sty
         </View>
       </View>
       <Text style={styles.progressChange}>{row.change}</Text>
-      <Text style={styles.progressInterpretation}>{row.interpretation}</Text>
+      {isExpanded ? <Text style={styles.progressInterpretation}>{row.interpretation}</Text> : null}
+      <Text style={styles.expandHint}>{isExpanded ? 'Hide details' : 'Show details'}</Text>
+    </Pressable>
+  );
+}
+
+function NotesIdeasSection({
+  styles,
+  notesText,
+  feedback,
+  onChangeText,
+  onSave,
+  onClear,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  notesText: string;
+  feedback: string | null;
+  onChangeText: (next: string) => void;
+  onSave: () => void;
+  onClear: () => void;
+}): React.JSX.Element {
+  return (
+    <Section title="Notes & Ideas" styles={styles}>
+      <Text style={styles.bodyText}>
+        Private local notes for observations, follow-ups, and ideas while reviewing your marathon data.
+      </Text>
+      <TextInput
+        value={notesText}
+        onChangeText={onChangeText}
+        placeholder="Write notes or ideas from this data check…"
+        multiline
+        style={styles.notesInput}
+        textAlignVertical="top"
+      />
+      <View style={styles.notesButtonRow}>
+        <PrimaryButton styles={styles} label="Save note" onPress={onSave} />
+        <Pressable onPress={onClear} style={styles.secondaryButton}>
+          <Text style={styles.secondaryButtonText}>Clear</Text>
+        </Pressable>
+      </View>
+      {feedback ? <Text style={styles.noteStatusText}>{feedback}</Text> : null}
+      <Text style={styles.captionText}>
+        Local only. Notes are not uploaded and do not affect scores.
+      </Text>
+    </Section>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  styles,
+}: {
+  label: string;
+  value: string;
+  styles: ReturnType<typeof createStyles>;
+}): React.JSX.Element {
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
     </View>
   );
 }
@@ -510,10 +633,34 @@ function createStyles(theme: Theme) {
     actionRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 12 },
     actionIndex: { width: 26, height: 26, borderRadius: 13, backgroundColor: theme.accent, color: theme.accentText, textAlign: 'center', lineHeight: 26, fontWeight: '800' },
     actionText: { flex: 1, color: theme.textPrimary, fontSize: 14, lineHeight: 20, fontWeight: '600' },
-    plannedList: { gap: 10 },
-    plannedCard: { backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 12, gap: 4 },
-    plannedTitle: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
-    plannedSummary: { color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
-    plannedSource: { color: theme.textMuted, fontSize: 11, fontWeight: '700' },
+    expandedDetails: { borderTopColor: theme.borderSubtle, borderTopWidth: 1, paddingTop: 8, gap: 6 },
+    expandHint: { color: theme.accentSubtleText, fontSize: 11, fontWeight: '800', marginTop: 2 },
+    detailRow: { gap: 2 },
+    detailLabel: { color: theme.textMuted, fontSize: 10, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+    detailValue: { color: theme.textSecondary, fontSize: 12, lineHeight: 17, fontWeight: '600' },
+    notesInput: {
+      minHeight: 132,
+      borderRadius: 10,
+      borderColor: theme.border,
+      borderWidth: 1,
+      backgroundColor: theme.surfaceMuted,
+      color: theme.textPrimary,
+      padding: 12,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+    notesButtonRow: { flexDirection: 'row', gap: 10, alignItems: 'center', flexWrap: 'wrap' },
+    secondaryButton: {
+      minHeight: 48,
+      borderRadius: 8,
+      borderColor: theme.border,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      backgroundColor: theme.surfaceMuted,
+    },
+    secondaryButtonText: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
+    noteStatusText: { color: theme.accentSubtleText, fontSize: 12, lineHeight: 18, fontWeight: '700' },
   });
 }
