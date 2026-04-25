@@ -42,6 +42,22 @@ export interface Theme {
   toggleBorder: string;
   toggleText: string;
   toggleTextActive: string;
+  // Premium additions
+  heroBackground: string;
+  heroBorder: string;
+  heroGlow: string;
+  progressTrack: string;
+  progressFill: string;
+  progressFillRecovery: string;
+  chipBackground: string;
+  chipText: string;
+  chipBorder: string;
+  divider: string;
+  markerOptimal: string;
+  markerGood: string;
+  markerElevated: string;
+  markerLow: string;
+  markerMissing: string;
 }
 
 export const LIGHT_THEME: Theme = {
@@ -81,6 +97,21 @@ export const LIGHT_THEME: Theme = {
   toggleBorder: 'rgba(17, 22, 21, 0.18)',
   toggleText: '#111615',
   toggleTextActive: '#1a0f0d',
+  heroBackground: '#fffaf2',
+  heroBorder: 'rgba(244, 163, 107, 0.25)',
+  heroGlow: 'rgba(244, 163, 107, 0.08)',
+  progressTrack: '#eee7dc',
+  progressFill: '#f4a36b',
+  progressFillRecovery: '#7fc9a0',
+  chipBackground: '#eee7dc',
+  chipText: '#4d4943',
+  chipBorder: 'rgba(17, 22, 21, 0.06)',
+  divider: 'rgba(17, 22, 21, 0.06)',
+  markerOptimal: '#257a43',
+  markerGood: '#3d8c5c',
+  markerElevated: '#b3731e',
+  markerLow: '#b3261e',
+  markerMissing: '#7e766d',
 };
 
 export const DARK_THEME: Theme = {
@@ -120,6 +151,21 @@ export const DARK_THEME: Theme = {
   toggleBorder: 'rgba(255, 255, 255, 0.14)',
   toggleText: '#b9b2a8',
   toggleTextActive: '#1a0f0d',
+  heroBackground: '#1a1f1e',
+  heroBorder: 'rgba(244, 163, 107, 0.20)',
+  heroGlow: 'rgba(244, 163, 107, 0.06)',
+  progressTrack: 'rgba(255, 255, 255, 0.08)',
+  progressFill: '#f4a36b',
+  progressFillRecovery: '#7fc9a0',
+  chipBackground: 'rgba(255, 255, 255, 0.06)',
+  chipText: '#b9b2a8',
+  chipBorder: 'rgba(255, 255, 255, 0.08)',
+  divider: 'rgba(255, 255, 255, 0.06)',
+  markerOptimal: '#9be7b0',
+  markerGood: '#7fc9a0',
+  markerElevated: '#f2b84b',
+  markerLow: '#ff8a80',
+  markerMissing: '#817a72',
 };
 
 export const THEMES: Record<ThemeName, Theme> = {
