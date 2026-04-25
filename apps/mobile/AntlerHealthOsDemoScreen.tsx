@@ -74,6 +74,10 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     () => buildHealthOsDemoReport({ healthConnectResult, dataMode }),
     [healthConnectResult, dataMode],
   );
+  const readinessScore = report.exerciseScore > 0 || report.sleepScore > 0
+    ? Math.round((report.exerciseScore + report.sleepScore) / 2)
+    : null;
+  const readinessLabel = getReadinessLabel(readinessScore);
   const biomarkerTiles = useMemo(() => getBiomarkerTiles(dataMode), [dataMode]);
   const signalRows = useMemo(
     () => buildHealthConnectSignalRows(healthConnectResult, dataMode),
@@ -146,25 +150,63 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>MARATHON PROTOTYPE</Text>
-          <Text style={styles.title}>One L1fe</Text>
+          <View style={styles.topBar}>
+            <View style={styles.headerTitleBlock}>
+              <Text style={styles.eyebrow}>MARATHON PROTOTYPE</Text>
+              <Text style={styles.title}>One L1fe</Text>
+            </View>
+            <View style={styles.headerActions}>
+              <Pressable
+                onPress={() => setThemeName(themeName === 'dark' ? 'light' : 'dark')}
+                style={styles.utilityIconButton}
+                accessibilityRole="button"
+                accessibilityLabel="Toggle light and dark mode"
+              >
+                <Text style={styles.utilityIconText}>{themeName === 'dark' ? '☀︎' : '☾'}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setProfileExpanded((current) => !current)}
+                style={styles.utilityIconButton}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: profileExpanded }}
+                accessibilityLabel="Open profile"
+              >
+                <Text style={styles.utilityIconText}>◯</Text>
+              </Pressable>
+            </View>
+          </View>
           <Text style={styles.subtitle}>
             Feature-reduced prototype for training toward the Brisbane Marathon. It connects blood markers, Garmin / Health Connect signals, and training goals into a focused assistant-coach view.
           </Text>
         </View>
 
-        <ProfileQuickCard
-          styles={styles}
-          expanded={profileExpanded}
-          profile={profileForm}
-          onToggle={() => setProfileExpanded((current) => !current)}
-          onChange={(key, value) => setProfileForm((current) => ({ ...current, [key]: value }))}
-        />
+        {profileExpanded ? (
+          <ProfileDrawer
+            styles={styles}
+            profile={profileForm}
+            onChange={(key, value) => setProfileForm((current) => ({ ...current, [key]: value }))}
+          />
+        ) : null}
 
         <View style={styles.toggleRowGroup}>
           <DataModeToggle mode={dataMode} onChange={setDataMode} styles={styles} />
-          <ThemeToggle theme={theme} mode={themeName} onChange={setThemeName} styles={styles} />
         </View>
+
+        <ReadinessHero
+          styles={styles}
+          score={readinessScore}
+          label={readinessLabel}
+          activityScore={report.exerciseScore}
+          recoveryScore={report.sleepScore}
+          completeness={report.dataCompleteness}
+        />
+
+        <DataCheckStrip
+          styles={styles}
+          labPanelCount={report.realLabPanelCount}
+          healthConnectState={report.garminConnectionState}
+          dataMode={dataMode}
+        />
 
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>What this demo proves</Text>
@@ -367,56 +409,135 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   );
 }
 
-function ProfileQuickCard({
+function ProfileDrawer({
   styles,
-  expanded,
   profile,
-  onToggle,
   onChange,
 }: {
   styles: ReturnType<typeof createStyles>;
-  expanded: boolean;
   profile: { sex: string; heightCm: string; weightKg: string };
-  onToggle: () => void;
   onChange: (key: 'sex' | 'heightCm' | 'weightKg', value: string) => void;
 }): React.JSX.Element {
   return (
-    <Pressable onPress={onToggle} style={styles.profileCard} accessibilityRole="button" accessibilityState={{ expanded }}>
-      <View style={styles.profileHeader}>
-        <View>
+    <View style={styles.profileDrawer}>
+      <View style={styles.profileDrawerHeader}>
+        <View style={styles.avatarCircle}>
+          <Text style={styles.avatarText}>1L</Text>
+        </View>
+        <View style={styles.profileDrawerCopy}>
           <Text style={styles.profileEyebrow}>Profile</Text>
-          <Text style={styles.profileTitle}>
-            {profile.sex || 'Profile'}{profile.heightCm ? ` · ${profile.heightCm} cm` : ''}{profile.weightKg ? ` · ${profile.weightKg} kg` : ''}
-          </Text>
+          <Text style={styles.profileTitle}>Training profile</Text>
+          <Text style={styles.captionText}>Local draft only. Not used in scoring yet.</Text>
         </View>
-        <Text style={styles.profileButtonText}>{expanded ? 'Hide' : 'Edit'}</Text>
       </View>
-      {expanded ? (
-        <View style={styles.profileFields}>
-          <TextInput
-            value={profile.sex}
-            onChangeText={(value) => onChange('sex', value)}
-            placeholder="Sex"
-            style={styles.profileInput}
-          />
-          <TextInput
-            value={profile.heightCm}
-            onChangeText={(value) => onChange('heightCm', value)}
-            placeholder="Height cm"
-            keyboardType="numeric"
-            style={styles.profileInput}
-          />
-          <TextInput
-            value={profile.weightKg}
-            onChangeText={(value) => onChange('weightKg', value)}
-            placeholder="Weight kg"
-            keyboardType="numeric"
-            style={styles.profileInput}
-          />
-          <Text style={styles.captionText}>Local draft only. Profile values are not used in scoring yet.</Text>
+      <View style={styles.profileFields}>
+        <TextInput
+          value={profile.sex}
+          onChangeText={(value) => onChange('sex', value)}
+          placeholder="Sex"
+          style={styles.profileInput}
+        />
+        <TextInput
+          value={profile.heightCm}
+          onChangeText={(value) => onChange('heightCm', value)}
+          placeholder="Height cm"
+          keyboardType="numeric"
+          style={styles.profileInput}
+        />
+        <TextInput
+          value={profile.weightKg}
+          onChangeText={(value) => onChange('weightKg', value)}
+          placeholder="Weight kg"
+          keyboardType="numeric"
+          style={styles.profileInput}
+        />
+      </View>
+      <Text style={styles.captionText}>
+        Profile photo upload needs a media picker dependency and is intentionally not added in this safe build.
+      </Text>
+    </View>
+  );
+}
+
+function ReadinessHero({
+  styles,
+  score,
+  label,
+  activityScore,
+  recoveryScore,
+  completeness,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  score: number | null;
+  label: string;
+  activityScore: number;
+  recoveryScore: number;
+  completeness: number;
+}): React.JSX.Element {
+  return (
+    <View style={styles.readinessHero}>
+      <View style={styles.readinessMain}>
+        <Text style={styles.readinessEyebrow}>Today’s readiness</Text>
+        <View style={styles.readinessScoreRow}>
+          <Text style={styles.readinessScore}>{score === null ? '--' : score}</Text>
+          <Text style={styles.readinessUnit}>/100</Text>
         </View>
-      ) : null}
-    </Pressable>
+        <Text style={styles.readinessLabel}>{label}</Text>
+      </View>
+      <View style={styles.readinessMetrics}>
+        <HeroMetric styles={styles} label="Activity" value={formatScore(activityScore)} />
+        <HeroMetric styles={styles} label="Recovery" value={formatScore(recoveryScore)} />
+        <HeroMetric styles={styles} label="Data" value={`${completeness}%`} />
+      </View>
+    </View>
+  );
+}
+
+function HeroMetric({
+  styles,
+  label,
+  value,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  label: string;
+  value: string;
+}): React.JSX.Element {
+  return (
+    <View style={styles.heroMetric}>
+      <Text style={styles.heroMetricLabel}>{label}</Text>
+      <Text style={styles.heroMetricValue}>{value}</Text>
+    </View>
+  );
+}
+
+function DataCheckStrip({
+  styles,
+  labPanelCount,
+  healthConnectState,
+  dataMode,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  labPanelCount: number;
+  healthConnectState: string;
+  dataMode: DataMode;
+}): React.JSX.Element {
+  const hcSynced = healthConnectState.toLowerCase().includes('readable');
+  return (
+    <View style={styles.dataCheckStrip}>
+      <View style={styles.dataCheckItem}>
+        <Text style={styles.dataCheckLabel}>Blood markers</Text>
+        <Text style={styles.dataCheckValue}>{labPanelCount > 0 ? 'Loaded' : 'Missing'}</Text>
+        <Text style={styles.dataCheckMeta}>{labPanelCount} panel{labPanelCount === 1 ? '' : 's'}</Text>
+      </View>
+      <View style={styles.dataCheckDivider} />
+      <View style={styles.dataCheckItem}>
+        <Text style={styles.dataCheckLabel}>Health Connect</Text>
+        <Text style={[styles.dataCheckValue, hcSynced ? styles.dataCheckValuePositive : null]}>
+          {hcSynced ? 'Synced' : dataMode === 'demo-filled' ? 'Demo filled' : 'Missing'}
+        </Text>
+        <Text style={styles.dataCheckMeta}>{hcSynced ? 'Live data' : 'Tap sync above'}</Text>
+      </View>
+    </View>
   );
 }
 
@@ -634,24 +755,61 @@ function formatPermissionStatus(status: string): string {
   return 'Checking';
 }
 
+function formatScore(score: number): string {
+  return score > 0 ? `${score}` : '--';
+}
+
+function getReadinessLabel(score: number | null): string {
+  if (score === null) return 'Connect data to assess';
+  if (score >= 80) return 'Ready to train';
+  if (score >= 65) return 'Moderate readiness';
+  if (score >= 1) return 'Build carefully';
+  return 'Connect data to assess';
+}
+
 function createStyles(theme: Theme) {
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: theme.background },
     scroll: { flex: 1 },
     container: { padding: 18, paddingBottom: 42, gap: 14 },
-    header: { paddingTop: 12, gap: 6 },
-    eyebrow: { color: theme.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
-    title: { color: theme.textPrimary, fontSize: 32, fontWeight: '800' },
+    header: { paddingTop: 12, gap: 10 },
+    topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+    headerTitleBlock: { flex: 1, gap: 4 },
+    headerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+    utilityIconButton: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: theme.surface,
+      borderColor: theme.borderSubtle,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    utilityIconText: { color: theme.textPrimary, fontSize: 18, fontWeight: '700' },
+    eyebrow: { color: theme.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1.8, textTransform: 'uppercase' },
+    title: { color: theme.textPrimary, fontSize: 34, fontWeight: '800' },
     subtitle: { color: theme.textSecondary, fontSize: 15, lineHeight: 22 },
-    profileCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 12, padding: 14, gap: 10 },
-    profileHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+    profileDrawer: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14, gap: 12 },
+    profileDrawerHeader: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+    avatarCircle: {
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: theme.accentSubtle,
+      borderColor: theme.borderSubtle,
+      borderWidth: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    avatarText: { color: theme.accentSubtleText, fontSize: 16, fontWeight: '900' },
+    profileDrawerCopy: { flex: 1, gap: 2 },
     profileEyebrow: { color: theme.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
     profileTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800', marginTop: 2 },
-    profileButtonText: { color: theme.accentSubtleText, fontSize: 12, fontWeight: '800' },
     profileFields: { gap: 8 },
     profileInput: { minHeight: 44, borderRadius: 8, borderColor: theme.border, borderWidth: 1, backgroundColor: theme.surfaceMuted, color: theme.textPrimary, paddingHorizontal: 12, fontSize: 14 },
     toggleRowGroup: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-    toggleCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 10, padding: 14, gap: 10, flexGrow: 1, flexBasis: '47%', minWidth: 220 },
+    toggleCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14, gap: 10, flexGrow: 1, flexBasis: '100%', minWidth: 220 },
     toggleLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
     toggleRow: { flexDirection: 'row', gap: 8 },
     toggleButton: { flex: 1, minHeight: 42, borderRadius: 8, borderWidth: 1, borderColor: theme.toggleBorder, backgroundColor: theme.toggleTrack, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12 },
@@ -659,6 +817,43 @@ function createStyles(theme: Theme) {
     toggleButtonText: { color: theme.toggleText, fontSize: 13, fontWeight: '800' },
     toggleButtonTextActive: { color: theme.toggleTextActive },
     toggleHint: { color: theme.textMuted, fontSize: 12, lineHeight: 18 },
+    readinessHero: {
+      backgroundColor: theme.surfaceElevated,
+      borderColor: theme.borderSubtle,
+      borderWidth: 1,
+      borderRadius: 18,
+      padding: 16,
+      gap: 14,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    readinessMain: { flex: 1, gap: 4 },
+    readinessEyebrow: { color: theme.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.3, textTransform: 'uppercase' },
+    readinessScoreRow: { flexDirection: 'row', alignItems: 'flex-end' },
+    readinessScore: { color: theme.accent, fontSize: 54, lineHeight: 58, fontWeight: '800' },
+    readinessUnit: { color: theme.textMuted, fontSize: 14, fontWeight: '800', marginBottom: 9 },
+    readinessLabel: { color: theme.textSecondary, fontSize: 13, lineHeight: 18, fontWeight: '700' },
+    readinessMetrics: { gap: 8, minWidth: 108 },
+    heroMetric: { borderLeftColor: theme.accent, borderLeftWidth: 2, paddingLeft: 10, gap: 2 },
+    heroMetricLabel: { color: theme.textMuted, fontSize: 10, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
+    heroMetricValue: { color: theme.textPrimary, fontSize: 15, fontWeight: '900' },
+    dataCheckStrip: {
+      flexDirection: 'row',
+      backgroundColor: theme.surface,
+      borderColor: theme.borderSubtle,
+      borderWidth: 1,
+      borderRadius: 14,
+      padding: 14,
+      alignItems: 'center',
+      gap: 12,
+    },
+    dataCheckItem: { flex: 1, gap: 2 },
+    dataCheckDivider: { width: 1, alignSelf: 'stretch', backgroundColor: theme.borderSubtle },
+    dataCheckLabel: { color: theme.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.1, textTransform: 'uppercase' },
+    dataCheckValue: { color: theme.textPrimary, fontSize: 16, fontWeight: '900' },
+    dataCheckValuePositive: { color: theme.positiveText },
+    dataCheckMeta: { color: theme.textMuted, fontSize: 12, fontWeight: '700' },
     priorityCard: {
       backgroundColor: theme.surfaceElevated,
       borderColor: theme.accent,
