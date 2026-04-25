@@ -11,10 +11,14 @@ import {
 import { useWearablePermissions } from './useWearablePermissions';
 import { readGarminHealthConnectData } from './healthConnectGarminReader';
 import type { HealthConnectGarminReadResult } from './healthConnectGarminReader';
+import { buildHealthOsDemoReport } from './healthOsDemoReport';
 import {
-  DEFAULT_MANUAL_DEMO_INPUTS,
-  buildHealthOsDemoReport,
-} from './healthOsDemoReport';
+  DATA_MODE_LABELS,
+  getBiomarkerTiles,
+  type BiomarkerTile,
+  type DataMode,
+} from './healthOsDataMode';
+import { REAL_LAB_PANELS } from './realBiomarkerPanels';
 
 type SyncUiState =
   | { kind: 'idle' }
@@ -22,20 +26,19 @@ type SyncUiState =
   | { kind: 'done'; result: HealthConnectGarminReadResult }
   | { kind: 'error'; message: string };
 
+const DATA_MODE_OPTIONS: DataMode[] = ['real', 'demo-filled'];
+
 export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   const { status, request } = useWearablePermissions();
-  const [manualFallbackEnabled, setManualFallbackEnabled] = useState(false);
+  const [dataMode, setDataMode] = useState<DataMode>('real');
   const [syncState, setSyncState] = useState<SyncUiState>({ kind: 'idle' });
 
   const healthConnectResult = syncState.kind === 'done' ? syncState.result : null;
   const report = useMemo(
-    () => buildHealthOsDemoReport({
-      healthConnectResult,
-      manualInputs: DEFAULT_MANUAL_DEMO_INPUTS,
-      manualFallbackEnabled,
-    }),
-    [healthConnectResult, manualFallbackEnabled],
+    () => buildHealthOsDemoReport({ healthConnectResult, dataMode }),
+    [healthConnectResult, dataMode],
   );
+  const biomarkerTiles = useMemo(() => getBiomarkerTiles(dataMode), [dataMode]);
 
   const handleReadHealthConnect = async (): Promise<void> => {
     setSyncState({ kind: 'reading' });
@@ -45,15 +48,11 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
         lookbackDays: 14,
       });
       setSyncState({ kind: 'done', result });
-      if (result.status !== 'live') {
-        setManualFallbackEnabled(true);
-      }
     } catch (error) {
       setSyncState({
         kind: 'error',
         message: error instanceof Error ? error.message : 'Unknown sync error.',
       });
-      setManualFallbackEnabled(true);
     }
   };
 
@@ -68,10 +67,17 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </Text>
         </View>
 
+        <DataModeToggle mode={dataMode} onChange={setDataMode} />
+
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>Demo boundary</Text>
           <Text style={styles.noticeText}>
             Garmin is read only through Android Health Connect. This demo does not use direct Garmin API or Terra OAuth, and it only claims live Garmin data when Health Connect records are readable.
+          </Text>
+          <Text style={styles.noticeText}>
+            {dataMode === 'real'
+              ? 'Real Data Mode: only real values are shown. Missing Garmin / Health Connect fields stay empty — they are never invented.'
+              : 'Demo Filled Mode: real values are still real, but missing live fields are filled with clearly labelled synthetic placeholders so the app can be previewed end-to-end.'}
           </Text>
         </View>
 
@@ -90,7 +96,10 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           ) : null}
           {status === 'unavailable' ? (
             <Text style={styles.warningText}>
-              Health Connect is not available on this device. Use manual demo mode for the report preview.
+              Health Connect is not available on this device.
+              {dataMode === 'demo-filled'
+                ? ' Demo Filled Mode will substitute synthetic placeholders for the report preview.'
+                : ' Real Data Mode will only show real lab values until a live Health Connect read succeeds.'}
             </Text>
           ) : null}
         </Section>
@@ -111,33 +120,54 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
             <Text style={styles.warningText}>{syncState.message}</Text>
           ) : null}
           {healthConnectResult ? <HealthConnectResultCard result={healthConnectResult} /> : null}
+          {!healthConnectResult && dataMode === 'real' ? (
+            <Text style={styles.bodyText}>
+              No live Health Connect data available yet. In Real Data Mode, no synthetic Garmin / Health Connect values are shown.
+            </Text>
+          ) : null}
         </Section>
 
         <Section title="3. Baseline Assessment">
-          <StatusRow label="Baseline" value="Manual demo complete" />
+          <StatusRow label="Profile" value="Male (real lab profile)" />
           <StatusRow label="Goal context" value="Energy, recovery, long-term consistency" />
-          <StatusRow label="Mode" value={manualFallbackEnabled ? 'Manual fallback enabled' : 'Waiting for live data'} />
+          <StatusRow
+            label="Mode"
+            value={dataMode === 'real' ? 'Real Data — no synthetic fill' : 'Demo Filled — synthetic placeholders allowed'}
+          />
         </Section>
 
         <Section title="4. Blood Panel / Biomarkers">
           <Text style={styles.bodyText}>
-            Manual demo values are shown as context only. They are not imported from Garmin or Health Connect.
+            Real lab values come from the Apr 2025 (ALAB) and Oct 2023 (Danish hospital lab) panels stored in the Notion export.
           </Text>
+          <View style={styles.panelList}>
+            {REAL_LAB_PANELS.map((panel) => (
+              <View key={panel.id} style={styles.panelCard}>
+                <Text style={styles.panelTitle}>{panel.name}</Text>
+                <Text style={styles.panelMeta}>{panel.date} · {panel.source}</Text>
+                <Text style={styles.panelNotes}>{panel.notes}</Text>
+              </View>
+            ))}
+          </View>
           <View style={styles.metricGrid}>
-            <MetricTile label="ApoB" value="82 mg/dL" caption="manual demo" />
-            <MetricTile label="HbA1c" value="5.2%" caption="manual demo" />
-            <MetricTile label="hsCRP" value="1.1 mg/L" caption="manual demo" />
-            <MetricTile label="Vitamin D" value="38 ng/mL" caption="manual demo" />
+            {biomarkerTiles.map((tile) => (
+              <BiomarkerTileView key={tile.marker} tile={tile} />
+            ))}
           </View>
         </Section>
 
         <Section title="5. Weekly Health Report">
           <View style={styles.reportHeader}>
             <Text style={styles.reportSource}>{report.sourceLabel}</Text>
-            <Text style={styles.reportBadge}>
-              {report.isManualFallback ? 'Manual demo fallback' : 'Live Health Connect'}
+            <Text style={[styles.reportBadge, dataMode === 'demo-filled' ? styles.reportBadgeDemo : null]}>
+              {DATA_MODE_LABELS[dataMode]}
             </Text>
           </View>
+          {report.usesSyntheticData ? (
+            <Text style={styles.syntheticNotice}>
+              Synthetic placeholders in use for: {report.syntheticFields.join(', ')}
+            </Text>
+          ) : null}
           <View style={styles.scoreGrid}>
             <ScoreTile label="Exercise" score={report.exerciseScore} />
             <ScoreTile label="Sleep" score={report.sleepScore} />
@@ -146,6 +176,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
           <StatusRow label="Data completeness" value={`${report.dataCompleteness}%`} />
           <StatusRow label="Garmin connection" value={report.garminConnectionState} />
+          <StatusRow label="Real lab panels" value={`${report.realLabPanelCount} loaded`} />
           <StatusRow label="Weakest pillar" value={report.weakestPillar} />
           <StatusRow label="Biggest opportunity" value={report.biggestOpportunity} />
           <StatusRow label="Long-term risk" value={report.longTermRisk} />
@@ -166,17 +197,46 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           <Text style={styles.noticeText}>
             One L1fe is a data organization and health interpretation demo. It does not provide diagnosis, treatment, or emergency guidance.
           </Text>
-          <Pressable
-            onPress={() => setManualFallbackEnabled((current) => !current)}
-            style={styles.secondaryButton}
-          >
-            <Text style={styles.secondaryButtonText}>
-              {manualFallbackEnabled ? 'Disable manual fallback' : 'Enable manual demo fallback'}
-            </Text>
-          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function DataModeToggle({
+  mode,
+  onChange,
+}: {
+  mode: DataMode;
+  onChange: (next: DataMode) => void;
+}): React.JSX.Element {
+  return (
+    <View style={styles.modeToggle}>
+      <Text style={styles.modeToggleLabel}>Data mode</Text>
+      <View style={styles.modeToggleRow}>
+        {DATA_MODE_OPTIONS.map((option) => {
+          const active = option === mode;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => onChange(option)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={[styles.modeToggleButton, active ? styles.modeToggleButtonActive : null]}
+            >
+              <Text style={[styles.modeToggleButtonText, active ? styles.modeToggleButtonTextActive : null]}>
+                {DATA_MODE_LABELS[option]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={styles.modeToggleHint}>
+        {mode === 'real'
+          ? 'Showing only real values. Missing Garmin / Health Connect fields are not invented.'
+          : 'Showing real values where available; synthetic placeholders fill missing live fields.'}
+      </Text>
+    </View>
   );
 }
 
@@ -250,20 +310,14 @@ function StatusRow({ label, value }: { label: string; value: string }): React.JS
   );
 }
 
-function MetricTile({
-  label,
-  value,
-  caption,
-}: {
-  label: string;
-  value: string;
-  caption: string;
-}): React.JSX.Element {
+function BiomarkerTileView({ tile }: { tile: BiomarkerTile }): React.JSX.Element {
   return (
-    <View style={styles.metricTile}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-      <Text style={styles.metricCaption}>{caption}</Text>
+    <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}>
+      <Text style={styles.metricLabel}>{tile.label}</Text>
+      <Text style={styles.metricValue}>{tile.valueText}</Text>
+      <Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>
+        {tile.caption}
+      </Text>
     </View>
   );
 }
@@ -331,6 +385,52 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
   },
+  modeToggle: {
+    backgroundColor: '#ffffff',
+    borderColor: '#e6e0d7',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 14,
+    gap: 10,
+  },
+  modeToggleLabel: {
+    color: '#6b7b73',
+    fontSize: 12,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  modeToggleRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  modeToggleButton: {
+    flex: 1,
+    minHeight: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#cbd5d1',
+    backgroundColor: '#f5f7f2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  modeToggleButtonActive: {
+    backgroundColor: '#0f766e',
+    borderColor: '#0f766e',
+  },
+  modeToggleButtonText: {
+    color: '#17211b',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  modeToggleButtonTextActive: {
+    color: '#ffffff',
+  },
+  modeToggleHint: {
+    color: '#52635b',
+    fontSize: 12,
+    lineHeight: 18,
+  },
   noticeCard: {
     backgroundColor: '#fffaf2',
     borderColor: '#e0caa3',
@@ -348,6 +448,16 @@ const styles = StyleSheet.create({
     color: '#5f4b2b',
     fontSize: 13,
     lineHeight: 19,
+  },
+  syntheticNotice: {
+    color: '#7a4f00',
+    backgroundColor: '#fff3d9',
+    borderColor: '#e7c98a',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 8,
+    fontSize: 12,
+    fontWeight: '700',
   },
   section: {
     backgroundColor: '#ffffff',
@@ -388,20 +498,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
   },
-  secondaryButton: {
-    minHeight: 44,
-    borderRadius: 8,
-    borderColor: '#b99b62',
-    borderWidth: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-  },
-  secondaryButtonText: {
-    color: '#5f4316',
-    fontSize: 14,
-    fontWeight: '800',
-  },
   statusRow: {
     gap: 4,
     borderBottomColor: '#eee7de',
@@ -420,6 +516,30 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     fontWeight: '600',
   },
+  panelList: {
+    gap: 8,
+  },
+  panelCard: {
+    backgroundColor: '#f5f7f2',
+    borderRadius: 8,
+    padding: 10,
+    gap: 4,
+  },
+  panelTitle: {
+    color: '#17211b',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  panelMeta: {
+    color: '#52635b',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  panelNotes: {
+    color: '#52635b',
+    fontSize: 12,
+    lineHeight: 18,
+  },
   metricGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -432,6 +552,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f7f2',
     padding: 12,
     justifyContent: 'space-between',
+  },
+  metricTileSynthetic: {
+    backgroundColor: '#fff3d9',
+    borderColor: '#e7c98a',
+    borderWidth: 1,
   },
   metricLabel: {
     color: '#52635b',
@@ -446,6 +571,10 @@ const styles = StyleSheet.create({
   metricCaption: {
     color: '#7b8780',
     fontSize: 12,
+  },
+  metricCaptionSynthetic: {
+    color: '#7a4f00',
+    fontWeight: '700',
   },
   resultCard: {
     backgroundColor: '#eef7f5',
@@ -476,6 +605,10 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     fontSize: 12,
     fontWeight: '800',
+  },
+  reportBadgeDemo: {
+    color: '#7a4f00',
+    backgroundColor: '#fff3d9',
   },
   scoreGrid: {
     flexDirection: 'row',

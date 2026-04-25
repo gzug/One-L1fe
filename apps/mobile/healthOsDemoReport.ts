@@ -2,13 +2,12 @@ import type {
   HealthConnectGarminReadResult,
   HealthConnectGarminSummary,
 } from './healthConnectGarminReader';
-
-export interface ManualDemoInputs {
-  baselineComplete: boolean;
-  bloodPanelAvailable: boolean;
-  nutritionLogged: boolean;
-  emotionalCheckInComplete: boolean;
-}
+import {
+  applyDataModeToSummary,
+  type DataMode,
+  type SummaryNumericKey,
+} from './healthOsDataMode';
+import { getAllLatestRealMarkers } from './realBiomarkerPanels';
 
 export interface HealthOsDemoReport {
   exerciseScore: number;
@@ -23,38 +22,37 @@ export interface HealthOsDemoReport {
   bottleneck: string;
   actions: string[];
   sourceLabel: string;
-  isManualFallback: boolean;
+  dataMode: DataMode;
+  hasLiveHealthConnect: boolean;
+  usesSyntheticData: boolean;
+  syntheticFields: SummaryNumericKey[];
+  realLabPanelCount: number;
 }
-
-export const DEFAULT_MANUAL_DEMO_INPUTS: ManualDemoInputs = {
-  baselineComplete: true,
-  bloodPanelAvailable: true,
-  nutritionLogged: true,
-  emotionalCheckInComplete: true,
-};
 
 export function buildHealthOsDemoReport(params: {
   healthConnectResult: HealthConnectGarminReadResult | null;
-  manualInputs: ManualDemoInputs;
-  manualFallbackEnabled: boolean;
+  dataMode: DataMode;
 }): HealthOsDemoReport {
-  const summary = params.healthConnectResult?.summary ?? null;
-  const hasLiveRecords = params.healthConnectResult?.status === 'live';
-  const scoreSource = hasLiveRecords ? 'Health Connect live read' : 'Manual demo fallback';
+  const { healthConnectResult, dataMode } = params;
+  const applied = applyDataModeToSummary(healthConnectResult, dataMode);
+  const summary = applied.summary;
+  const hasLiveHealthConnect = applied.hasAnyLiveValue;
+  const isDemoFilled = dataMode === 'demo-filled';
 
-  const exerciseScore = hasLiveRecords && summary
-    ? scoreExercise(summary)
-    : params.manualFallbackEnabled
-      ? 73
-      : 0;
-  const sleepScore = hasLiveRecords && summary
-    ? scoreSleep(summary)
-    : params.manualFallbackEnabled
-      ? 68
-      : 0;
-  const nutritionScore = params.manualInputs.nutritionLogged ? 64 : 0;
-  const emotionalHealthScore = params.manualInputs.emotionalCheckInComplete ? 71 : 0;
-  const dataCompleteness = calculateCompleteness(summary, params.manualInputs, hasLiveRecords);
+  const exerciseScore = summary ? scoreExercise(summary) : 0;
+  const sleepScore = summary ? scoreSleep(summary) : 0;
+  const nutritionScore = isDemoFilled ? 64 : 0;
+  const emotionalHealthScore = isDemoFilled ? 71 : 0;
+
+  const realMarkers = getAllLatestRealMarkers();
+  const realLabPanelCount = countDistinctRealPanels(realMarkers);
+
+  const dataCompleteness = calculateCompleteness({
+    summary,
+    syntheticFields: applied.syntheticFields,
+    isDemoFilled,
+    realMarkerCount: realMarkers.length,
+  });
 
   const pillarScores = [
     { pillar: 'Exercise', score: exerciseScore },
@@ -67,7 +65,11 @@ export function buildHealthOsDemoReport(params: {
     ? [...pillarScores].sort((a, b) => a.score - b.score)[0].pillar
     : 'Not enough data';
 
-  const actions = chooseActions(weakestPillar, hasLiveRecords, params.manualFallbackEnabled);
+  const actions = chooseActions({
+    weakestPillar,
+    hasLiveHealthConnect,
+    dataMode,
+  });
 
   return {
     exerciseScore,
@@ -75,15 +77,24 @@ export function buildHealthOsDemoReport(params: {
     nutritionScore,
     emotionalHealthScore,
     dataCompleteness,
-    garminConnectionState: getGarminConnectionState(params.healthConnectResult),
+    garminConnectionState: getGarminConnectionState(healthConnectResult, dataMode),
     weakestPillar,
-    biggestOpportunity: getBiggestOpportunity(weakestPillar, hasLiveRecords),
+    biggestOpportunity: getBiggestOpportunity(weakestPillar, hasLiveHealthConnect, dataMode),
     longTermRisk:
       'Sustained gaps in activity, sleep regularity, or recovery data can reduce long-term trend confidence.',
-    bottleneck: getBottleneck(summary, params.manualInputs, hasLiveRecords),
+    bottleneck: getBottleneck({
+      summary,
+      hasLiveHealthConnect,
+      dataMode,
+      realMarkerCount: realMarkers.length,
+    }),
     actions,
-    sourceLabel: scoreSource,
-    isManualFallback: !hasLiveRecords,
+    sourceLabel: getSourceLabel(dataMode, hasLiveHealthConnect, realLabPanelCount),
+    dataMode,
+    hasLiveHealthConnect,
+    usesSyntheticData: applied.syntheticFields.size > 0,
+    syntheticFields: Array.from(applied.syntheticFields),
+    realLabPanelCount,
   };
 }
 
@@ -104,37 +115,54 @@ function scoreSleep(summary: HealthConnectGarminSummary): number {
   return Math.round(Math.min(100, durationScore + hrvScore + rhrScore));
 }
 
-function calculateCompleteness(
-  summary: HealthConnectGarminSummary | null,
-  manualInputs: ManualDemoInputs,
-  hasLiveRecords: boolean,
-): number {
-  const liveFields = summary && hasLiveRecords
-    ? [
-        summary.stepsTotal,
-        summary.sleepDurationSeconds,
-        summary.sleepSessionCount > 0 ? summary.sleepSessionCount : null,
-        summary.restingHeartRateBpm,
-        summary.hrvRmssdMs,
-        summary.activeEnergyKcal,
-        summary.distanceMeters,
-      ].filter((value) => value !== null).length
-    : 0;
-  const manualFields = [
-    manualInputs.baselineComplete,
-    manualInputs.bloodPanelAvailable,
-    manualInputs.nutritionLogged,
-    manualInputs.emotionalCheckInComplete,
-  ].filter(Boolean).length;
+function calculateCompleteness(params: {
+  summary: HealthConnectGarminSummary | null;
+  syntheticFields: ReadonlySet<SummaryNumericKey>;
+  isDemoFilled: boolean;
+  realMarkerCount: number;
+}): number {
+  const wearableSlots: SummaryNumericKey[] = [
+    'stepsTotal',
+    'sleepDurationSeconds',
+    'restingHeartRateBpm',
+    'hrvRmssdMs',
+    'activeEnergyKcal',
+    'distanceMeters',
+  ];
 
-  return Math.round(((liveFields + manualFields) / 11) * 100);
+  const liveWearableFields = params.summary
+    ? wearableSlots.filter((key) =>
+        params.summary![key] !== null && !params.syntheticFields.has(key),
+      ).length
+    : 0;
+  const syntheticWearableFields = params.summary
+    ? wearableSlots.filter((key) => params.syntheticFields.has(key)).length
+    : 0;
+
+  const wearableContribution = liveWearableFields + (params.isDemoFilled ? syntheticWearableFields : 0);
+  const labContribution = Math.min(params.realMarkerCount, 8);
+  const lifestyleContribution = params.isDemoFilled ? 2 : 0;
+
+  const denominator = wearableSlots.length + 8 + 2;
+  return Math.round(((wearableContribution + labContribution + lifestyleContribution) / denominator) * 100);
 }
 
-function getGarminConnectionState(result: HealthConnectGarminReadResult | null): string {
-  if (!result) return 'Not checked';
+function getGarminConnectionState(
+  result: HealthConnectGarminReadResult | null,
+  dataMode: DataMode,
+): string {
+  if (!result) {
+    return dataMode === 'demo-filled'
+      ? 'Not checked (Demo Filled covering gaps)'
+      : 'Not checked';
+  }
   if (result.status === 'unavailable') return 'Health Connect unavailable';
   if (result.status === 'error') return 'Health Connect read error';
-  if (result.status === 'no-records') return 'No readable Health Connect records';
+  if (result.status === 'no-records') {
+    return dataMode === 'demo-filled'
+      ? 'No live records (Demo Filled covering gaps)'
+      : 'No live Health Connect data available yet';
+  }
 
   const hasGarminOrigin = result.summary.sourceOrigins.some((origin) =>
     origin.toLowerCase().includes('garmin'),
@@ -144,35 +172,42 @@ function getGarminConnectionState(result: HealthConnectGarminReadResult | null):
     : 'Health Connect records readable, Garmin origin not confirmed';
 }
 
-function getBiggestOpportunity(weakestPillar: string, hasLiveRecords: boolean): string {
-  if (!hasLiveRecords) {
-    return 'Connect Garmin through Health Connect or use the clearly labelled manual demo mode.';
+function getBiggestOpportunity(
+  weakestPillar: string,
+  hasLiveHealthConnect: boolean,
+  dataMode: DataMode,
+): string {
+  if (!hasLiveHealthConnect && dataMode === 'real') {
+    return 'Connect Garmin through Health Connect. Real lab values are already available from Apr 2025 + Oct 2023 panels.';
   }
   if (weakestPillar === 'Sleep') return 'Improve sleep regularity and recovery visibility.';
   if (weakestPillar === 'Exercise') return 'Increase consistent movement days before adding intensity.';
   if (weakestPillar === 'Nutrition') return 'Add a lightweight food pattern check-in.';
   if (weakestPillar === 'Emotional Health') return 'Add a short weekly check-in to connect stress and sleep context.';
-  return 'Add missing data sources to raise confidence.';
+  return 'Add the missing source with the lowest effort.';
 }
 
-function getBottleneck(
-  summary: HealthConnectGarminSummary | null,
-  manualInputs: ManualDemoInputs,
-  hasLiveRecords: boolean,
-): string {
-  if (!hasLiveRecords) return 'Health Connect has not returned readable Garmin data in this demo session.';
-  if (!summary?.hrvRmssdMs) return 'HRV is missing, so recovery confidence is limited.';
-  if (!summary.restingHeartRateBpm) return 'Resting heart rate is missing, so sleep/recovery context is thinner.';
-  if (!manualInputs.bloodPanelAvailable) return 'Blood panel is missing, so biomarker context is manual-only.';
+function getBottleneck(params: {
+  summary: HealthConnectGarminSummary | null;
+  hasLiveHealthConnect: boolean;
+  dataMode: DataMode;
+  realMarkerCount: number;
+}): string {
+  if (!params.hasLiveHealthConnect && params.dataMode === 'real') {
+    return 'Health Connect has not returned readable Garmin data yet. Real lab panels are still usable for biomarker context.';
+  }
+  if (!params.summary?.hrvRmssdMs) return 'HRV is missing, so recovery confidence is limited.';
+  if (!params.summary.restingHeartRateBpm) return 'Resting heart rate is missing, so sleep/recovery context is thinner.';
+  if (params.realMarkerCount === 0) return 'No real lab markers loaded.';
   return 'Completeness is good enough for a reduced weekly report.';
 }
 
-function chooseActions(
-  weakestPillar: string,
-  hasLiveRecords: boolean,
-  manualFallbackEnabled: boolean,
-): string[] {
-  if (!hasLiveRecords && !manualFallbackEnabled) {
+function chooseActions(params: {
+  weakestPillar: string;
+  hasLiveHealthConnect: boolean;
+  dataMode: DataMode;
+}): string[] {
+  if (!params.hasLiveHealthConnect && params.dataMode === 'real') {
     return [
       'Open Garmin Connect and confirm Health Connect sharing is enabled.',
       'Grant all One L1fe Health Connect permissions.',
@@ -203,11 +238,36 @@ function chooseActions(
     ],
   };
 
-  return (actionsByPillar[weakestPillar] ?? [
+  return (actionsByPillar[params.weakestPillar] ?? [
     'Add the missing source with the lowest effort.',
     'Keep the weekly report to the top 3 actions.',
     'Review source freshness before changing behavior.',
   ]).slice(0, 3);
+}
+
+function getSourceLabel(
+  dataMode: DataMode,
+  hasLiveHealthConnect: boolean,
+  realLabPanelCount: number,
+): string {
+  const labFragment = realLabPanelCount > 0
+    ? `${realLabPanelCount} real lab panel${realLabPanelCount === 1 ? '' : 's'}`
+    : 'no real lab data';
+  if (dataMode === 'real') {
+    const hcFragment = hasLiveHealthConnect ? 'Health Connect live read' : 'no live Health Connect data';
+    return `Real data — ${labFragment} + ${hcFragment}`;
+  }
+  return `Demo Filled — ${labFragment} + synthetic placeholders for missing live fields`;
+}
+
+function countDistinctRealPanels(
+  markers: ReturnType<typeof getAllLatestRealMarkers>,
+): number {
+  const ids = new Set<string>();
+  for (const reading of markers) {
+    ids.add(reading.panelId);
+  }
+  return ids.size;
 }
 
 function clampScore(value: number): number {
