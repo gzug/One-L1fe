@@ -18,6 +18,10 @@ import {
   type BiomarkerTile,
   type DataMode,
 } from './healthOsDataMode';
+import {
+  buildHealthConnectSignalRows,
+  type HealthConnectSignalRow,
+} from './healthConnectSignalRows';
 import { REAL_LAB_PANELS } from './realBiomarkerPanels';
 import {
   THEME_LABELS,
@@ -77,7 +81,7 @@ const PLANNED_MODULES: PlannedModule[] = [
 export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   const { status, request } = useWearablePermissions();
   const [dataMode, setDataMode] = useState<DataMode>('real');
-  const [themeName, setThemeName] = useState<ThemeName>('light');
+  const [themeName, setThemeName] = useState<ThemeName>('dark');
   const [syncState, setSyncState] = useState<SyncUiState>({ kind: 'idle' });
 
   const theme = useMemo(() => getTheme(themeName), [themeName]);
@@ -89,6 +93,10 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     [healthConnectResult, dataMode],
   );
   const biomarkerTiles = useMemo(() => getBiomarkerTiles(dataMode), [dataMode]);
+  const signalRows = useMemo(
+    () => buildHealthConnectSignalRows(healthConnectResult, dataMode),
+    [healthConnectResult, dataMode],
+  );
 
   const handleReadHealthConnect = async (): Promise<void> => {
     setSyncState({ kind: 'reading' });
@@ -171,12 +179,8 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
             disabled={status !== 'granted' || syncState.kind === 'reading'}
           />
           {syncState.kind === 'reading' ? <ActivityIndicator color={theme.accent} /> : null}
-          {syncState.kind === 'error' ? (
-            <Text style={styles.warningText}>{syncState.message}</Text>
-          ) : null}
-          {healthConnectResult ? (
-            <HealthConnectResultCard styles={styles} result={healthConnectResult} />
-          ) : null}
+          {syncState.kind === 'error' ? <Text style={styles.warningText}>{syncState.message}</Text> : null}
+          {healthConnectResult ? <HealthConnectResultCard styles={styles} result={healthConnectResult} /> : null}
           {!healthConnectResult && dataMode === 'real' ? (
             <Text style={styles.bodyText}>
               No live Health Connect data available yet. In Real Data Mode, no synthetic Garmin / Health Connect values are shown.
@@ -184,7 +188,18 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           ) : null}
         </Section>
 
-        <Section title="3. Training Baseline" styles={styles}>
+        <Section title="3. Garmin / Health Connect Signals" styles={styles}>
+          <Text style={styles.bodyText}>
+            Individual smartwatch signals are shown before any readiness summary so the score never behaves like a black box.
+          </Text>
+          <View style={styles.signalGrid}>
+            {signalRows.map((signal) => (
+              <SignalRowCard key={signal.key} signal={signal} styles={styles} />
+            ))}
+          </View>
+        </Section>
+
+        <Section title="4. Training Baseline" styles={styles}>
           <StatusRow styles={styles} label="Profile" value="Male (real lab profile)" />
           <StatusRow styles={styles} label="Goal" value="Brisbane Marathon — finish-line readiness" />
           <StatusRow
@@ -199,7 +214,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           />
         </Section>
 
-        <Section title="4. Blood Markers" styles={styles}>
+        <Section title="5. Blood Markers" styles={styles}>
           <Text style={styles.bodyText}>
             Real lab values come from the Apr 2025 (ALAB) and Oct 2023 (Danish hospital lab) panels stored in the Notion export. Iron, inflammation, and lipid markers are the marathon-relevant focus.
           </Text>
@@ -219,7 +234,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
         </Section>
 
-        <Section title="5. Training Readiness Report" styles={styles}>
+        <Section title="6. Training Readiness Report" styles={styles}>
           <View style={styles.reportHeader}>
             <Text style={styles.reportSource}>{report.sourceLabel}</Text>
             <Text style={[styles.reportBadge, dataMode === 'demo-filled' ? styles.reportBadgeDemo : null]}>
@@ -287,15 +302,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   );
 }
 
-function DataModeToggle({
-  mode,
-  onChange,
-  styles,
-}: {
-  mode: DataMode;
-  onChange: (next: DataMode) => void;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
+function DataModeToggle({ mode, onChange, styles }: { mode: DataMode; onChange: (next: DataMode) => void; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
   return (
     <View style={styles.toggleCard}>
       <Text style={styles.toggleLabel}>Data mode</Text>
@@ -303,40 +310,18 @@ function DataModeToggle({
         {DATA_MODE_OPTIONS.map((option) => {
           const active = option === mode;
           return (
-            <Pressable
-              key={option}
-              onPress={() => onChange(option)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={[styles.toggleButton, active ? styles.toggleButtonActive : null]}
-            >
-              <Text style={[styles.toggleButtonText, active ? styles.toggleButtonTextActive : null]}>
-                {DATA_MODE_LABELS[option]}
-              </Text>
+            <Pressable key={option} onPress={() => onChange(option)} accessibilityRole="button" accessibilityState={{ selected: active }} style={[styles.toggleButton, active ? styles.toggleButtonActive : null]}>
+              <Text style={[styles.toggleButtonText, active ? styles.toggleButtonTextActive : null]}>{DATA_MODE_LABELS[option]}</Text>
             </Pressable>
           );
         })}
       </View>
-      <Text style={styles.toggleHint}>
-        {mode === 'real'
-          ? 'Showing only real values. Missing Garmin / Health Connect fields are not invented.'
-          : 'Showing real values where available; synthetic placeholders fill missing live fields.'}
-      </Text>
+      <Text style={styles.toggleHint}>{mode === 'real' ? 'Showing only real values. Missing Garmin / Health Connect fields are not invented.' : 'Showing real values where available; synthetic placeholders fill missing live fields.'}</Text>
     </View>
   );
 }
 
-function ThemeToggle({
-  theme,
-  mode,
-  onChange,
-  styles,
-}: {
-  theme: Theme;
-  mode: ThemeName;
-  onChange: (next: ThemeName) => void;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
+function ThemeToggle({ theme, mode, onChange, styles }: { theme: Theme; mode: ThemeName; onChange: (next: ThemeName) => void; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
   return (
     <View style={styles.toggleCard}>
       <Text style={styles.toggleLabel}>Appearance</Text>
@@ -344,151 +329,61 @@ function ThemeToggle({
         {THEME_OPTIONS.map((option) => {
           const active = option === mode;
           return (
-            <Pressable
-              key={option}
-              onPress={() => onChange(option)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              style={[styles.toggleButton, active ? styles.toggleButtonActive : null]}
-            >
-              <Text style={[styles.toggleButtonText, active ? styles.toggleButtonTextActive : null]}>
-                {THEME_LABELS[option]}
-              </Text>
+            <Pressable key={option} onPress={() => onChange(option)} accessibilityRole="button" accessibilityState={{ selected: active }} style={[styles.toggleButton, active ? styles.toggleButtonActive : null]}>
+              <Text style={[styles.toggleButtonText, active ? styles.toggleButtonTextActive : null]}>{THEME_LABELS[option]}</Text>
             </Pressable>
           );
         })}
       </View>
-      <Text style={styles.toggleHint}>
-        {theme.name === 'dark'
-          ? 'Dark graphite surface with muted teal accents. Amber stays reserved for synthetic data.'
-          : 'Minimal sport-focused light surface. Synthetic data still highlighted in amber.'}
-      </Text>
+      <Text style={styles.toggleHint}>{theme.name === 'dark' ? 'Dark graphite surface with coral accents. Amber stays reserved for synthetic data.' : 'Premium light surface. Synthetic data still highlighted in amber.'}</Text>
     </View>
   );
 }
 
-function Section({
-  title,
-  children,
-  styles,
-}: {
-  title: string;
-  children: React.ReactNode;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {children}
-    </View>
-  );
+function Section({ title, children, styles }: { title: string; children: React.ReactNode; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return <View style={styles.section}><Text style={styles.sectionTitle}>{title}</Text>{children}</View>;
 }
 
-function PrimaryButton({
-  label,
-  onPress,
-  disabled,
-  styles,
-}: {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={[styles.primaryButton, disabled ? styles.buttonDisabled : null]}
-    >
-      <Text style={styles.primaryButtonText}>{label}</Text>
-    </Pressable>
-  );
+function PrimaryButton({ label, onPress, disabled, styles }: { label: string; onPress: () => void; disabled?: boolean; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return <Pressable onPress={onPress} disabled={disabled} style={[styles.primaryButton, disabled ? styles.buttonDisabled : null]}><Text style={styles.primaryButtonText}>{label}</Text></Pressable>;
 }
 
-function HealthConnectResultCard({
-  result,
-  styles,
-}: {
-  result: HealthConnectGarminReadResult;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
-  const summary = result.summary;
+function HealthConnectResultCard({ result, styles }: { result: HealthConnectGarminReadResult; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
   return (
     <View style={styles.resultCard}>
       <StatusRow styles={styles} label="Read status" value={result.status} />
       <StatusRow styles={styles} label="Message" value={result.message} />
       <StatusRow styles={styles} label="Records normalized" value={`${result.observations.length}`} />
-      <StatusRow
-        styles={styles}
-        label="Sync request"
-        value={result.request ? 'Valid WearableSyncRequest built' : 'Not built without records'}
-      />
-      <StatusRow styles={styles} label="Steps" value={formatNumber(summary.stepsTotal, 'steps')} />
-      <StatusRow styles={styles} label="Sleep" value={formatHours(summary.sleepDurationSeconds)} />
-      <StatusRow styles={styles} label="Resting HR" value={formatNumber(summary.restingHeartRateBpm, 'bpm')} />
-      <StatusRow styles={styles} label="HRV RMSSD" value={formatNumber(summary.hrvRmssdMs, 'ms')} />
-      <StatusRow styles={styles} label="Active energy" value={formatNumber(summary.activeEnergyKcal, 'kcal')} />
-      <StatusRow styles={styles} label="Distance" value={formatMeters(summary.distanceMeters)} />
-      <StatusRow
-        styles={styles}
-        label="Data origins"
-        value={summary.sourceOrigins.length > 0 ? summary.sourceOrigins.join(', ') : 'Not reported by Health Connect'}
-      />
+      <StatusRow styles={styles} label="Sync request" value={result.request ? 'Valid WearableSyncRequest built' : 'Not built without records'} />
     </View>
   );
 }
 
-function StatusRow({
-  label,
-  value,
-  styles,
-}: {
-  label: string;
-  value: string;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
+function SignalRowCard({ signal, styles }: { signal: HealthConnectSignalRow; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  const missing = signal.sourceStatus === 'Not available';
   return (
-    <View style={styles.statusRow}>
-      <Text style={styles.statusLabel}>{label}</Text>
-      <Text style={styles.statusValue}>{value}</Text>
+    <View style={[styles.signalCard, signal.isSynthetic ? styles.signalCardSynthetic : null]}>
+      <View style={styles.signalTopRow}>
+        <Text style={styles.signalLabel}>{signal.label}</Text>
+        <Text style={[styles.signalPill, signal.isSynthetic ? styles.signalPillSynthetic : null, missing ? styles.signalPillMissing : null]}>{signal.sourceStatus}</Text>
+      </View>
+      <Text style={styles.signalValue}>{signal.value}{signal.unit ? ` ${signal.unit}` : ''}</Text>
+      <Text style={styles.signalMeta}>{signal.source}</Text>
+      <Text style={styles.signalUsage}>{signal.scoreUsage}</Text>
     </View>
   );
 }
 
-function BiomarkerTileView({
-  tile,
-  styles,
-}: {
-  tile: BiomarkerTile;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
-  return (
-    <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}>
-      <Text style={styles.metricLabel}>{tile.label}</Text>
-      <Text style={styles.metricValue}>{tile.valueText}</Text>
-      <Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>
-        {tile.caption}
-      </Text>
-    </View>
-  );
+function StatusRow({ label, value, styles }: { label: string; value: string; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return <View style={styles.statusRow}><Text style={styles.statusLabel}>{label}</Text><Text style={styles.statusValue}>{value}</Text></View>;
 }
 
-function ScoreTile({
-  label,
-  score,
-  styles,
-}: {
-  label: string;
-  score: number;
-  styles: ReturnType<typeof createStyles>;
-}): React.JSX.Element {
-  return (
-    <View style={styles.scoreTile}>
-      <Text style={styles.scoreLabel}>{label}</Text>
-      <Text style={styles.scoreValue}>{score > 0 ? score : '--'}</Text>
-    </View>
-  );
+function BiomarkerTileView({ tile, styles }: { tile: BiomarkerTile; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}><Text style={styles.metricLabel}>{tile.label}</Text><Text style={styles.metricValue}>{tile.valueText}</Text><Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>{tile.caption}</Text></View>;
+}
+
+function ScoreTile({ label, score, styles }: { label: string; score: number; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return <View style={styles.scoreTile}><Text style={styles.scoreLabel}>{label}</Text><Text style={styles.scoreValue}>{score > 0 ? score : '--'}</Text></View>;
 }
 
 function formatPermissionStatus(status: string): string {
@@ -498,370 +393,78 @@ function formatPermissionStatus(status: string): string {
   return 'Checking';
 }
 
-function formatNumber(value: number | null, unit: string): string {
-  return value === null ? 'No data' : `${Math.round(value).toLocaleString()} ${unit}`;
-}
-
-function formatHours(seconds: number | null): string {
-  return seconds === null ? 'No data' : `${(seconds / 3600).toFixed(1)} h`;
-}
-
-function formatMeters(meters: number | null): string {
-  return meters === null ? 'No data' : `${(meters / 1000).toFixed(1)} km`;
-}
-
 function createStyles(theme: Theme) {
   return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: theme.background,
-    },
-    scroll: {
-      flex: 1,
-    },
-    container: {
-      padding: 18,
-      paddingBottom: 42,
-      gap: 14,
-    },
-    header: {
-      paddingTop: 12,
-      gap: 6,
-    },
-    eyebrow: {
-      color: theme.accent,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-    title: {
-      color: theme.textPrimary,
-      fontSize: 32,
-      fontWeight: '800',
-      letterSpacing: 0,
-    },
-    subtitle: {
-      color: theme.textSecondary,
-      fontSize: 15,
-      lineHeight: 22,
-    },
-    toggleRowGroup: {
-      flexDirection: 'row',
-      gap: 10,
-      flexWrap: 'wrap',
-    },
-    toggleCard: {
-      backgroundColor: theme.surface,
-      borderColor: theme.border,
-      borderWidth: 1,
-      borderRadius: 10,
-      padding: 14,
-      gap: 10,
-      flexGrow: 1,
-      flexBasis: '47%',
-      minWidth: 220,
-    },
-    toggleLabel: {
-      color: theme.textMuted,
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-    toggleRow: {
-      flexDirection: 'row',
-      gap: 8,
-    },
-    toggleButton: {
-      flex: 1,
-      minHeight: 42,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: theme.toggleBorder,
-      backgroundColor: theme.toggleTrack,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 12,
-    },
-    toggleButtonActive: {
-      backgroundColor: theme.toggleTrackActive,
-      borderColor: theme.toggleTrackActive,
-    },
-    toggleButtonText: {
-      color: theme.toggleText,
-      fontSize: 13,
-      fontWeight: '800',
-    },
-    toggleButtonTextActive: {
-      color: theme.toggleTextActive,
-    },
-    toggleHint: {
-      color: theme.textMuted,
-      fontSize: 12,
-      lineHeight: 18,
-    },
-    noticeCard: {
-      backgroundColor: theme.noticeBackground,
-      borderColor: theme.noticeBorder,
-      borderWidth: 1,
-      borderRadius: 10,
-      padding: 14,
-      gap: 8,
-    },
-    noticeTitle: {
-      color: theme.noticeTitle,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    noticeText: {
-      color: theme.noticeText,
-      fontSize: 13,
-      lineHeight: 19,
-    },
-    syntheticNotice: {
-      color: theme.syntheticText,
-      backgroundColor: theme.syntheticBackground,
-      borderColor: theme.syntheticBorder,
-      borderWidth: 1,
-      borderRadius: 6,
-      padding: 8,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    section: {
-      backgroundColor: theme.surface,
-      borderColor: theme.border,
-      borderWidth: 1,
-      borderRadius: 10,
-      padding: 14,
-      gap: 12,
-    },
-    sectionTitle: {
-      color: theme.textPrimary,
-      fontSize: 17,
-      fontWeight: '800',
-      letterSpacing: 0,
-    },
-    bodyText: {
-      color: theme.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
-    },
-    captionText: {
-      color: theme.textMuted,
-      fontSize: 12,
-      lineHeight: 18,
-    },
-    warningText: {
-      color: theme.warning,
-      fontSize: 13,
-      lineHeight: 19,
-    },
-    primaryButton: {
-      minHeight: 48,
-      borderRadius: 8,
-      backgroundColor: theme.accent,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-    },
-    buttonDisabled: {
-      opacity: 0.5,
-    },
-    primaryButtonText: {
-      color: theme.accentText,
-      fontSize: 15,
-      fontWeight: '800',
-    },
-    statusRow: {
-      gap: 4,
-      borderBottomColor: theme.borderSubtle,
-      borderBottomWidth: 1,
-      paddingBottom: 8,
-    },
-    statusLabel: {
-      color: theme.textMuted,
-      fontSize: 11,
-      fontWeight: '800',
-      letterSpacing: 1,
-      textTransform: 'uppercase',
-    },
-    statusValue: {
-      color: theme.textPrimary,
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: '600',
-    },
-    panelList: {
-      gap: 8,
-    },
-    panelCard: {
-      backgroundColor: theme.surfaceMuted,
-      borderRadius: 8,
-      padding: 10,
-      gap: 4,
-    },
-    panelTitle: {
-      color: theme.textPrimary,
-      fontSize: 14,
-      fontWeight: '800',
-    },
-    panelMeta: {
-      color: theme.textSecondary,
-      fontSize: 12,
-      fontWeight: '700',
-    },
-    panelNotes: {
-      color: theme.textSecondary,
-      fontSize: 12,
-      lineHeight: 18,
-    },
-    metricGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 10,
-    },
-    metricTile: {
-      width: '47%',
-      minHeight: 96,
-      borderRadius: 8,
-      backgroundColor: theme.surfaceMuted,
-      padding: 12,
-      justifyContent: 'space-between',
-    },
-    metricTileSynthetic: {
-      backgroundColor: theme.syntheticBackground,
-      borderColor: theme.syntheticBorder,
-      borderWidth: 1,
-    },
-    metricLabel: {
-      color: theme.textMuted,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 0.5,
-      textTransform: 'uppercase',
-    },
-    metricValue: {
-      color: theme.textPrimary,
-      fontSize: 18,
-      fontWeight: '800',
-    },
-    metricCaption: {
-      color: theme.textMuted,
-      fontSize: 12,
-    },
-    metricCaptionSynthetic: {
-      color: theme.syntheticText,
-      fontWeight: '700',
-    },
-    resultCard: {
-      backgroundColor: theme.resultBackground,
-      borderColor: theme.resultBorder,
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: 12,
-      gap: 8,
-    },
-    reportHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 10,
-      alignItems: 'center',
-    },
-    reportSource: {
-      color: theme.textSecondary,
-      fontSize: 13,
-      fontWeight: '700',
-      flex: 1,
-    },
-    reportBadge: {
-      color: theme.accentSubtleText,
-      backgroundColor: theme.accentSubtle,
-      borderRadius: 8,
-      overflow: 'hidden',
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      fontSize: 12,
-      fontWeight: '800',
-    },
-    reportBadgeDemo: {
-      color: theme.syntheticText,
-      backgroundColor: theme.syntheticBackground,
-    },
-    scoreGrid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 10,
-    },
-    scoreTile: {
-      width: '47%',
-      backgroundColor: theme.scoreTileBackground,
-      borderRadius: 8,
-      padding: 12,
-      minHeight: 88,
-      justifyContent: 'space-between',
-    },
-    scoreLabel: {
-      color: theme.scoreTileLabel,
-      fontSize: 12,
-      fontWeight: '800',
-      letterSpacing: 0.5,
-      textTransform: 'uppercase',
-    },
-    scoreValue: {
-      color: theme.scoreTileValue,
-      fontSize: 28,
-      fontWeight: '900',
-    },
-    actionRow: {
-      flexDirection: 'row',
-      gap: 12,
-      alignItems: 'flex-start',
-      backgroundColor: theme.surfaceMuted,
-      borderRadius: 8,
-      padding: 12,
-    },
-    actionIndex: {
-      width: 26,
-      height: 26,
-      borderRadius: 13,
-      backgroundColor: theme.accent,
-      color: theme.accentText,
-      textAlign: 'center',
-      lineHeight: 26,
-      fontWeight: '800',
-    },
-    actionText: {
-      flex: 1,
-      color: theme.textPrimary,
-      fontSize: 14,
-      lineHeight: 20,
-      fontWeight: '600',
-    },
-    plannedList: {
-      gap: 10,
-    },
-    plannedCard: {
-      backgroundColor: theme.surfaceMuted,
-      borderRadius: 8,
-      padding: 12,
-      gap: 4,
-    },
-    plannedTitle: {
-      color: theme.textPrimary,
-      fontSize: 14,
-      fontWeight: '800',
-    },
-    plannedSummary: {
-      color: theme.textSecondary,
-      fontSize: 13,
-      lineHeight: 19,
-    },
-    plannedSource: {
-      color: theme.textMuted,
-      fontSize: 11,
-      fontWeight: '700',
-    },
+    safeArea: { flex: 1, backgroundColor: theme.background },
+    scroll: { flex: 1 },
+    container: { padding: 18, paddingBottom: 42, gap: 14 },
+    header: { paddingTop: 12, gap: 6 },
+    eyebrow: { color: theme.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+    title: { color: theme.textPrimary, fontSize: 32, fontWeight: '800' },
+    subtitle: { color: theme.textSecondary, fontSize: 15, lineHeight: 22 },
+    toggleRowGroup: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
+    toggleCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 10, padding: 14, gap: 10, flexGrow: 1, flexBasis: '47%', minWidth: 220 },
+    toggleLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+    toggleRow: { flexDirection: 'row', gap: 8 },
+    toggleButton: { flex: 1, minHeight: 42, borderRadius: 8, borderWidth: 1, borderColor: theme.toggleBorder, backgroundColor: theme.toggleTrack, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 12 },
+    toggleButtonActive: { backgroundColor: theme.toggleTrackActive, borderColor: theme.toggleTrackActive },
+    toggleButtonText: { color: theme.toggleText, fontSize: 13, fontWeight: '800' },
+    toggleButtonTextActive: { color: theme.toggleTextActive },
+    toggleHint: { color: theme.textMuted, fontSize: 12, lineHeight: 18 },
+    noticeCard: { backgroundColor: theme.noticeBackground, borderColor: theme.noticeBorder, borderWidth: 1, borderRadius: 10, padding: 14, gap: 8 },
+    noticeTitle: { color: theme.noticeTitle, fontSize: 15, fontWeight: '800' },
+    noticeText: { color: theme.noticeText, fontSize: 13, lineHeight: 19 },
+    syntheticNotice: { color: theme.syntheticText, backgroundColor: theme.syntheticBackground, borderColor: theme.syntheticBorder, borderWidth: 1, borderRadius: 6, padding: 8, fontSize: 12, fontWeight: '700' },
+    section: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 10, padding: 14, gap: 12 },
+    sectionTitle: { color: theme.textPrimary, fontSize: 17, fontWeight: '800' },
+    bodyText: { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
+    captionText: { color: theme.textMuted, fontSize: 12, lineHeight: 18 },
+    warningText: { color: theme.warning, fontSize: 13, lineHeight: 19 },
+    primaryButton: { minHeight: 48, borderRadius: 8, backgroundColor: theme.accent, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
+    buttonDisabled: { opacity: 0.5 },
+    primaryButtonText: { color: theme.accentText, fontSize: 15, fontWeight: '800' },
+    resultCard: { backgroundColor: theme.resultBackground, borderColor: theme.resultBorder, borderWidth: 1, borderRadius: 8, padding: 12, gap: 8 },
+    statusRow: { gap: 4, borderBottomColor: theme.borderSubtle, borderBottomWidth: 1, paddingBottom: 8 },
+    statusLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+    statusValue: { color: theme.textPrimary, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+    signalGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    signalCard: { width: '47%', minHeight: 132, borderRadius: 10, backgroundColor: theme.surfaceMuted, borderColor: theme.borderSubtle, borderWidth: 1, padding: 12, gap: 8 },
+    signalCardSynthetic: { backgroundColor: theme.syntheticBackground, borderColor: theme.syntheticBorder },
+    signalTopRow: { gap: 6 },
+    signalLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
+    signalValue: { color: theme.textPrimary, fontSize: 22, fontWeight: '900' },
+    signalMeta: { color: theme.textSecondary, fontSize: 12, lineHeight: 17 },
+    signalPill: { alignSelf: 'flex-start', color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
+    signalPillSynthetic: { color: theme.syntheticText, backgroundColor: theme.syntheticBackground },
+    signalPillMissing: { color: theme.textMuted, backgroundColor: theme.surface },
+    signalUsage: { color: theme.textMuted, fontSize: 11, fontWeight: '700' },
+    panelList: { gap: 8 },
+    panelCard: { backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 10, gap: 4 },
+    panelTitle: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
+    panelMeta: { color: theme.textSecondary, fontSize: 12, fontWeight: '700' },
+    panelNotes: { color: theme.textSecondary, fontSize: 12, lineHeight: 18 },
+    metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    metricTile: { width: '47%', minHeight: 96, borderRadius: 8, backgroundColor: theme.surfaceMuted, padding: 12, justifyContent: 'space-between' },
+    metricTileSynthetic: { backgroundColor: theme.syntheticBackground, borderColor: theme.syntheticBorder, borderWidth: 1 },
+    metricLabel: { color: theme.textMuted, fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+    metricValue: { color: theme.textPrimary, fontSize: 18, fontWeight: '800' },
+    metricCaption: { color: theme.textMuted, fontSize: 12 },
+    metricCaptionSynthetic: { color: theme.syntheticText, fontWeight: '700' },
+    reportHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'center' },
+    reportSource: { color: theme.textSecondary, fontSize: 13, fontWeight: '700', flex: 1 },
+    reportBadge: { color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 8, overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 6, fontSize: 12, fontWeight: '800' },
+    reportBadgeDemo: { color: theme.syntheticText, backgroundColor: theme.syntheticBackground },
+    scoreGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+    scoreTile: { width: '47%', backgroundColor: theme.scoreTileBackground, borderRadius: 8, padding: 12, minHeight: 88, justifyContent: 'space-between' },
+    scoreLabel: { color: theme.scoreTileLabel, fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+    scoreValue: { color: theme.scoreTileValue, fontSize: 28, fontWeight: '900' },
+    actionRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 12 },
+    actionIndex: { width: 26, height: 26, borderRadius: 13, backgroundColor: theme.accent, color: theme.accentText, textAlign: 'center', lineHeight: 26, fontWeight: '800' },
+    actionText: { flex: 1, color: theme.textPrimary, fontSize: 14, lineHeight: 20, fontWeight: '600' },
+    plannedList: { gap: 10 },
+    plannedCard: { backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 12, gap: 4 },
+    plannedTitle: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
+    plannedSummary: { color: theme.textSecondary, fontSize: 13, lineHeight: 19 },
+    plannedSource: { color: theme.textMuted, fontSize: 11, fontWeight: '700' },
   });
 }
