@@ -29,7 +29,6 @@ import {
 } from './biomarkerProgress';
 import { REAL_LAB_PANELS } from './realBiomarkerPanels';
 import {
-  THEME_LABELS,
   getTheme,
   type Theme,
   type ThemeName,
@@ -47,7 +46,6 @@ type SyncUiState =
   | { kind: 'error'; message: string };
 
 const DATA_MODE_OPTIONS: DataMode[] = ['real', 'demo-filled'];
-const THEME_OPTIONS: ThemeName[] = ['light', 'dark'];
 
 
 export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
@@ -175,8 +173,10 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
               </Pressable>
             </View>
           </View>
-          <Text style={styles.subtitle}>
-            Feature-reduced prototype for training toward the Brisbane Marathon. It connects blood markers, Garmin / Health Connect signals, and training goals into a focused assistant-coach view.
+          <Text style={styles.statusLine}>
+            {healthConnectResult?.status === 'live'
+              ? `Live · ${signalRows.filter((signal) => signal.sourceStatus !== 'Not available').length} signals · ${new Date().toLocaleDateString()}`
+              : 'Blood markers loaded · connect Garmin to score'}
           </Text>
         </View>
 
@@ -316,15 +316,6 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           <Text style={styles.bodyText}>
             Real 2023 and 2025 lab panels. Focus: iron, inflammation, lipids, and metabolic context.
           </Text>
-          <View style={styles.panelList}>
-            {REAL_LAB_PANELS.map((panel) => (
-              <View key={panel.id} style={styles.panelCard}>
-                <Text style={styles.panelTitle}>{panel.name}</Text>
-                <Text style={styles.panelMeta}>{panel.date} · {panel.source}</Text>
-                <Text style={styles.panelNotes}>{panel.notes}</Text>
-              </View>
-            ))}
-          </View>
           <View style={styles.metricGrid}>
             {biomarkerTiles.map((tile) => (
               <BiomarkerTileView
@@ -476,19 +467,50 @@ function ReadinessHero({
 }): React.JSX.Element {
   return (
     <View style={styles.readinessHero}>
-      <View style={styles.readinessMain}>
-        <Text style={styles.readinessEyebrow}>Today’s readiness</Text>
-        <View style={styles.readinessScoreRow}>
+      <View style={styles.readinessArcWrap}>
+        <ProgressArc styles={styles} score={score} />
+        <View style={styles.readinessArcCenter}>
           <Text style={styles.readinessScore}>{score === null ? '--' : score}</Text>
           <Text style={styles.readinessUnit}>/100</Text>
         </View>
+      </View>
+      <View style={styles.readinessMain}>
+        <Text style={styles.readinessEyebrow}>Today’s readiness</Text>
         <Text style={styles.readinessLabel}>{label}</Text>
+        <View style={styles.readinessMetrics}>
+          <HeroMetric styles={styles} label="Activity" value={formatScore(activityScore)} />
+          <HeroMetric styles={styles} label="Recovery" value={formatScore(recoveryScore)} />
+          <HeroMetric styles={styles} label="Data" value={`${completeness}%`} />
+        </View>
       </View>
-      <View style={styles.readinessMetrics}>
-        <HeroMetric styles={styles} label="Activity" value={formatScore(activityScore)} />
-        <HeroMetric styles={styles} label="Recovery" value={formatScore(recoveryScore)} />
-        <HeroMetric styles={styles} label="Data" value={`${completeness}%`} />
-      </View>
+    </View>
+  );
+}
+
+function ProgressArc({
+  styles,
+  score,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  score: number | null;
+}): React.JSX.Element {
+  const normalized = score === null ? 0 : Math.max(0, Math.min(100, score));
+  const rotation = -135 + normalized * 2.7;
+  return (
+    <View style={styles.arcOuter}>
+      <View style={styles.arcTrack} />
+      {score === null ? (
+        <>
+          <View style={[styles.arcDash, styles.arcDashOne]} />
+          <View style={[styles.arcDash, styles.arcDashTwo]} />
+          <View style={[styles.arcDash, styles.arcDashThree]} />
+        </>
+      ) : (
+        <>
+          <View style={styles.arcFillStart} />
+          <View style={[styles.arcFillEnd, { transform: [{ rotate: `${rotation}deg` }] }]} />
+        </>
+      )}
     </View>
   );
 }
@@ -522,19 +544,31 @@ function DataCheckStrip({
   dataMode: DataMode;
 }): React.JSX.Element {
   const hcSynced = healthConnectState.toLowerCase().includes('readable');
+  const hcDemoFilled = !hcSynced && dataMode === 'demo-filled';
   return (
     <View style={styles.dataCheckStrip}>
       <View style={styles.dataCheckItem}>
         <Text style={styles.dataCheckLabel}>Blood markers</Text>
-        <Text style={styles.dataCheckValue}>{labPanelCount > 0 ? 'Loaded' : 'Missing'}</Text>
+        <View style={styles.dataCheckValueRow}>
+          <View style={[styles.dataCheckDot, styles.dataCheckDotPositive]} />
+          <Text style={styles.dataCheckValue}>{labPanelCount > 0 ? 'Loaded' : 'Missing'}</Text>
+        </View>
         <Text style={styles.dataCheckMeta}>{labPanelCount} panel{labPanelCount === 1 ? '' : 's'}</Text>
       </View>
       <View style={styles.dataCheckDivider} />
       <View style={styles.dataCheckItem}>
         <Text style={styles.dataCheckLabel}>Health Connect</Text>
-        <Text style={[styles.dataCheckValue, hcSynced ? styles.dataCheckValuePositive : null]}>
-          {hcSynced ? 'Synced' : dataMode === 'demo-filled' ? 'Demo filled' : 'Missing'}
-        </Text>
+        <View style={styles.dataCheckValueRow}>
+          <View
+            style={[
+              styles.dataCheckDot,
+              hcSynced ? styles.dataCheckDotPositive : hcDemoFilled ? styles.dataCheckDotSynthetic : styles.dataCheckDotMuted,
+            ]}
+          />
+          <Text style={[styles.dataCheckValue, hcSynced ? styles.dataCheckValuePositive : null]}>
+            {hcSynced ? 'Synced' : hcDemoFilled ? 'Demo filled' : 'Missing'}
+          </Text>
+        </View>
         <Text style={styles.dataCheckMeta}>{hcSynced ? 'Live data' : 'Tap sync above'}</Text>
       </View>
     </View>
@@ -556,25 +590,6 @@ function DataModeToggle({ mode, onChange, styles }: { mode: DataMode; onChange: 
         })}
       </View>
       <Text style={styles.toggleHint}>{mode === 'real' ? 'Showing only real values. Missing Garmin / Health Connect fields are not invented.' : 'Showing real values where available; synthetic placeholders fill missing live fields.'}</Text>
-    </View>
-  );
-}
-
-function ThemeToggle({ theme, mode, onChange, styles }: { theme: Theme; mode: ThemeName; onChange: (next: ThemeName) => void; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
-  return (
-    <View style={styles.toggleCard}>
-      <Text style={styles.toggleLabel}>Appearance</Text>
-      <View style={styles.toggleRow}>
-        {THEME_OPTIONS.map((option) => {
-          const active = option === mode;
-          return (
-            <Pressable key={option} onPress={() => onChange(option)} accessibilityRole="button" accessibilityState={{ selected: active }} style={[styles.toggleButton, active ? styles.toggleButtonActive : null]}>
-              <Text style={[styles.toggleButtonText, active ? styles.toggleButtonTextActive : null]}>{THEME_LABELS[option]}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <Text style={styles.toggleHint}>{theme.name === 'dark' ? 'Dark graphite surface with coral accents. Amber stays reserved for synthetic data.' : 'Premium light surface. Synthetic data still highlighted in amber.'}</Text>
     </View>
   );
 }
@@ -615,14 +630,25 @@ function SignalRowCard({
       onPress={onToggle}
       accessibilityRole="button"
       accessibilityState={{ expanded: isExpanded }}
-      style={[styles.signalCard, signal.isSynthetic ? styles.signalCardSynthetic : null]}
+      style={[
+        styles.signalCard,
+        signal.isSynthetic ? styles.signalCardSynthetic : null,
+        missing ? styles.signalCardMissing : null,
+      ]}
     >
       <View style={styles.signalTopRow}>
         <Text style={styles.signalLabel}>{signal.label}</Text>
-        <Text style={[styles.signalPill, signal.isSynthetic ? styles.signalPillSynthetic : null, missing ? styles.signalPillMissing : null]}>{signal.sourceStatus}</Text>
+        {!missing ? (
+          <Text style={[styles.signalPill, signal.isSynthetic ? styles.signalPillSynthetic : null]}>
+            {signal.sourceStatus}
+          </Text>
+        ) : null}
       </View>
-      <Text style={styles.signalValue}>{signal.value}{signal.unit ? ` ${signal.unit}` : ''}</Text>
+      <Text style={[styles.signalValue, missing ? styles.signalValueMissing : null]}>
+        {missing ? '—' : `${signal.value}${signal.unit ? ` ${signal.unit}` : ''}`}
+      </Text>
       <Text style={styles.signalUsage}>{signal.scoreUsage}</Text>
+      {missing ? <Text style={styles.signalMissingCaption}>No data from Health Connect</Text> : null}
       {isExpanded ? (
         <View style={styles.expandedDetails}>
           <DetailRow styles={styles} label="Source" value={signal.source} />
@@ -676,6 +702,7 @@ function BiomarkerTileView({
               <Text style={styles.progressValue}>{progress.value2025}</Text>
             </View>
           </View>
+          <Text style={styles.panelInlineMeta}>{getPanelInlineMeta(tile.caption)}</Text>
           <Text style={styles.metricChange}>{progress.change}</Text>
           <Text style={styles.progressInterpretation}>{progress.interpretation}</Text>
         </View>
@@ -748,6 +775,12 @@ function ScoreTile({ label, score, styles }: { label: string; score: number; sty
   return <View style={styles.scoreTile}><Text style={styles.scoreLabel}>{label}</Text><Text style={styles.scoreValue}>{score > 0 ? score : '--'}</Text></View>;
 }
 
+function getPanelInlineMeta(caption: string): string {
+  const panel = REAL_LAB_PANELS.find((candidate) => caption.includes(candidate.name));
+  if (!panel) return caption;
+  return `${panel.name} · ${panel.date} · ${panel.source}`;
+}
+
 function formatPermissionStatus(status: string): string {
   if (status === 'granted') return 'Granted';
   if (status === 'denied') return 'Needs permission';
@@ -789,7 +822,7 @@ function createStyles(theme: Theme) {
     utilityIconText: { color: theme.textPrimary, fontSize: 18, fontWeight: '700' },
     eyebrow: { color: theme.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1.8, textTransform: 'uppercase' },
     title: { color: theme.textPrimary, fontSize: 34, fontWeight: '800' },
-    subtitle: { color: theme.textSecondary, fontSize: 15, lineHeight: 22 },
+    statusLine: { color: theme.textSecondary, fontSize: 14, lineHeight: 20, fontWeight: '700' },
     profileDrawer: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14, gap: 12 },
     profileDrawerHeader: { flexDirection: 'row', gap: 12, alignItems: 'center' },
     avatarCircle: {
@@ -823,18 +856,61 @@ function createStyles(theme: Theme) {
       borderWidth: 1,
       borderRadius: 18,
       padding: 16,
-      gap: 14,
+      gap: 16,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
     },
-    readinessMain: { flex: 1, gap: 4 },
+    readinessArcWrap: { width: 118, height: 118, justifyContent: 'center', alignItems: 'center' },
+    arcOuter: { width: 110, height: 110, borderRadius: 55, justifyContent: 'center', alignItems: 'center' },
+    arcTrack: {
+      position: 'absolute',
+      width: 102,
+      height: 102,
+      borderRadius: 51,
+      borderWidth: 10,
+      borderColor: theme.borderSubtle,
+    },
+    arcFillStart: {
+      position: 'absolute',
+      top: 8,
+      width: 14,
+      height: 14,
+      borderRadius: 7,
+      backgroundColor: theme.accent,
+    },
+    arcFillEnd: {
+      position: 'absolute',
+      width: 102,
+      height: 102,
+      borderRadius: 51,
+      borderTopColor: theme.accent,
+      borderTopWidth: 10,
+      borderRightColor: 'transparent',
+      borderRightWidth: 10,
+      borderBottomColor: 'transparent',
+      borderBottomWidth: 10,
+      borderLeftColor: 'transparent',
+      borderLeftWidth: 10,
+    },
+    arcDash: {
+      position: 'absolute',
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      backgroundColor: theme.textMuted,
+      opacity: 0.55,
+    },
+    arcDashOne: { top: 6 },
+    arcDashTwo: { right: 14, top: 34 },
+    arcDashThree: { left: 14, bottom: 34 },
+    readinessArcCenter: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
+    readinessMain: { flex: 1, gap: 8 },
     readinessEyebrow: { color: theme.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.3, textTransform: 'uppercase' },
     readinessScoreRow: { flexDirection: 'row', alignItems: 'flex-end' },
-    readinessScore: { color: theme.accent, fontSize: 54, lineHeight: 58, fontWeight: '800' },
-    readinessUnit: { color: theme.textMuted, fontSize: 14, fontWeight: '800', marginBottom: 9 },
-    readinessLabel: { color: theme.textSecondary, fontSize: 13, lineHeight: 18, fontWeight: '700' },
-    readinessMetrics: { gap: 8, minWidth: 108 },
+    readinessScore: { color: theme.accent, fontSize: 34, lineHeight: 36, fontWeight: '800' },
+    readinessUnit: { color: theme.textMuted, fontSize: 10, fontWeight: '800' },
+    readinessLabel: { color: theme.textSecondary, fontSize: 14, lineHeight: 19, fontWeight: '800' },
+    readinessMetrics: { gap: 8 },
     heroMetric: { borderLeftColor: theme.accent, borderLeftWidth: 2, paddingLeft: 10, gap: 2 },
     heroMetricLabel: { color: theme.textMuted, fontSize: 10, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
     heroMetricValue: { color: theme.textPrimary, fontSize: 15, fontWeight: '900' },
@@ -851,6 +927,11 @@ function createStyles(theme: Theme) {
     dataCheckItem: { flex: 1, gap: 2 },
     dataCheckDivider: { width: 1, alignSelf: 'stretch', backgroundColor: theme.borderSubtle },
     dataCheckLabel: { color: theme.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.1, textTransform: 'uppercase' },
+    dataCheckValueRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+    dataCheckDot: { width: 8, height: 8, borderRadius: 4 },
+    dataCheckDotPositive: { backgroundColor: theme.positiveText },
+    dataCheckDotSynthetic: { backgroundColor: theme.syntheticText },
+    dataCheckDotMuted: { backgroundColor: theme.textMuted },
     dataCheckValue: { color: theme.textPrimary, fontSize: 16, fontWeight: '900' },
     dataCheckValuePositive: { color: theme.positiveText },
     dataCheckMeta: { color: theme.textMuted, fontSize: 12, fontWeight: '700' },
@@ -921,6 +1002,7 @@ function createStyles(theme: Theme) {
     metricCaptionSynthetic: { color: theme.syntheticText, fontWeight: '700' },
     metricExpanded: { borderTopColor: theme.borderSubtle, borderTopWidth: 1, paddingTop: 10, gap: 8 },
     metricChange: { color: theme.accentSubtleText, fontSize: 12, lineHeight: 18, fontWeight: '800' },
+    panelInlineMeta: { color: theme.textMuted, fontSize: 11, lineHeight: 16, fontWeight: '700' },
     progressBlock: { gap: 10, marginTop: 4 },
     progressTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800' },
     progressCard: { backgroundColor: theme.surfaceElevated, borderColor: theme.borderSubtle, borderWidth: 1, borderRadius: 10, padding: 12, gap: 8 },
