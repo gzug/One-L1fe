@@ -287,7 +287,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
         </Section>
 
-        <Section title="6. Readiness Summary" styles={styles}>
+        <Section title="6. Training Readiness" styles={styles}>
           <View style={styles.reportHeader}>
             <Text style={styles.reportSource}>{report.sourceLabel}</Text>
             <Text style={[styles.reportBadge, dataMode === 'demo-filled' ? styles.reportBadgeDemo : null]}>
@@ -300,18 +300,16 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
             </Text>
           ) : null}
           <View style={styles.scoreGrid}>
-            <ScoreTile styles={styles} label="Exercise" score={report.exerciseScore} />
-            <ScoreTile styles={styles} label="Sleep" score={report.sleepScore} />
-            <ScoreTile styles={styles} label="Nutrition" score={report.nutritionScore} />
-            <ScoreTile styles={styles} label="Emotional" score={report.emotionalHealthScore} />
+            <ScoreTile styles={styles} label="Activity" score={report.exerciseScore} />
+            <ScoreTile styles={styles} label="Recovery" score={report.sleepScore} />
           </View>
           <Text style={styles.captionText}>
-            Exercise and Sleep are wearable-derived. Nutrition and Emotional are supporting context only and never override measured signals.
+            Activity uses steps, distance, and active energy. Recovery uses sleep duration, HRV, and resting heart rate. Nutrition and emotional self-reports are excluded from V1 Marathon scoring.
           </Text>
           <StatusRow styles={styles} label="Data completeness" value={`${report.dataCompleteness}%`} />
           <StatusRow styles={styles} label="Garmin connection" value={report.garminConnectionState} />
           <StatusRow styles={styles} label="Real lab panels" value={`${report.realLabPanelCount} loaded`} />
-          <StatusRow styles={styles} label="Weakest pillar" value={report.weakestPillar} />
+          <StatusRow styles={styles} label="Weakest measured area" value={report.weakestPillar} />
           <StatusRow styles={styles} label="Biggest opportunity" value={report.biggestOpportunity} />
           <StatusRow styles={styles} label="Long-term risk" value={report.longTermRisk} />
           <StatusRow styles={styles} label="Bottleneck" value={report.bottleneck} />
@@ -348,7 +346,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
         <View style={styles.noticeCard}>
           <Text style={styles.noticeTitle}>Not medical advice</Text>
           <Text style={styles.noticeText}>
-            One L1fe — V1 Marathon is a data organization and training-context demo. It does not provide diagnosis, treatment, or emergency guidance.
+            One L1fe is a data organization and marathon training-context demo. It does not provide diagnosis, treatment, or emergency guidance.
           </Text>
         </View>
       </ScrollView>

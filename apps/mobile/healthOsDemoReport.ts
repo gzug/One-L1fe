@@ -41,8 +41,10 @@ export function buildHealthOsDemoReport(params: {
 
   const exerciseScore = summary ? scoreExercise(summary) : 0;
   const sleepScore = summary ? scoreSleep(summary) : 0;
-  const nutritionScore = isDemoFilled ? 64 : 0;
-  const emotionalHealthScore = isDemoFilled ? 71 : 0;
+  // Nutrition and emotional self-reports are intentionally excluded from V1 Marathon scoring.
+  // This prototype uses measured wearable signals + real lab context only.
+  const nutritionScore = 0;
+  const emotionalHealthScore = 0;
 
   const realMarkers = getAllLatestRealMarkers();
   const realLabPanelCount = countDistinctRealPanels(realMarkers);
@@ -55,10 +57,8 @@ export function buildHealthOsDemoReport(params: {
   });
 
   const pillarScores = [
-    { pillar: 'Exercise', score: exerciseScore },
-    { pillar: 'Sleep', score: sleepScore },
-    { pillar: 'Nutrition', score: nutritionScore },
-    { pillar: 'Emotional Health', score: emotionalHealthScore },
+    { pillar: 'Activity', score: exerciseScore },
+    { pillar: 'Recovery', score: sleepScore },
   ].filter((entry) => entry.score > 0);
 
   const weakestPillar = pillarScores.length > 0
@@ -141,10 +141,8 @@ function calculateCompleteness(params: {
 
   const wearableContribution = liveWearableFields + (params.isDemoFilled ? syntheticWearableFields : 0);
   const labContribution = Math.min(params.realMarkerCount, 8);
-  const lifestyleContribution = params.isDemoFilled ? 2 : 0;
-
-  const denominator = wearableSlots.length + 8 + 2;
-  return Math.round(((wearableContribution + labContribution + lifestyleContribution) / denominator) * 100);
+  const denominator = wearableSlots.length + 8;
+  return Math.round(((wearableContribution + labContribution) / denominator) * 100);
 }
 
 function getGarminConnectionState(
@@ -180,10 +178,8 @@ function getBiggestOpportunity(
   if (!hasLiveHealthConnect && dataMode === 'real') {
     return 'Connect Garmin through Health Connect. Real lab values are already available from Apr 2025 + Oct 2023 panels.';
   }
-  if (weakestPillar === 'Sleep') return 'Improve sleep regularity and recovery visibility.';
-  if (weakestPillar === 'Exercise') return 'Increase consistent movement days before adding intensity.';
-  if (weakestPillar === 'Nutrition') return 'Add a lightweight food pattern check-in.';
-  if (weakestPillar === 'Emotional Health') return 'Add a short weekly check-in to connect stress and sleep context.';
+  if (weakestPillar === 'Recovery') return 'Improve sleep regularity and recovery visibility.';
+  if (weakestPillar === 'Activity') return 'Increase consistent movement days before adding intensity.';
   return 'Add the missing source with the lowest effort.';
 }
 
@@ -216,25 +212,15 @@ function chooseActions(params: {
   }
 
   const actionsByPillar: Record<string, string[]> = {
-    Exercise: [
+    Activity: [
       'Target one more 20-minute easy walk this week.',
-      'Keep intensity low until sleep trend is stable.',
-      'Review steps and distance again after 7 days.',
+      'Keep intensity low until recovery trend is stable.',
+      'Review steps, distance, and active energy again after 7 days.',
     ],
-    Sleep: [
+    Recovery: [
       'Protect a consistent sleep window for the next 3 nights.',
-      'Keep late caffeine and alcohol context visible in the weekly check-in.',
+      'Keep intensity conservative until HRV and resting heart rate are visible.',
       'Re-check HRV and resting heart rate after the next Garmin sync.',
-    ],
-    Nutrition: [
-      'Log two typical meals as pattern context, not calorie diagnosis.',
-      'Compare protein and fiber consistency across the week.',
-      'Use blood panel context before making major changes.',
-    ],
-    'Emotional Health': [
-      'Complete one short stress and energy check-in.',
-      'Pair high-stress days with sleep and HRV context.',
-      'Pick one recovery block before the next report.',
     ],
   };
 
