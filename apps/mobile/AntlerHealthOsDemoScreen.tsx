@@ -56,9 +56,15 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
   const [themeName, setThemeName] = useState<ThemeName>('dark');
   const [syncState, setSyncState] = useState<SyncUiState>({ kind: 'idle' });
   const [expandedSignals, setExpandedSignals] = useState<Set<string>>(new Set());
-  const [expandedProgressRows, setExpandedProgressRows] = useState<Set<string>>(new Set());
+  const [expandedBiomarkers, setExpandedBiomarkers] = useState<Set<string>>(new Set());
   const [notesText, setNotesText] = useState('');
   const [notesFeedback, setNotesFeedback] = useState<string | null>(null);
+  const [profileExpanded, setProfileExpanded] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    sex: 'Male',
+    heightCm: '',
+    weightKg: '',
+  });
 
   const theme = useMemo(() => getTheme(themeName), [themeName]);
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -74,6 +80,10 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     [healthConnectResult, dataMode],
   );
   const biomarkerProgressRows = useMemo(() => buildBiomarkerProgressRows(), []);
+  const progressByMarker = useMemo(
+    () => new Map(biomarkerProgressRows.map((row) => [row.marker, row])),
+    [biomarkerProgressRows],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -96,8 +106,8 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     });
   };
 
-  const toggleProgressCard = (key: string): void => {
-    setExpandedProgressRows((current) => {
+  const toggleBiomarkerCard = (key: string): void => {
+    setExpandedBiomarkers((current) => {
       const next = new Set(current);
       if (next.has(key)) next.delete(key);
       else next.add(key);
@@ -142,6 +152,14 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
             Feature-reduced prototype for training toward the Brisbane Marathon. It connects blood markers, Garmin / Health Connect signals, and training goals into a focused assistant-coach view.
           </Text>
         </View>
+
+        <ProfileQuickCard
+          styles={styles}
+          expanded={profileExpanded}
+          profile={profileForm}
+          onToggle={() => setProfileExpanded((current) => !current)}
+          onChange={(key, value) => setProfileForm((current) => ({ ...current, [key]: value }))}
+        />
 
         <View style={styles.toggleRowGroup}>
           <DataModeToggle mode={dataMode} onChange={setDataMode} styles={styles} />
@@ -267,24 +285,19 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
           <View style={styles.metricGrid}>
             {biomarkerTiles.map((tile) => (
-              <BiomarkerTileView key={tile.marker} styles={styles} tile={tile} />
-            ))}
-          </View>
-          <View style={styles.progressBlock}>
-            <Text style={styles.progressTitle}>Blood Marker Progress</Text>
-            <Text style={styles.captionText}>
-              Tap a marker to see interpretation and conversion notes.
-            </Text>
-            {biomarkerProgressRows.map((row) => (
-              <BiomarkerProgressCard
-                key={row.marker}
-                row={row}
+              <BiomarkerTileView
+                key={tile.marker}
                 styles={styles}
-                isExpanded={expandedProgressRows.has(row.marker)}
-                onToggle={() => toggleProgressCard(row.marker)}
+                tile={tile}
+                progress={progressByMarker.get(tile.marker) ?? null}
+                isExpanded={expandedBiomarkers.has(tile.marker)}
+                onToggle={() => toggleBiomarkerCard(tile.marker)}
               />
             ))}
           </View>
+          <Text style={styles.captionText}>
+            Tap a marker to compare 2023 and 2025 values, where a safe comparison exists.
+          </Text>
         </Section>
 
         <Section title="6. Training Readiness" styles={styles}>
@@ -351,6 +364,59 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ProfileQuickCard({
+  styles,
+  expanded,
+  profile,
+  onToggle,
+  onChange,
+}: {
+  styles: ReturnType<typeof createStyles>;
+  expanded: boolean;
+  profile: { sex: string; heightCm: string; weightKg: string };
+  onToggle: () => void;
+  onChange: (key: 'sex' | 'heightCm' | 'weightKg', value: string) => void;
+}): React.JSX.Element {
+  return (
+    <Pressable onPress={onToggle} style={styles.profileCard} accessibilityRole="button" accessibilityState={{ expanded }}>
+      <View style={styles.profileHeader}>
+        <View>
+          <Text style={styles.profileEyebrow}>Profile</Text>
+          <Text style={styles.profileTitle}>
+            {profile.sex || 'Profile'}{profile.heightCm ? ` · ${profile.heightCm} cm` : ''}{profile.weightKg ? ` · ${profile.weightKg} kg` : ''}
+          </Text>
+        </View>
+        <Text style={styles.profileButtonText}>{expanded ? 'Hide' : 'Edit'}</Text>
+      </View>
+      {expanded ? (
+        <View style={styles.profileFields}>
+          <TextInput
+            value={profile.sex}
+            onChangeText={(value) => onChange('sex', value)}
+            placeholder="Sex"
+            style={styles.profileInput}
+          />
+          <TextInput
+            value={profile.heightCm}
+            onChangeText={(value) => onChange('heightCm', value)}
+            placeholder="Height cm"
+            keyboardType="numeric"
+            style={styles.profileInput}
+          />
+          <TextInput
+            value={profile.weightKg}
+            onChangeText={(value) => onChange('weightKg', value)}
+            placeholder="Weight kg"
+            keyboardType="numeric"
+            style={styles.profileInput}
+          />
+          <Text style={styles.captionText}>Local draft only. Profile values are not used in scoring yet.</Text>
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -452,18 +518,16 @@ function StatusRow({ label, value, styles }: { label: string; value: string; sty
   return <View style={styles.statusRow}><Text style={styles.statusLabel}>{label}</Text><Text style={styles.statusValue}>{value}</Text></View>;
 }
 
-function BiomarkerTileView({ tile, styles }: { tile: BiomarkerTile; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
-  return <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}><Text style={styles.metricLabel}>{tile.label}</Text><Text style={styles.metricValue}>{tile.valueText}</Text><Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>{tile.caption}</Text></View>;
-}
-
-function BiomarkerProgressCard({
-  row,
+function BiomarkerTileView({
+  tile,
   styles,
+  progress,
   isExpanded,
   onToggle,
 }: {
-  row: BiomarkerProgressRow;
+  tile: BiomarkerTile;
   styles: ReturnType<typeof createStyles>;
+  progress: BiomarkerProgressRow | null;
   isExpanded: boolean;
   onToggle: () => void;
 }): React.JSX.Element {
@@ -472,25 +536,30 @@ function BiomarkerProgressCard({
       onPress={onToggle}
       accessibilityRole="button"
       accessibilityState={{ expanded: isExpanded }}
-      style={styles.progressCard}
+      style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}
     >
-      <View style={styles.progressHeader}>
-        <Text style={styles.progressMarker}>{row.label}</Text>
-        <Text style={styles.progressStatus}>{row.status}</Text>
-      </View>
-      <View style={styles.progressValueRow}>
-        <View style={styles.progressValueBox}>
-          <Text style={styles.progressYear}>2023</Text>
-          <Text style={styles.progressValue}>{row.value2023}</Text>
+      <Text style={styles.metricLabel}>{tile.label}</Text>
+      <Text style={styles.metricValue}>{tile.valueText}</Text>
+      <Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>
+        {tile.caption}
+      </Text>
+      {isExpanded && progress ? (
+        <View style={styles.metricExpanded}>
+          <View style={styles.progressValueRow}>
+            <View style={styles.progressValueBox}>
+              <Text style={styles.progressYear}>2023</Text>
+              <Text style={styles.progressValue}>{progress.value2023}</Text>
+            </View>
+            <View style={styles.progressValueBox}>
+              <Text style={styles.progressYear}>2025</Text>
+              <Text style={styles.progressValue}>{progress.value2025}</Text>
+            </View>
+          </View>
+          <Text style={styles.metricChange}>{progress.change}</Text>
+          <Text style={styles.progressInterpretation}>{progress.interpretation}</Text>
         </View>
-        <View style={styles.progressValueBox}>
-          <Text style={styles.progressYear}>2025</Text>
-          <Text style={styles.progressValue}>{row.value2025}</Text>
-        </View>
-      </View>
-      <Text style={styles.progressChange}>{row.change}</Text>
-      {isExpanded ? <Text style={styles.progressInterpretation}>{row.interpretation}</Text> : null}
-      <Text style={styles.expandHint}>{isExpanded ? 'Hide details' : 'Show details'}</Text>
+      ) : null}
+      <Text style={styles.expandHint}>{isExpanded ? 'Hide details' : 'Show comparison'}</Text>
     </Pressable>
   );
 }
@@ -574,6 +643,13 @@ function createStyles(theme: Theme) {
     eyebrow: { color: theme.accent, fontSize: 12, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
     title: { color: theme.textPrimary, fontSize: 32, fontWeight: '800' },
     subtitle: { color: theme.textSecondary, fontSize: 15, lineHeight: 22 },
+    profileCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 12, padding: 14, gap: 10 },
+    profileHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+    profileEyebrow: { color: theme.accent, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+    profileTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800', marginTop: 2 },
+    profileButtonText: { color: theme.accentSubtleText, fontSize: 12, fontWeight: '800' },
+    profileFields: { gap: 8 },
+    profileInput: { minHeight: 44, borderRadius: 8, borderColor: theme.border, borderWidth: 1, backgroundColor: theme.surfaceMuted, color: theme.textPrimary, paddingHorizontal: 12, fontSize: 14 },
     toggleRowGroup: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
     toggleCard: { backgroundColor: theme.surface, borderColor: theme.border, borderWidth: 1, borderRadius: 10, padding: 14, gap: 10, flexGrow: 1, flexBasis: '47%', minWidth: 220 },
     toggleLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
@@ -632,7 +708,7 @@ function createStyles(theme: Theme) {
     signalLabel: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase' },
     signalValue: { color: theme.textPrimary, fontSize: 22, fontWeight: '900' },
     signalMeta: { color: theme.textSecondary, fontSize: 12, lineHeight: 17 },
-    signalPill: { alignSelf: 'flex-start', color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
+    signalPill: { alignSelf: 'flex-start', color: theme.positiveText, backgroundColor: theme.positiveBackground, borderColor: theme.positiveBorder, borderWidth: 1, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
     signalPillSynthetic: { color: theme.syntheticText, backgroundColor: theme.syntheticBackground },
     signalPillMissing: { color: theme.textMuted, backgroundColor: theme.surface },
     signalUsage: { color: theme.textMuted, fontSize: 11, fontWeight: '700' },
@@ -642,18 +718,20 @@ function createStyles(theme: Theme) {
     panelMeta: { color: theme.textSecondary, fontSize: 12, fontWeight: '700' },
     panelNotes: { color: theme.textSecondary, fontSize: 12, lineHeight: 18 },
     metricGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-    metricTile: { width: '47%', minHeight: 96, borderRadius: 8, backgroundColor: theme.surfaceMuted, padding: 12, justifyContent: 'space-between' },
+    metricTile: { width: '47%', minHeight: 112, borderRadius: 10, backgroundColor: theme.surfaceMuted, borderColor: theme.borderSubtle, borderWidth: 1, padding: 12, gap: 8 },
     metricTileSynthetic: { backgroundColor: theme.syntheticBackground, borderColor: theme.syntheticBorder, borderWidth: 1 },
     metricLabel: { color: theme.textMuted, fontSize: 12, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
     metricValue: { color: theme.textPrimary, fontSize: 18, fontWeight: '800' },
     metricCaption: { color: theme.textMuted, fontSize: 12 },
     metricCaptionSynthetic: { color: theme.syntheticText, fontWeight: '700' },
+    metricExpanded: { borderTopColor: theme.borderSubtle, borderTopWidth: 1, paddingTop: 10, gap: 8 },
+    metricChange: { color: theme.accentSubtleText, fontSize: 12, lineHeight: 18, fontWeight: '800' },
     progressBlock: { gap: 10, marginTop: 4 },
     progressTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800' },
     progressCard: { backgroundColor: theme.surfaceElevated, borderColor: theme.borderSubtle, borderWidth: 1, borderRadius: 10, padding: 12, gap: 8 },
     progressHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'center' },
     progressMarker: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
-    progressStatus: { color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
+    progressStatus: { color: theme.positiveText, backgroundColor: theme.positiveBackground, borderColor: theme.positiveBorder, borderWidth: 1, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
     progressValueRow: { flexDirection: 'row', gap: 10 },
     progressValueBox: { flex: 1, backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 10, gap: 4 },
     progressYear: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
