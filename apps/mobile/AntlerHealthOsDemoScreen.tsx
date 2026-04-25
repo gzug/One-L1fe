@@ -22,6 +22,10 @@ import {
   buildHealthConnectSignalRows,
   type HealthConnectSignalRow,
 } from './healthConnectSignalRows';
+import {
+  buildBiomarkerProgressRows,
+  type BiomarkerProgressRow,
+} from './biomarkerProgress';
 import { REAL_LAB_PANELS } from './realBiomarkerPanels';
 import {
   THEME_LABELS,
@@ -97,6 +101,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
     () => buildHealthConnectSignalRows(healthConnectResult, dataMode),
     [healthConnectResult, dataMode],
   );
+  const biomarkerProgressRows = useMemo(() => buildBiomarkerProgressRows(), []);
 
   const handleReadHealthConnect = async (): Promise<void> => {
     setSyncState({ kind: 'reading' });
@@ -230,6 +235,15 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           <View style={styles.metricGrid}>
             {biomarkerTiles.map((tile) => (
               <BiomarkerTileView key={tile.marker} styles={styles} tile={tile} />
+            ))}
+          </View>
+          <View style={styles.progressBlock}>
+            <Text style={styles.progressTitle}>Blood Marker Progress</Text>
+            <Text style={styles.captionText}>
+              2023 to 2025 comparison. Values are compared only when the prototype has an explicit safe conversion or equivalence rule.
+            </Text>
+            {biomarkerProgressRows.map((row) => (
+              <BiomarkerProgressCard key={row.marker} row={row} styles={styles} />
             ))}
           </View>
         </Section>
@@ -382,6 +396,29 @@ function BiomarkerTileView({ tile, styles }: { tile: BiomarkerTile; styles: Retu
   return <View style={[styles.metricTile, tile.isSynthetic ? styles.metricTileSynthetic : null]}><Text style={styles.metricLabel}>{tile.label}</Text><Text style={styles.metricValue}>{tile.valueText}</Text><Text style={[styles.metricCaption, tile.isSynthetic ? styles.metricCaptionSynthetic : null]}>{tile.caption}</Text></View>;
 }
 
+function BiomarkerProgressCard({ row, styles }: { row: BiomarkerProgressRow; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
+  return (
+    <View style={styles.progressCard}>
+      <View style={styles.progressHeader}>
+        <Text style={styles.progressMarker}>{row.label}</Text>
+        <Text style={styles.progressStatus}>{row.status}</Text>
+      </View>
+      <View style={styles.progressValueRow}>
+        <View style={styles.progressValueBox}>
+          <Text style={styles.progressYear}>2023</Text>
+          <Text style={styles.progressValue}>{row.value2023}</Text>
+        </View>
+        <View style={styles.progressValueBox}>
+          <Text style={styles.progressYear}>2025</Text>
+          <Text style={styles.progressValue}>{row.value2025}</Text>
+        </View>
+      </View>
+      <Text style={styles.progressChange}>{row.change}</Text>
+      <Text style={styles.progressInterpretation}>{row.interpretation}</Text>
+    </View>
+  );
+}
+
 function ScoreTile({ label, score, styles }: { label: string; score: number; styles: ReturnType<typeof createStyles>; }): React.JSX.Element {
   return <View style={styles.scoreTile}><Text style={styles.scoreLabel}>{label}</Text><Text style={styles.scoreValue}>{score > 0 ? score : '--'}</Text></View>;
 }
@@ -450,6 +487,18 @@ function createStyles(theme: Theme) {
     metricValue: { color: theme.textPrimary, fontSize: 18, fontWeight: '800' },
     metricCaption: { color: theme.textMuted, fontSize: 12 },
     metricCaptionSynthetic: { color: theme.syntheticText, fontWeight: '700' },
+    progressBlock: { gap: 10, marginTop: 4 },
+    progressTitle: { color: theme.textPrimary, fontSize: 16, fontWeight: '800' },
+    progressCard: { backgroundColor: theme.surfaceElevated, borderColor: theme.borderSubtle, borderWidth: 1, borderRadius: 10, padding: 12, gap: 8 },
+    progressHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'center' },
+    progressMarker: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
+    progressStatus: { color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 999, overflow: 'hidden', paddingHorizontal: 8, paddingVertical: 4, fontSize: 10, fontWeight: '800' },
+    progressValueRow: { flexDirection: 'row', gap: 10 },
+    progressValueBox: { flex: 1, backgroundColor: theme.surfaceMuted, borderRadius: 8, padding: 10, gap: 4 },
+    progressYear: { color: theme.textMuted, fontSize: 11, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
+    progressValue: { color: theme.textPrimary, fontSize: 14, fontWeight: '800' },
+    progressChange: { color: theme.accentSubtleText, fontSize: 13, fontWeight: '800' },
+    progressInterpretation: { color: theme.textSecondary, fontSize: 12, lineHeight: 18 },
     reportHeader: { flexDirection: 'row', justifyContent: 'space-between', gap: 10, alignItems: 'center' },
     reportSource: { color: theme.textSecondary, fontSize: 13, fontWeight: '700', flex: 1 },
     reportBadge: { color: theme.accentSubtleText, backgroundColor: theme.accentSubtle, borderRadius: 8, overflow: 'hidden', paddingHorizontal: 10, paddingVertical: 6, fontSize: 12, fontWeight: '800' },
