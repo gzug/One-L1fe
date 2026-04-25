@@ -12,7 +12,8 @@ import { useWearableSource } from './useWearableSource';
 import { useWearableSync } from './useWearableSync';
 import { useComputeDailySummaries } from './useComputeDailySummaries';
 import { useDailyTrends } from './useDailyTrends';
-import { createGarminProvisioningRequest } from './wearableSourceProvisioning';
+import { readGarminHealthConnectData } from './healthConnectGarminReader';
+import { createGarminHealthConnectProvisioningRequest } from './wearableSourceProvisioning';
 
 type SyncStatus =
   | { kind: 'idle' }
@@ -46,38 +47,37 @@ export default function WearableSyncScreen() {
     setSyncStatus({ kind: 'running' });
 
     try {
-      const provisioningRequest = createGarminProvisioningRequest({
+      const provisioningRequest = createGarminHealthConnectProvisioningRequest({
         app_install_id: appInstallId,
       });
 
-      await wearableSource.provision(provisioningRequest);
+      const sourceResponse = await wearableSource.provision(provisioningRequest);
+      const healthConnectResult = await readGarminHealthConnectData({
+        wearableSourceId: sourceResponse.wearable_source_id,
+        lookbackDays: 14,
+      });
 
-      // submitSync needs a WearableSyncRequest — for now, pass a minimal
-      // placeholder.  The real shape depends on the wearableSyncClient contract.
-      const syncResult = await wearableSync.submitSync({
-        wearable_source_id: wearableSource.state.status === 'ready'
-          ? wearableSource.state.wearableSourceId
-          : appInstallId,
-      } as any);
-
-      // submitCompute needs a ComputeDailySummariesParams payload.
-      if (wearableSource.state.status === 'ready') {
-        await computeDailySummaries.submitCompute({
-          wearable_source_id: wearableSource.state.wearableSourceId,
-          date_from: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10),
-        });
-        await dailyTrends.fetchTrends(wearableSource.state.wearableSourceId);
+      if (!healthConnectResult.request) {
+        throw new Error(
+          `${healthConnectResult.message} Open Garmin Connect, confirm Health Connect sharing, then run sync again.`,
+        );
       }
 
-      const recordsInserted =
-        syncResult && typeof syncResult === 'object' && 'records_inserted' in syncResult
-          ? Number(syncResult.records_inserted)
-          : 0;
+      const syncResult = await wearableSync.submitSync(healthConnectResult.request);
+
+      // submitCompute needs a ComputeDailySummariesParams payload.
+      if (sourceResponse.wearable_source_id) {
+        await computeDailySummaries.submitCompute({
+          wearable_source_id: sourceResponse.wearable_source_id,
+          date_from: new Date(Date.now() - 7 * 86_400_000).toISOString().slice(0, 10),
+        });
+        await dailyTrends.fetchTrends(sourceResponse.wearable_source_id);
+      }
 
       setSyncStatus({
         kind: 'success',
         syncedAt: new Date().toLocaleTimeString(),
-        recordsInserted,
+        recordsInserted: syncResult.records_inserted,
       });
     } catch (e) {
       setSyncStatus({

@@ -41,7 +41,7 @@ export default function HealthConnectPermissionGate({
       <View style={styles.center}>
         <Text style={styles.title}>Health data access needed</Text>
         <Text style={styles.subtitle}>
-          Grant access to Steps, Heart Rate, Calories, Distance and Sleep to enable Garmin sync.
+          Grant access to Steps, Sleep, Heart Rate, Resting Heart Rate, HRV, Calories and Distance to enable Garmin-over-Health-Connect sync.
         </Text>
         <Pressable onPress={request} style={styles.button}>
           <Text style={styles.buttonText}>Grant access</Text>

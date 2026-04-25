@@ -13,56 +13,51 @@ Garmin Watch
     │  Bluetooth sync
     ▼
 Garmin Connect App (Android/iOS)
-    │  Terra Webhook (OAuth)
+    │  Health Connect sharing
     ▼
-Terra API  ─────────────────────────────────────────────────────────────┐
-    │  POST /webhooks/terra → Supabase Edge Function                    │
-    ▼                                                                    │
-wearables-sync (Edge Function)                                          │
-    │  upsert observations                                              │
-    ▼                                                                    │
-wearable_observations (Supabase table)                                  │
-    │  foreign key → wearable_sync_runs                                 │
-    ▼                                                                    │
-Health Connect (Android, on-device)  ──── direct path (native) ─────────┘
+Health Connect (Android, on-device)
     │  react-native-health-connect reads Steps/HR/Sleep/etc.
     ▼
-useWearableSync → submitWearableSync() → wearables-sync
+healthConnectGarminReader → normalized observations → reduced Health OS report
+    │
+    └── optional signed-in submit: useWearableSync → wearables-sync
 ```
 
 ---
 
-## Two Ingestion Paths
+## Ingestion Paths
 
-### Path A — Terra API (Garmin Connect webhook)
-
-| Step | Component | Notes |
-|------|-----------|-------|
-| 1 | User pairs Garmin in-app via Terra OAuth | `TECH-DEBT: hardware-verification` — requires real device + Garmin Connect login |
-| 2 | Garmin Connect uploads to Terra servers | Automatic once paired |
-| 3 | Terra fires webhook to Supabase Edge Function | Endpoint: `wearables-sync` |
-| 4 | Edge function upserts rows in `wearable_observations` | Idempotent via `source_record_id` |
-| 5 | `wearable_sync_runs` row written with `status = completed` | |
-
-### Path B — Health Connect (Android, on-device, direct)
+### Path A — Android Health Connect, primary for Antler demo
 
 | Step | Component | Notes |
 |------|-----------|-------|
-| 1 | User grants permissions via `HealthConnectPermissionGate` | Tested without device via `wearablePermissions.assertions.ts` |
-| 2 | `wearablePermissions.ts` → `getGrantedPermissions()` | `TECH-DEBT: hardware-verification` — `hc.initialize()` requires HC installed on device |
-| 3 | `useWearableSync.ts` collects observations from HC | Reads Steps, HeartRate, SleepSession, ActiveCaloriesBurned, Distance |
-| 4 | `submitWearableSync()` POSTs to `wearables-sync` edge function | Tested via `evidenceIngestMock.assertions.ts` |
-| 5 | Edge function upserts `wearable_observations` | Same as Path A |
+| 1 | User pairs Garmin watch in Garmin Connect | Garmin Connect must be syncing on the Android phone |
+| 2 | Garmin Connect shares into Android Health Connect | Enabled in Garmin Connect / Health Connect settings |
+| 3 | One L1fe requests Health Connect permissions | `Steps`, `SleepSession`, `HeartRate`, `RestingHeartRate`, `HeartRateVariabilityRmssd`, `ActiveCaloriesBurned`, `Distance` |
+| 4 | `healthConnectGarminReader.ts` reads Health Connect records | Live claim only when records are returned |
+| 5 | Reader normalizes observations | `steps_total`, `sleep_duration`, `sleep_session`, `resting_heart_rate`, `hrv`, `active_energy_burned`, `distance_total`; `heart_rate` is retained as supporting context |
+| 6 | Demo report renders local Health OS output | Manual fallback is explicitly labelled when no live records are readable |
+
+### Path B — Signed-in backend submit, optional outside reduced demo
+
+| Step | Component | Notes |
+|------|-----------|-------|
+| 1 | User signs in | Reduced Antler demo does not require this path |
+| 2 | `WearableSyncScreen` provisions `source_kind = health_connect`, `vendor_name = garmin` | No Terra OAuth and no direct Garmin API |
+| 3 | `healthConnectGarminReader.ts` builds a non-empty `WearableSyncRequest` | No placeholder `as any` request |
+| 4 | `submitWearableSync()` POSTs to `wearables-sync` | Backend rejects empty observations; app does not submit if Health Connect returns none |
+| 5 | Edge function upserts observations | Idempotent by native Health Connect record id |
 
 ---
 
 ## Key Types
 
 ```
-WearableObservationInput     → apps/mobile/wearableSyncClient.ts
-WearableSyncRequest          → apps/mobile/wearableSyncClient.ts
-WearablePermissionsAdapter   → apps/mobile/wearablePermissions.ts
-ResolveWearableSourceRequest → apps/mobile/wearableSourceProvisioning.ts
+WearableObservationInput       → apps/mobile/wearableSyncClient.ts
+WearableSyncRequest            → apps/mobile/wearableSyncClient.ts
+HealthConnectGarminReadResult  → apps/mobile/healthConnectGarminReader.ts
+WearablePermissionsAdapter     → apps/mobile/wearablePermissions.ts
+ResolveWearableSourceRequest   → apps/mobile/wearableSourceProvisioning.ts
 ```
 
 ---
@@ -72,8 +67,8 @@ ResolveWearableSourceRequest → apps/mobile/wearableSourceProvisioning.ts
 | ID | Location | Description | Unblock condition |
 |----|----------|-------------|-------------------|
 | `WEARABLE-TD-001` | `wearablePermissions.ts → createAndroidAdapter()` | `hc.initialize()` + `hc.getGrantedPermissions()` are not testable without Health Connect installed | Run on physical Android with HC |
-| `WEARABLE-TD-002` | Terra webhook config | Terra OAuth pairing + webhook delivery unverified | Garmin device + Terra dashboard access |
-| `WEARABLE-TD-003` | `useWearableSync.ts` | Actual HC record reads (`hc.readRecords()`) return empty on emulator | Run on physical device with real Garmin data synced |
+| `WEARABLE-TD-002` | Terra webhook config | Deferred. Not used in Antler demo. | Separate post-demo scope |
+| `WEARABLE-TD-003` | `healthConnectGarminReader.ts` | Actual HC record reads (`hc.readRecords()`) may return empty on emulator | Run on physical Android with Garmin Connect sharing to HC |
 | `WEARABLE-TD-004` | `wearable_observations` | Cursor-based incremental sync (`source_cursor`) not exercised | Integration test with ≥2 sync runs on real data |
 
 ---
@@ -88,12 +83,12 @@ The Health Connect plugin is declared in `apps/mobile/app.json`:
 
 ```json
 "plugins": [
-  ["react-native-health-connect", { "permissions": ["Steps", "HeartRate", "ActiveCaloriesBurned", "Distance", "SleepSession"] }]
+  "./plugins/with-health-connect"
 ]
 ```
 
 This causes `expo prebuild` to:
-1. Add `<uses-permission android:name="android.permission.health.READ_STEPS" />` (and equivalents) to `AndroidManifest.xml`
+1. Add Health Connect read permissions to `AndroidManifest.xml`
 2. Register the Health Connect activity in `MainActivity.kt` automatically
 
 **Do not hand-edit `android/` files** — they are regenerated on every prebuild.

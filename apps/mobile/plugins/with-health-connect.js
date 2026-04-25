@@ -78,7 +78,7 @@ const withHealthConnectMainActivity = (config) => (0, config_plugins_1.withMainA
         return mod; // already patched
     }
     // Add import
-    const importLine = 'import com.healthconnect.reactnative.permission.HealthConnectPermissionDelegate';
+    const importLine = 'import dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate';
     if (!contents.includes(importLine)) {
         contents = contents.replace('import com.facebook.react.ReactActivity', `import com.facebook.react.ReactActivity\n${importLine}`);
     }

@@ -6,3 +6,4 @@ dist
 .env
 .env.*
 android/app/debug.keystore
+dist-web/

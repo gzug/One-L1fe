@@ -33,6 +33,7 @@ import NutritionScreen from './NutritionScreen.tsx';
 import AskOneL1feScreen from './AskOneL1feScreen.tsx';
 import FirstRunGuideOverlay from './FirstRunGuideOverlay.tsx';
 import { getFirstRunGuideCompleted, setFirstRunGuideCompleted } from './firstRunGuideStorage.ts';
+import AntlerHealthOsDemoScreen from './AntlerHealthOsDemoScreen.tsx';
 import { captureAppError, initSentry } from './sentry';
 import { DotIcon } from './src/icons/DotIcons.tsx';
 import { colors, radius, shadow, spacing, touchTarget, type } from './src/theme/tokens.ts';
@@ -66,6 +67,10 @@ const STATUS_HELPER_TEXT =
 initSentry();
 
 export default function App(): React.JSX.Element {
+  if (process.env.EXPO_PUBLIC_ANTLER_DEMO !== '0') {
+    return <AntlerHealthOsDemoScreen />;
+  }
+
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<AppScreenKey>('one_l1fe');
   const [activeSubDotKey, setActiveSubDotKey] = useState<string>('blood_biomarkers');

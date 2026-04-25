@@ -29,6 +29,7 @@ export function useWearableSource(_options: UseWearableSourceOptions = {}) {
         wearableSourceId: response.wearable_source_id,
         response,
       });
+      return response;
     } catch (err) {
       setState({
         status: 'error',
@@ -37,6 +38,7 @@ export function useWearableSource(_options: UseWearableSourceOptions = {}) {
             ? err.message
             : 'Unknown error during wearable source provisioning.',
       });
+      throw err;
     }
   }, []);
 

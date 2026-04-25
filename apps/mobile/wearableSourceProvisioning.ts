@@ -141,4 +141,18 @@ export function createGarminProvisioningRequest(
   };
 }
 
+export function createGarminHealthConnectProvisioningRequest(
+  overrides: GarminProvisioningRequestOverrides,
+): ResolveWearableSourceRequest {
+  return {
+    source_kind: 'health_connect',
+    vendor_name: GARMIN_VENDOR_NAME,
+    source_app_id: overrides.source_app_id ?? GARMIN_CONNECT_SOURCE_APP_ID,
+    source_app_name: overrides.source_app_name ?? GARMIN_CONNECT_SOURCE_APP_NAME,
+    device_hardware_id: overrides.device_hardware_id ?? null,
+    device_label: overrides.device_label ?? 'Garmin via Android Health Connect',
+    app_install_id: overrides.app_install_id,
+  };
+}
+
 export const provisionWearableSourceForCurrentUser = resolveWearableSourceForCurrentUser;

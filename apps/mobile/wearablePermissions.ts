@@ -12,10 +12,12 @@ export interface WearablePermissionsAdapter {
 
 export const GARMIN_READ_PERMISSIONS = [
   { accessType: 'read' as const, recordType: 'Steps' as const },
+  { accessType: 'read' as const, recordType: 'SleepSession' as const },
   { accessType: 'read' as const, recordType: 'HeartRate' as const },
+  { accessType: 'read' as const, recordType: 'RestingHeartRate' as const },
+  { accessType: 'read' as const, recordType: 'HeartRateVariabilityRmssd' as const },
   { accessType: 'read' as const, recordType: 'ActiveCaloriesBurned' as const },
   { accessType: 'read' as const, recordType: 'Distance' as const },
-  { accessType: 'read' as const, recordType: 'SleepSession' as const },
 ];
 
 async function createAndroidAdapter(): Promise<WearablePermissionsAdapter> {
