@@ -149,18 +149,32 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
         </View>
 
         <View style={styles.noticeCard}>
-          <Text style={styles.noticeTitle}>Scope</Text>
+          <Text style={styles.noticeTitle}>What this demo proves</Text>
           <Text style={styles.noticeText}>
-            Garmin is read only through Android Health Connect. No direct Garmin API and no Terra OAuth. Live Garmin data is only claimed when Health Connect actually returns records.
+            One L1fe connects real blood markers with Garmin / Health Connect training signals. Real Data Mode never invents missing wearable values.
           </Text>
           <Text style={styles.noticeText}>
             {dataMode === 'real'
-              ? 'Real Data Mode: only real values are shown. Missing Garmin / Health Connect fields stay empty — they are never invented.'
-              : 'Demo Filled Mode: real values stay real. Missing live fields are filled with clearly labelled synthetic placeholders so the marathon view can be previewed end-to-end.'}
+              ? 'Current mode: real-only. Missing Health Connect values stay empty.'
+              : 'Current mode: demo-filled. Synthetic placeholders are clearly labelled.'}
           </Text>
         </View>
 
-        <Section title="1. Connect Garmin / Health Data" styles={styles}>
+        <View style={styles.priorityCard}>
+          <Text style={styles.priorityEyebrow}>Today’s focus</Text>
+          <Text style={styles.priorityTitle}>
+            {healthConnectResult?.status === 'live'
+              ? 'Review recovery, activity, and blood-marker progress.'
+              : 'Connect Garmin / Health Connect before trusting training readiness.'}
+          </Text>
+          <Text style={styles.priorityText}>
+            {healthConnectResult?.status === 'live'
+              ? 'Live wearable data is available. Use the signal cards and progress section to check what changed.'
+              : 'Blood markers are loaded. Wearable-based training signals are still missing in Real Data Mode.'}
+          </Text>
+        </View>
+
+        <Section title="1. Connect Data" styles={styles}>
           <StatusRow styles={styles} label="Permission state" value={formatPermissionStatus(status)} />
           <Text style={styles.bodyText}>
             Open Garmin Connect, confirm the watch has synced, then enable Garmin Connect sharing into Android Health Connect before granting permissions here.
@@ -184,7 +198,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           ) : null}
         </Section>
 
-        <Section title="2. Live Training Signals" styles={styles}>
+        <Section title="2. Sync Garmin Signals" styles={styles}>
           <Text style={styles.bodyText}>
             Reads Steps, SleepSession, HeartRate, RestingHeartRate, HeartRateVariabilityRmssd, ActiveCaloriesBurned, and Distance from Health Connect.
           </Text>
@@ -206,9 +220,9 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           ) : null}
         </Section>
 
-        <Section title="3. Garmin / Health Connect Signals" styles={styles}>
+        <Section title="3. Raw Training Signals" styles={styles}>
           <Text style={styles.bodyText}>
-            Individual smartwatch signals are shown before any readiness summary so the score never behaves like a black box.
+            Tap a card to see source, status, and score usage.
           </Text>
           <View style={styles.signalGrid}>
             {signalRows.map((signal) => (
@@ -223,7 +237,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
         </Section>
 
-        <Section title="4. Training Baseline" styles={styles}>
+        <Section title="4. Marathon Baseline" styles={styles}>
           <StatusRow styles={styles} label="Profile" value="Male (real lab profile)" />
           <StatusRow styles={styles} label="Goal" value="Brisbane Marathon — finish-line readiness" />
           <StatusRow
@@ -240,7 +254,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
 
         <Section title="5. Blood Markers" styles={styles}>
           <Text style={styles.bodyText}>
-            Real lab values come from the Apr 2025 (ALAB) and Oct 2023 (Danish hospital lab) panels stored in the Notion export. Iron, inflammation, and lipid markers are the marathon-relevant focus.
+            Real 2023 and 2025 lab panels. Focus: iron, inflammation, lipids, and metabolic context.
           </Text>
           <View style={styles.panelList}>
             {REAL_LAB_PANELS.map((panel) => (
@@ -259,7 +273,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           <View style={styles.progressBlock}>
             <Text style={styles.progressTitle}>Blood Marker Progress</Text>
             <Text style={styles.captionText}>
-              2023 to 2025 comparison. Values are compared only when the prototype has an explicit safe conversion or equivalence rule.
+              Tap a marker to see interpretation and conversion notes.
             </Text>
             {biomarkerProgressRows.map((row) => (
               <BiomarkerProgressCard
@@ -273,7 +287,7 @@ export default function AntlerHealthOsDemoScreen(): React.JSX.Element {
           </View>
         </Section>
 
-        <Section title="6. Training Readiness Report" styles={styles}>
+        <Section title="6. Readiness Summary" styles={styles}>
           <View style={styles.reportHeader}>
             <Text style={styles.reportSource}>{report.sourceLabel}</Text>
             <Text style={[styles.reportBadge, dataMode === 'demo-filled' ? styles.reportBadgeDemo : null]}>
@@ -571,6 +585,32 @@ function createStyles(theme: Theme) {
     toggleButtonText: { color: theme.toggleText, fontSize: 13, fontWeight: '800' },
     toggleButtonTextActive: { color: theme.toggleTextActive },
     toggleHint: { color: theme.textMuted, fontSize: 12, lineHeight: 18 },
+    priorityCard: {
+      backgroundColor: theme.surfaceElevated,
+      borderColor: theme.accent,
+      borderWidth: 1,
+      borderRadius: 14,
+      padding: 16,
+      gap: 8,
+    },
+    priorityEyebrow: {
+      color: theme.accent,
+      fontSize: 11,
+      fontWeight: '800',
+      letterSpacing: 1,
+      textTransform: 'uppercase',
+    },
+    priorityTitle: {
+      color: theme.textPrimary,
+      fontSize: 20,
+      lineHeight: 26,
+      fontWeight: '800',
+    },
+    priorityText: {
+      color: theme.textSecondary,
+      fontSize: 13,
+      lineHeight: 19,
+    },
     noticeCard: { backgroundColor: theme.noticeBackground, borderColor: theme.noticeBorder, borderWidth: 1, borderRadius: 10, padding: 14, gap: 8 },
     noticeTitle: { color: theme.noticeTitle, fontSize: 15, fontWeight: '800' },
     noticeText: { color: theme.noticeText, fontSize: 13, lineHeight: 19 },
