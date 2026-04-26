@@ -5,7 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View,
+  View as RNView,
 } from 'react-native';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { AppHeader } from './components/AppHeader';
@@ -19,6 +19,7 @@ import { SignalCard } from './components/SignalCard';
 import { bloodMarkers, coachingSteps, trainingSignals } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, spacing, typography } from './theme/marathonTheme';
+import type { ThemeColors } from './theme/marathonTheme';
 
 // ─── Root export — wraps everything in the ThemeProvider ─────────────────────
 export function PrototypeV1MarathonScreen() {
@@ -30,11 +31,11 @@ export function PrototypeV1MarathonScreen() {
 }
 
 // ─── Shell — reads theme, controls view-state ────────────────────────────────
-type View = 'home' | 'profile';
+type ActiveView = 'home' | 'profile';
 
 function PrototypeShell() {
   const { colors } = useTheme();
-  const [activeView, setActiveView] = useState<View>('home');
+  const [activeView, setActiveView] = useState<ActiveView>('home');
 
   return (
     <>
@@ -67,37 +68,37 @@ function HomeView({ onProfilePress }: HomeViewProps) {
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={s.container}>
+        <RNView style={s.container}>
           <DemoModeBanner />
           <ReadinessOrbit />
 
-          <View style={s.section}>
+          <RNView style={s.section}>
             <SectionHeader title={prototypeCopy.sectionSignals} />
             {trainingSignals.map((signal) => (
               <SignalCard key={signal.label} signal={signal} />
             ))}
-          </View>
+          </RNView>
 
-          <View style={s.section}>
+          <RNView style={s.section}>
             <SectionHeader title={prototypeCopy.sectionBlood} />
-            <View style={s.bloodGrid}>
+            <RNView style={s.bloodGrid}>
               {bloodMarkers.map((marker) => (
                 <BloodMarkerCard key={marker.label} marker={marker} />
               ))}
-            </View>
-          </View>
+            </RNView>
+          </RNView>
 
-          <View style={s.section}>
+          <RNView style={s.section}>
             <SectionHeader title={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
-          </View>
+          </RNView>
 
           <NutritionContextCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
-        </View>
+        </RNView>
       </ScrollView>
     </>
   );
@@ -107,15 +108,15 @@ function HomeView({ onProfilePress }: HomeViewProps) {
 function SectionHeader({ title }: { title: string }) {
   const { colors } = useTheme();
   return (
-    <View style={sectionHeaderStyles.row}>
-      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
+    <RNView style={sectionHeaderStyles.row}>
+      <RNView style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
       <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
-    </View>
+    </RNView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-function createHomeStyles(colors: import('./theme/marathonTheme').ThemeColors) {
+function createHomeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     scroll: {
       alignItems: 'center',
