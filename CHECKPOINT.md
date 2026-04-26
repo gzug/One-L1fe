@@ -14,15 +14,15 @@ scope: repo
 
 Work continues directly on `main`.
 
-The active focus is now **Prototype V1 - Marathon** inside the main repo workspace:
+The active focus is **Prototype V1 - Marathon** inside:
 
 ```text
 apps/mobile/prototypes/v1-marathon/
 ```
 
-The earlier branch `claude/antler-health-os-demo-O6PNI` is no longer the normal working path. Treat it only as a migration/source reference for useful prototype code and docs. Do not continue branch-routing as the default workflow.
+The previous branch/path material is reference only. Do not continue branch-routing as the normal workflow.
 
-The broader existing One L1fe app remains in the repo as baseline context, but it is not the active demo surface while this prototype is being built.
+The broader One L1fe app remains baseline context, but it is not the active demo surface while this prototype is being built.
 
 ## Current state
 
@@ -30,7 +30,18 @@ The broader existing One L1fe app remains in the repo as baseline context, but i
 - Active prototype workspace: `apps/mobile/prototypes/v1-marathon/`
 - Active user-facing prototype name: `Prototype V1 - Marathon`
 - Current prototype workspace doc: `apps/mobile/prototypes/v1-marathon/README.md`
-- Previous prototype source branch: `claude/antler-health-os-demo-O6PNI` — migration reference only
+- Product strategy doc: `apps/mobile/prototypes/v1-marathon/docs/product-strategy.md`
+- Scaffold source root: `apps/mobile/prototypes/v1-marathon/src/`
+
+## Completed in latest update
+
+Batch A-lite scaffold is now in the repo on `main`:
+
+- Added `src/PrototypeV1MarathonScreen.tsx`
+- Added component scaffold: `ReadinessOrbit`, `SignalCard`, `CoachingCard`, `BloodMarkerCard`, `NutritionContextCard`, `DemoDataBadge`
+- Added prototype data/copy/theme files: `demoData.ts`, `copy.ts`, `marathonTheme.ts`
+- Added `docs/product-strategy.md`
+- Updated prototype README with current structure
 
 ## Working rule
 
@@ -40,30 +51,25 @@ For prototype work:
 - Keep prototype-specific files under `apps/mobile/prototypes/v1-marathon/`.
 - Future prototypes should use sibling folders such as `apps/mobile/prototypes/v2-*`.
 - Do not scatter prototype-specific files across the full app shell unless wiring is explicitly needed.
-- Keep the old/full-app surfaces out of the active prototype path while this prototype is being built.
-
-## What changed in current repo-ops cleanup
-
-- Removed the temporary `WORKSTREAMS.md` branch-routing approach.
-- Restored README startup to direct `CHECKPOINT.md` / `CONTEXT.md` flow.
-- Added `apps/mobile/prototypes/v1-marathon/README.md` as the canonical prototype workspace doc.
-- README now documents `apps/mobile/prototypes/` as the place for versioned prototype work on `main`.
+- Do not touch Supabase for prototype UI batches unless explicitly requested.
+- Demo data must stay visibly labelled.
+- Nutrition remains context/planned only and must not affect score.
+- No medical advice, diagnosis, treatment, or risk-score framing.
 
 ## Current blockers
 
-- Useful Prototype V1 - Marathon code still needs to be migrated from `claude/antler-health-os-demo-O6PNI` into `apps/mobile/prototypes/v1-marathon/`.
-- The large earlier screen file `AntlerHealthOsDemoScreen.tsx` should be split before major UI redesign.
-- The active app shell is not yet wired to the new prototype workspace on `main`.
-- Typecheck/build validation still required after migration.
+- Local typecheck still needs to be rerun after pulling latest `main` and installing dependencies if needed.
+- The active app shell is not yet wired to the new prototype workspace.
+- The scaffold is functional structure, not final visual polish.
 
 ## Next steps
 
-1. Migrate the useful V1 Marathon prototype files from `claude/antler-health-os-demo-O6PNI` into `apps/mobile/prototypes/v1-marathon/` on `main`.
-2. Split the large prototype screen into focused components before visual redesign.
-3. Wire `apps/mobile/App.tsx` to the V1 Marathon prototype workspace only after files are present and typecheckable.
-4. Keep the previous full-app flow inactive / out of the active prototype path while the prototype is being built.
-5. Apply visual polish, home hierarchy, score-ring, coaching/next-steps, and Nutrition positioning in focused commits.
-6. Run `npm --prefix apps/mobile run typecheck` and an Android build check when implementation files are migrated.
+1. Pull latest `main` locally and run `npm install` at repo root or `npm --prefix apps/mobile install` if `tsc` is missing.
+2. Run `npm --prefix apps/mobile run typecheck`.
+3. Review the scaffold for obvious TS/import issues.
+4. Batch B: improve home hierarchy, visual polish, score/orbit treatment, coaching layout, and Nutrition positioning.
+5. Batch C: wire `apps/mobile/App.tsx` to the V1 Marathon prototype only after the screen typechecks.
+6. Final review: naming, demo honesty, accessibility, safety copy, and Android presentation readiness.
 
 ## Deferred full-app baseline work
 
