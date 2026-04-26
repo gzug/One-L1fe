@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-24
+last_verified: 2026-04-26
 supersedes: []
 superseded_by: null
 scope: repo
@@ -12,35 +12,62 @@ scope: repo
 
 ## Verdict
 
-The app is in a testable prototype state with login, minimum-slice submit, weekly check-in, wearable sync UI, and a developer-insight surface. The wearable path is not yet fully production-safe: `WearableSyncScreen` still submits a placeholder payload and must be migrated to the canonical `WearableSyncRequest` contract before real-device rollout.
+Work continues directly on `main`.
 
-Remaining gaps: physical Garmin/Health Connect testing, end-to-end Supabase ingest proof on Android, and contract hardening on the wearable sync request path.
+The active focus is now **Prototype V1 - Marathon** inside the main repo workspace:
+
+```text
+apps/mobile/prototypes/v1-marathon/
+```
+
+The earlier branch `claude/antler-health-os-demo-O6PNI` is no longer the normal working path. Treat it only as a migration/source reference for useful prototype code and docs. Do not continue branch-routing as the default workflow.
+
+The broader existing One L1fe app remains in the repo as baseline context, but it is not the active demo surface while this prototype is being built.
 
 ## Current state
 
 - Branch: `main`
-- Commit baseline: use Git history / PR merge metadata for exact HEAD; do not duplicate self-referential commit SHAs here
-- Active seam: physical-device Health Connect ingest proof + wearable sync contract hardening
+- Active prototype workspace: `apps/mobile/prototypes/v1-marathon/`
+- Active user-facing prototype name: `Prototype V1 - Marathon`
+- Current prototype workspace doc: `apps/mobile/prototypes/v1-marathon/README.md`
+- Previous prototype source branch: `claude/antler-health-os-demo-O6PNI` — migration reference only
 
-## Pending PRs
+## Working rule
 
-- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID replacing `MOCK_APP_INSTALL_ID`; intentionally held
-- `#99 feat: user-configurable panel preferences` — open, draft
-- `#101 feat: mobile scoring and build tooling` — open, draft
+For prototype work:
 
-## Blockers
+- Work on `main`.
+- Keep prototype-specific files under `apps/mobile/prototypes/v1-marathon/`.
+- Future prototypes should use sibling folders such as `apps/mobile/prototypes/v2-*`.
+- Do not scatter prototype-specific files across the full app shell unless wiring is explicitly needed.
+- Keep the old/full-app surfaces out of the active prototype path while this prototype is being built.
 
-- No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
-- End-to-end Supabase ingest still needs an Android device run
-- Wearable sync request in app still uses placeholder payload (`as any`), not yet contract-complete
+## What changed in current repo-ops cleanup
+
+- Removed the temporary `WORKSTREAMS.md` branch-routing approach.
+- Restored README startup to direct `CHECKPOINT.md` / `CONTEXT.md` flow.
+- Added `apps/mobile/prototypes/v1-marathon/README.md` as the canonical prototype workspace doc.
+- README now documents `apps/mobile/prototypes/` as the place for versioned prototype work on `main`.
+
+## Current blockers
+
+- Useful Prototype V1 - Marathon code still needs to be migrated from `claude/antler-health-os-demo-O6PNI` into `apps/mobile/prototypes/v1-marathon/`.
+- The large earlier screen file `AntlerHealthOsDemoScreen.tsx` should be split before major UI redesign.
+- The active app shell is not yet wired to the new prototype workspace on `main`.
+- Typecheck/build validation still required after migration.
 
 ## Next steps
 
-1. Run the new wearable collector on a physical Android device and verify one end-to-end sync into Supabase.
-2. Remove placeholder wearable sync payload in `apps/mobile/WearableSyncScreen.tsx` and wire canonical `WearableSyncRequest`.
-3. Merge `claude/real-app-install-id` when ready.
-4. Triage draft PRs `#99` and `#101` for merge, split, or closure.
+1. Migrate the useful V1 Marathon prototype files from `claude/antler-health-os-demo-O6PNI` into `apps/mobile/prototypes/v1-marathon/` on `main`.
+2. Split the large prototype screen into focused components before visual redesign.
+3. Wire `apps/mobile/App.tsx` to the V1 Marathon prototype workspace only after files are present and typecheckable.
+4. Keep the previous full-app flow inactive / out of the active prototype path while the prototype is being built.
+5. Apply visual polish, home hierarchy, score-ring, coaching/next-steps, and Nutrition positioning in focused commits.
+6. Run `npm --prefix apps/mobile run typecheck` and an Android build check when implementation files are migrated.
 
-## Deferred to post-v1
+## Deferred full-app baseline work
 
-- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002); blocked on physical Garmin device and Terra OAuth credentials; not on critical path for sideload-to-brother milestone
+- Physical Garmin / Health Connect data source proof (WEARABLE-TD-001)
+- End-to-end Supabase ingest proof on Android
+- Wearable sync request contract hardening outside the prototype path
+- Garmin Terra webhook / Terra OAuth pairing
