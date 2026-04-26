@@ -5,7 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View,
+  View as RNView,
 } from 'react-native';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { AppHeader } from './components/AppHeader';
@@ -63,46 +63,46 @@ function HomeView({ onProfilePress }: { onProfilePress: () => void }) {
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={s.container}>
+        <RNView style={s.container}>
 
           <DemoModeBanner />
           <ReadinessOrbit />
 
           {/* Training signals */}
-          <View style={s.section}>
+          <RNView style={s.section}>
             <SectionHeader title={prototypeCopy.sectionSignals} />
             {trainingSignals.map((signal) => (
               <SignalCard key={signal.label} signal={signal} />
             ))}
-          </View>
+          </RNView>
 
           {/* Blood context */}
-          <View style={s.section}>
-            <View style={s.sectionTitleRow}>
+          <RNView style={s.section}>
+            <RNView style={s.sectionTitleRow}>
               <SectionHeader title={prototypeCopy.sectionBlood} />
               <Text style={s.panelCount}>
                 {prototypeCopy.bloodPanelCount(bloodPanelCount)}
               </Text>
-            </View>
-            <View style={s.bloodGrid}>
+            </RNView>
+            <RNView style={s.bloodGrid}>
               {bloodMarkers.map((marker) => (
                 <BloodMarkerCard key={marker.label} marker={marker} />
               ))}
-            </View>
-          </View>
+            </RNView>
+          </RNView>
 
           {/* Coaching */}
-          <View style={s.section}>
+          <RNView style={s.section}>
             <SectionHeader title={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
-          </View>
+          </RNView>
 
           <NutritionContextCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
-        </View>
+        </RNView>
       </ScrollView>
     </>
   );
@@ -111,10 +111,10 @@ function HomeView({ onProfilePress }: { onProfilePress: () => void }) {
 function SectionHeader({ title }: { title: string }) {
   const { colors } = useTheme();
   return (
-    <View style={sectionHeaderStyles.row}>
-      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
+    <RNView style={sectionHeaderStyles.row}>
+      <RNView style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
       <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
-    </View>
+    </RNView>
   );
 }
 
