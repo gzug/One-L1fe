@@ -14,9 +14,13 @@ One L1fe is a private-first personal health intelligence project focused on evid
 
 ## Current status
 
-The repo can have more than one active workstream. Do not assume `main` is the correct implementation target for every task.
+The active implementation path is `main`.
 
-Start with [WORKSTREAMS.md](./WORKSTREAMS.md) to route the task to the correct branch/workstream. Then read that branch's `CHECKPOINT.md`.
+The current focused product workspace is **Prototype V1 - Marathon**. Prototype work should happen inside `apps/mobile/prototypes/` on `main`, so future prototype versions can be separated clearly without branch-routing confusion.
+
+The broader full-app version remains in the repo as baseline context, but it is not the active demo surface while Prototype V1 - Marathon is being worked on.
+
+Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
 
 ## Start here
 
@@ -24,13 +28,10 @@ This file is for broad human orientation only — not required for agent startup
 
 For **agentic repo work**, use this startup order:
 
-1. [WORKSTREAMS.md](./WORKSTREAMS.md) — route the task to the correct active workstream / branch
-2. `CHECKPOINT.md` on the selected branch — current state, active seam, next steps, blockers
-3. `CONTEXT.md` on the selected branch — rolling summary of the last 2–3 sessions
-4. `MEMORY.md` only if you need durable boundaries or architecture rules
-5. `docs/README.md` only when you need deeper docs navigation
-
-If no workstream matches the user task, continue on `main` and read [CHECKPOINT.md](./CHECKPOINT.md).
+1. [CHECKPOINT.md](./CHECKPOINT.md) — current state, active seam, next steps, blockers
+2. [CONTEXT.md](./CONTEXT.md) — rolling summary of the last 2–3 sessions
+3. [MEMORY.md](./MEMORY.md) — only if you need durable boundaries or architecture rules
+4. [docs/README.md](./docs/README.md) — only when you need deeper docs navigation
 
 Full session and memory rules: [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)  
 Agent working rules: [AGENTS.md](./AGENTS.md)
@@ -41,6 +42,7 @@ Agent working rules: [AGENTS.md](./AGENTS.md)
 One-L1fe/
 ├── apps/
 │   └── mobile/                # React Native client app
+│       └── prototypes/        # Focused prototype versions on main
 ├── packages/
 │   └── domain/                # Biomarker models, units, contracts, shared domain logic
 ├── supabase/
@@ -58,22 +60,42 @@ One-L1fe/
 │   └── archive/               # Superseded docs kept for context
 ├── memory/                    # Session scratch — daily notes only, never startup context
 ├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
-├── WORKSTREAMS.md             # Active workstream / branch routing registry
 ├── MEMORY.md
 ├── CONTEXT.md
 ├── AGENTS.md
 └── CONTRIBUTING.md
 ```
 
+## Prototype workspace
+
+Prototype versions live on `main` under:
+
+```text
+apps/mobile/prototypes/
+```
+
+Current active prototype:
+
+```text
+apps/mobile/prototypes/v1-marathon/
+```
+
+Rules:
+
+- Work directly on `main` unless explicitly told otherwise.
+- Keep prototype files inside their versioned prototype folder.
+- Do not scatter prototype-specific files across the main app shell unless wiring is explicitly needed.
+- Keep old/full-app surfaces out of the active path while a prototype is being built.
+- For a new prototype version, create a new folder such as `apps/mobile/prototypes/v2-*` and document it in `CHECKPOINT.md`.
+
 ## Source of truth
 
 Use each file layer for one job:
 
 - [README.md](./README.md) = broad project entry point and orientation (human, not agent startup)
-- [WORKSTREAMS.md](./WORKSTREAMS.md) = active workstream and branch routing registry
-- `CHECKPOINT.md` = current state and next step for the selected branch/workstream
-- `CONTEXT.md` = rolling 2–3 session summary for the selected branch/workstream
-- `MEMORY.md` = durable assumptions and long-lived decisions (on demand)
+- [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
+- [CONTEXT.md](./CONTEXT.md) = rolling 2–3 session summary for fast agent startup
+- [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions (on demand)
 - [`memory/`](./memory/) = session scratch — daily notes only, archived at closeout
 - [`docs/ops/memory-system-v2.md`](./docs/ops/memory-system-v2.md) = canonical session and memory rules
 - [`docs/ops/`](./docs/ops/) = operating guidance (session workflow, OpenClaw)
@@ -109,9 +131,8 @@ SUPABASE_ACCESS_TOKEN=... SUPABASE_PROJECT_REF=... scripts/check-supabase-hosted
 
 This repo uses a lightweight solo-founder workflow:
 
-- keep `main` stable and use it as the routing/control surface
-- prefer short-lived branches for focused changes
-- register active branches in `WORKSTREAMS.md`
+- work on `main` by default
+- use versioned prototype folders for focused prototype variants
 - let CI validate typecheck and domain tests
 - update the real source-of-truth file when behavior or rules change
 
@@ -121,7 +142,6 @@ Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
 ## Core project docs
 
 ### Orientation
-- [WORKSTREAMS.md](./WORKSTREAMS.md)
 - [CHECKPOINT.md](./CHECKPOINT.md)
 - [CONTEXT.md](./CONTEXT.md)
 - [MEMORY.md](./MEMORY.md)
