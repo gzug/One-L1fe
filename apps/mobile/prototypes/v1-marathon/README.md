@@ -37,6 +37,29 @@ Excluded:
 - fake live sync claims
 - Nutrition influencing score without a validated model
 
+## Current structure
+
+```text
+apps/mobile/prototypes/v1-marathon/
+  README.md
+  docs/
+    product-strategy.md
+  src/
+    PrototypeV1MarathonScreen.tsx
+    components/
+      BloodMarkerCard.tsx
+      CoachingCard.tsx
+      DemoDataBadge.tsx
+      NutritionContextCard.tsx
+      ReadinessOrbit.tsx
+      SignalCard.tsx
+    data/
+      copy.ts
+      demoData.ts
+    theme/
+      marathonTheme.ts
+```
+
 ## Folder rule
 
 Future prototype versions should use sibling folders:
@@ -49,18 +72,16 @@ apps/mobile/prototypes/v3-*/
 
 Keep version-specific prototype work inside its folder unless app-shell wiring is explicitly needed.
 
-## Current migration note
+## Migration note
 
-The branch `claude/antler-health-os-demo-O6PNI` contains earlier Prototype V1 - Marathon work. Future work should move the useful parts into this folder on `main`, then stop relying on that branch.
-
-Do not continue branch-routing as a normal workflow.
+The previous branch/path material is reference only. Future work should continue in this folder on `main` and stop relying on branch-routing as a normal workflow.
 
 ## First implementation priorities
 
-1. Move/split the large prototype screen into this folder.
-2. Keep old/full-app surfaces out of the active prototype path while this prototype is being built.
-3. Wire `apps/mobile/App.tsx` to this prototype workspace only after the files are present and typecheckable.
-4. Apply visual polish and home redesign in small commits.
+1. Review and typecheck the scaffold.
+2. Improve the home hierarchy and visual polish in small commits.
+3. Wire `apps/mobile/App.tsx` to this prototype workspace only after the screen is present and typecheckable.
+4. Keep old/full-app surfaces out of the active prototype path while this prototype is being built.
 
 ## Naming
 
