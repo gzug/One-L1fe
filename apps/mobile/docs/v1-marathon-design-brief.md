@@ -1,6 +1,8 @@
-# One L1fe — V1 Marathon Design Brief
+# One L1fe — Prototype V1 Marathon Design Brief
 
 Use the attached premium activity-app reference as the primary visual style, but do not copy the reference brand, logo, exact text, or layout.
+
+User-facing product/subline naming for this branch is **Prototype V1 Marathon**. Do not use "Marathon Readiness" or "Antler Health OS" as product/subline copy.
 
 The app must support both **Dark Mode** and **Light Mode**.
 
@@ -49,3 +51,4 @@ The secondary colour should be more golden/amber and visibly different from cora
 - add unnecessary animation
 - hide synthetic labels
 - redesign app architecture
+- use obsolete product/subline copy
