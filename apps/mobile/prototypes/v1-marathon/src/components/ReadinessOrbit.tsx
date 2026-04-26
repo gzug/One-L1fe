@@ -1,98 +1,67 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { readinessSegments, dataCoveragePercent } from '../data/demoData';
 import { prototypeCopy } from '../data/copy';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 
+const RING_SIZE    = 96;
+const STROKE_W     = 8;
+const HALF         = RING_SIZE / 2;
+const R            = HALF - STROKE_W / 2;   // inner radius that keeps stroke inside bounds
+const CIRCUMFERENCE = 2 * Math.PI * R;
+
 function clamp(v: number) {
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
-/** Semantic bar color: >=70 positive, 50-69 warning, <50 danger */
+/** Semantic bar color: >=70 positive, 50–69 warning, <50 danger */
 function segmentColor(value: number, colors: ThemeColors): string {
   if (value >= 70) return colors.positive;
   if (value >= 50) return colors.warning;
   return colors.danger;
 }
 
-function ProgressRing({
-  size,
-  strokeWidth,
+function SvgRing({
   progress,
   trackColor,
   progressColor,
-  children,
 }: {
-  size: number;
-  strokeWidth: number;
   progress: number;
   trackColor: string;
   progressColor: string;
-  children?: React.ReactNode;
 }) {
-  const half = size / 2;
-  const pct = clamp(progress) / 100;
-  const deg = pct * 360;
-  const firstHalfDeg = Math.min(deg, 180);
-  const secondHalfDeg = Math.max(deg - 180, 0);
+  const pct    = clamp(progress) / 100;
+  const filled = pct * CIRCUMFERENCE;
+  const gap    = CIRCUMFERENCE - filled;
 
   return (
-    <View style={{ width: size, height: size }}>
+    <Svg width={RING_SIZE} height={RING_SIZE}>
       {/* Track */}
-      <View
-        style={[
-          StyleSheet.absoluteFillObject,
-          { borderRadius: half, borderWidth: strokeWidth, borderColor: trackColor },
-        ]}
+      <Circle
+        cx={HALF}
+        cy={HALF}
+        r={R}
+        stroke={trackColor}
+        strokeWidth={STROKE_W}
+        fill="none"
       />
-      {/* Left arc */}
-      <View
-        style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', width: half, left: 0 }]}
-        pointerEvents="none"
-      >
-        <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            {
-              left: half,
-              borderRadius: half,
-              borderWidth: strokeWidth,
-              borderColor: progressColor,
-              transform: [{ rotate: `${firstHalfDeg - 180}deg` }],
-            },
-          ]}
-        />
-      </View>
-      {/* Right arc */}
-      {secondHalfDeg > 0 && (
-        <View
-          style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', width: half, left: half }]}
-          pointerEvents="none"
-        >
-          <View
-            style={[
-              StyleSheet.absoluteFillObject,
-              {
-                right: half,
-                borderRadius: half,
-                borderWidth: strokeWidth,
-                borderColor: progressColor,
-                transform: [{ rotate: `${secondHalfDeg}deg` }],
-              },
-            ]}
-          />
-        </View>
-      )}
-      {/* Center content */}
-      <View
-        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center' }]}
-        pointerEvents="none"
-      >
-        {children}
-      </View>
-    </View>
+      {/* Progress arc — starts at top (rotate -90°) */}
+      <Circle
+        cx={HALF}
+        cy={HALF}
+        r={R}
+        stroke={progressColor}
+        strokeWidth={STROKE_W}
+        strokeLinecap="round"
+        fill="none"
+        strokeDasharray={`${filled} ${gap}`}
+        rotation={-90}
+        origin={`${HALF}, ${HALF}`}
+      />
+    </Svg>
   );
 }
 
@@ -106,26 +75,27 @@ export function ReadinessOrbit() {
 
   return (
     <View style={s.card}>
-      {/* Interpretation leads */}
+      {/* Interpretation */}
       <Text style={s.interpretation}>{prototypeCopy.readinessInterpretation}</Text>
       <Text style={s.interpretationSub}>{prototypeCopy.readinessInterpretationSub}</Text>
 
-      {/* Ring + segments */}
+      {/* Ring + segments row */}
       <View style={s.bodyRow}>
+        {/* SVG ring with score inside */}
         <View style={s.ringWrapper}>
-          <ProgressRing
-            size={88}
-            strokeWidth={7}
+          <SvgRing
             progress={average}
             trackColor={colors.ringTrack}
             progressColor={colors.ringProgress}
-          >
-            {/* Small score label — present but subordinate */}
+          />
+          {/* Score label centered over ring */}
+          <View style={[StyleSheet.absoluteFillObject, s.ringCenter]} pointerEvents="none">
             <Text style={s.score}>{average}</Text>
             <Text style={s.scoreLabel}>{prototypeCopy.readinessScoreLabel}</Text>
-          </ProgressRing>
+          </View>
         </View>
 
+        {/* Segment bars */}
         <View style={s.segmentList}>
           {readinessSegments.map((seg) => {
             const color = segmentColor(seg.value, colors);
@@ -136,7 +106,10 @@ export function ReadinessOrbit() {
                   <View
                     style={[
                       s.barFill,
-                      { width: `${clamp(seg.value)}%` as `${number}%`, backgroundColor: color },
+                      {
+                        width: `${clamp(seg.value)}%` as `${number}%`,
+                        backgroundColor: color,
+                      },
                     ]}
                   />
                 </View>
@@ -146,7 +119,7 @@ export function ReadinessOrbit() {
         </View>
       </View>
 
-      {/* Data coverage — subtle text only */}
+      {/* Data coverage — subtle */}
       <Text style={s.coverageNote}>
         {prototypeCopy.dataCoverageLabel}: {dataCoveragePercent}% of signals available
       </Text>
@@ -159,7 +132,7 @@ function createStyles(colors: ThemeColors) {
     card: {
       borderRadius: radius.lg,
       backgroundColor: colors.surfaceElevated,
-      borderWidth: 1,
+      borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
       padding: spacing.lg,
       gap: spacing.md,
@@ -169,24 +142,33 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.heroInterpretation,
       fontWeight: '700',
       lineHeight: lineHeights.heroInterpretation,
-      letterSpacing: -0.3,
+      letterSpacing: -0.4,
     },
     interpretationSub: {
       color: colors.textMuted,
-      fontSize: typography.bodySmall,
-      lineHeight: lineHeights.bodySmall,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      marginTop: -spacing.xs,
     },
     bodyRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.lg,
     },
-    ringWrapper: { flexShrink: 0, alignItems: 'center' },
+    ringWrapper: {
+      width: RING_SIZE,
+      height: RING_SIZE,
+      flexShrink: 0,
+    },
+    ringCenter: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     score: {
       color: colors.text,
-      fontSize: 20,
+      fontSize: 22,
       fontWeight: '800',
-      lineHeight: 24,
+      lineHeight: 26,
       textAlign: 'center',
     },
     scoreLabel: {
@@ -194,17 +176,16 @@ function createStyles(colors: ThemeColors) {
       fontSize: 8,
       fontWeight: '600',
       textTransform: 'uppercase',
-      letterSpacing: 0.3,
+      letterSpacing: 0.4,
       textAlign: 'center',
     },
     segmentList: { flex: 1, gap: spacing.sm },
-    segmentRow: { gap: spacing.xs },
+    segmentRow:  { gap: 4 },
     segmentLabel: {
       color: colors.textSubtle,
-      fontSize: 10,
-      fontWeight: '600',
-      textTransform: 'uppercase',
-      letterSpacing: 0.4,
+      fontSize: typography.micro,
+      fontWeight: '500',
+      letterSpacing: 0.2,
     },
     barTrack: {
       height: 4,
@@ -217,6 +198,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.textSubtle,
       fontSize: typography.micro,
       lineHeight: lineHeights.caption,
+      marginTop: -spacing.xs,
     },
   });
 }

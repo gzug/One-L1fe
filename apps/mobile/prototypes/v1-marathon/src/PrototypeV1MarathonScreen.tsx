@@ -17,7 +17,7 @@ import { CoachingCard } from './components/CoachingCard';
 import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
-import { SignalCard } from './components/SignalCard';
+import { SignalGroup } from './components/SignalCard';
 import { coachingSteps, trainingSignals } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
@@ -35,7 +35,7 @@ type ActiveView = 'home' | 'profile';
 
 function PrototypeShell() {
   const { colors } = useTheme();
-  const [activeView, setActiveView] = useState<ActiveView>('home');
+  const [activeView, setActiveView]         = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
 
   return (
@@ -56,7 +56,7 @@ function PrototypeShell() {
         )}
       </SafeAreaView>
 
-      {/* Demo info overlay */}
+      {/* Demo info modal */}
       <Modal
         visible={demoInfoVisible}
         transparent
@@ -64,24 +64,27 @@ function PrototypeShell() {
         onRequestClose={() => setDemoInfoVisible(false)}
       >
         <Pressable
-          style={demoModalStyles.backdrop}
+          style={demoOverlay.backdrop}
           onPress={() => setDemoInfoVisible(false)}
         >
-          <Pressable style={[demoModalStyles.sheet, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
-            <View style={demoModalStyles.iconRow}>
-              <Ionicons name="information-circle" size={22} color={colors.accent} />
-            </View>
-            <Text style={[demoModalStyles.title, { color: colors.text }]}>
+          <Pressable
+            style={[
+              demoOverlay.sheet,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+            ]}
+          >
+            <Ionicons name="information-circle" size={24} color={colors.accent} style={{ alignSelf: 'center' }} />
+            <Text style={[demoOverlay.title, { color: colors.text }]}>
               {prototypeCopy.demoInfoTitle}
             </Text>
-            <Text style={[demoModalStyles.body, { color: colors.textMuted }]}>
+            <Text style={[demoOverlay.body, { color: colors.textMuted }]}>
               {prototypeCopy.demoInfoBody}
             </Text>
             <Pressable
               onPress={() => setDemoInfoVisible(false)}
-              style={[demoModalStyles.dismissBtn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+              style={[demoOverlay.btn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
             >
-              <Text style={[demoModalStyles.dismissText, { color: colors.accent }]}>
+              <Text style={[demoOverlay.btnText, { color: colors.accent }]}>
                 {prototypeCopy.demoInfoDismiss}
               </Text>
             </Pressable>
@@ -107,31 +110,29 @@ function HomeView({
   return (
     <>
       <AppHeader onProfilePress={onProfilePress} onDemoInfoPress={onDemoInfoPress} />
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={s.scroll}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={s.container}>
 
           <ReadinessOrbit />
 
-          {/* Training signals */}
           <View style={s.section}>
-            <SectionHeader title={prototypeCopy.sectionSignals} />
-            {trainingSignals.map((signal) => (
-              <SignalCard key={signal.label} signal={signal} />
-            ))}
+            <SectionLabel text={prototypeCopy.sectionSignals} />
+            <SignalGroup signals={trainingSignals} />
           </View>
 
-          {/* Blood panels entry card */}
           <BloodPanelsCard onViewPress={onViewBloodPanels} />
 
-          {/* Coaching */}
           <View style={s.section}>
-            <SectionHeader title={prototypeCopy.sectionCoaching} />
+            <SectionLabel text={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
           </View>
 
-          {/* Ideas & Notes */}
           <IdeasNotesCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
@@ -141,63 +142,68 @@ function HomeView({
   );
 }
 
-function SectionHeader({ title }: { title: string }) {
+function SectionLabel({ text }: { text: string }) {
   const { colors } = useTheme();
   return (
-    <View style={sectionHeaderStyles.row}>
-      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
-      <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
-    </View>
+    <Text
+      style={{
+        color: colors.textSubtle,
+        fontSize: typography.caption,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        paddingLeft: 2,
+      }}
+    >
+      {text}
+    </Text>
   );
 }
 
 function createHomeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    scroll: { alignItems: 'center', paddingVertical: spacing.lg, paddingBottom: spacing.xxxl },
+    scroll: {
+      alignItems: 'center',
+      paddingTop: spacing.lg,
+      paddingBottom: spacing.xxxl,
+    },
     container: {
       width: '100%',
       maxWidth: layout.maxWidth,
       paddingHorizontal: layout.screenPaddingH,
-      gap: spacing.xl,
+      gap: spacing.lg,
     },
     section: { gap: spacing.sm },
     safetyNote: {
       color: colors.textSubtle,
-      fontSize: typography.caption,
+      fontSize: typography.micro,
       lineHeight: lineHeights.caption,
       textAlign: 'center',
       paddingHorizontal: spacing.xl,
-      paddingBottom: spacing.lg,
+      paddingBottom: spacing.sm,
     },
   });
 }
 
-const sectionHeaderStyles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: 2 },
-  accent: { width: 3, height: 13, borderRadius: 2 },
-  title: { fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.1 },
-});
-
-const demoModalStyles = StyleSheet.create({
+const demoOverlay = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
   },
   sheet: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 340,
     borderRadius: radius.xl,
     borderWidth: 1,
     padding: spacing.xl,
     gap: spacing.md,
   },
-  iconRow: { alignItems: 'center' },
   title: {
     fontSize: typography.subtitle,
-    fontWeight: '800',
+    fontWeight: '700',
     textAlign: 'center',
     letterSpacing: -0.2,
   },
@@ -206,15 +212,15 @@ const demoModalStyles = StyleSheet.create({
     lineHeight: lineHeights.bodySmall,
     textAlign: 'center',
   },
-  dismissBtn: {
+  btn: {
     alignSelf: 'center',
     borderWidth: 1,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
   },
-  dismissText: {
+  btnText: {
     fontSize: typography.bodySmall,
     fontWeight: '700',
   },

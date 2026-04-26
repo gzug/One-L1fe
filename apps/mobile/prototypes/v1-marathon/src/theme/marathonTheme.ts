@@ -1,172 +1,129 @@
-// ─── Static tokens (theme-independent) ──────────────────────────────────────
+// One L1fe — V1 Marathon — Design tokens
+
 export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
-  xxl: 40,
-  xxxl: 64,
+  xs:   4,
+  sm:   8,
+  md:   12,
+  lg:   16,
+  xl:   24,
+  xxl:  32,
+  xxxl: 56,
 } as const;
 
 export const radius = {
-  sm: 8,
-  md: 14,
-  lg: 20,
-  xl: 28,
-  pill: 999,
+  sm:   6,
+  md:   10,
+  lg:   14,
+  xl:   20,
+  pill: 99,
 } as const;
 
 export const typography = {
-  heroName: 28,
-  heroSub: 13,
-  heroInterpretation: 21,
-  title: 20,
-  subtitle: 17,
-  body: 15,
-  bodySmall: 13,
-  caption: 12,
-  micro: 11,
+  heroName:            26,
+  heroSub:             12,
+  heroInterpretation:  19,
+  subtitle:            15,
+  body:                14,
+  bodySmall:           13,
+  caption:             11,
+  micro:               10,
 } as const;
 
 export const lineHeights = {
-  heroInterpretation: 28,
-  body: 22,
-  bodySmall: 19,
-  caption: 17,
+  heroInterpretation: 25,
+  body:               21,
+  bodySmall:          19,
+  caption:            16,
 } as const;
 
 export const layout = {
-  maxWidth: 430,
-  screenPaddingH: 16,
+  screenPaddingH: 18,
+  maxWidth:       480,
 } as const;
 
-// Warm palette only — no blue
-export const segmentColors = ['#EFA264', '#5DB88A', '#E8A84A', '#C4A882'] as const;
-
-export type ThemeScheme = 'light' | 'dark';
-export type StatusBarTone = 'light' | 'dark';
+// --- Color palettes ---------------------------------------------------
 
 export type ThemeColors = {
-  scheme: ThemeScheme;
-  background: string;
-  surface: string;
-  surfaceElevated: string;
-  border: string;
-  borderSubtle: string;
-  text: string;
-  textMuted: string;
-  textSubtle: string;
-  accent: string;
-  accentSoft: string;
-  accentBorder: string;
-  positive: string;
-  positiveSoft: string;
-  positiveBorder: string;
-  positiveTint: string;
-  warning: string;
-  warningSoft: string;
-  warningBorder: string;
-  warningTint: string;
-  danger: string;
-  demoBanner: string;
-  demoBannerBorder: string;
-  progressTrack: string;
-  ringTrack: string;
-  ringProgress: string;
-  coachPrimaryTint: string;
-  coachSupportTint: string;
-  coachContextTint: string;
-  profileSectionBg: string;
-  profileRowBorder: string;
-  sourceBadgeBg: string;
-  sourceBadgeBorder: string;
-  statusBar: StatusBarTone;
+  // Backgrounds
+  background:        string;
+  surface:           string;
+  surfaceElevated:   string;
+  // Borders
+  border:            string;
+  borderSubtle:      string;
+  // Text
+  text:              string;
+  textMuted:         string;
+  textSubtle:        string;
+  // Accent (apricot)
+  accent:            string;
+  accentBorder:      string;
+  accentSoft:        string;
+  // Semantic
+  positive:          string;
+  warning:           string;
+  danger:            string;
+  // Ring
+  ringTrack:         string;
+  ringProgress:      string;
+  // Progress bars
+  progressTrack:     string;
+  // Profile
+  profileSectionBg:  string;
+  profileRowBorder:  string;
+  // Demo banner
+  demoBanner:        string;
+  demoBannerBorder:  string;
+  // Status bar style hint
+  statusBar:         'dark' | 'light';
 };
 
-// ─── Dark palette ───────────────────────────────────────────────────────
-export const darkColors: ThemeColors = {
-  scheme: 'dark',
-  background: '#0E0D0B',
-  surface: '#181510',
-  surfaceElevated: '#201D17',
-  border: '#2C2720',
-  borderSubtle: '#221F19',
-  text: '#F0E8DE',
-  textMuted: '#A8A096',
-  textSubtle: '#65605A',
-  accent: '#EFA264',
-  accentSoft: 'rgba(239,162,100,0.10)',
-  accentBorder: 'rgba(239,162,100,0.26)',
-  positive: '#5DB88A',
-  positiveSoft: 'rgba(93,184,138,0.10)',
-  positiveBorder: 'rgba(93,184,138,0.24)',
-  positiveTint: 'rgba(93,184,138,0.06)',
-  warning: '#E8A84A',
-  warningSoft: 'rgba(232,168,74,0.10)',
-  warningBorder: 'rgba(232,168,74,0.24)',
-  warningTint: 'rgba(232,168,74,0.05)',
-  danger: '#E07A6A',
-  demoBanner: 'rgba(239,162,100,0.06)',
-  demoBannerBorder: 'rgba(239,162,100,0.14)',
-  progressTrack: 'rgba(255,255,255,0.06)',
-  ringTrack: 'rgba(255,255,255,0.08)',
-  ringProgress: '#EFA264',
-  coachPrimaryTint: 'rgba(239,162,100,0.04)',
-  coachSupportTint: 'rgba(93,184,138,0.04)',
-  coachContextTint: 'transparent',
-  profileSectionBg: '#181510',
-  profileRowBorder: '#221F19',
-  sourceBadgeBg: 'rgba(239,162,100,0.07)',
-  sourceBadgeBorder: 'rgba(239,162,100,0.18)',
-  statusBar: 'light',
-};
-
-// ─── Light palette ───────────────────────────────────────────────────────
 export const lightColors: ThemeColors = {
-  scheme: 'light',
-  background: '#F7F3EE',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FDF9F5',
-  border: '#E6DDD4',
-  borderSubtle: '#EDE7DF',
-  text: '#1C1714',
-  textMuted: '#6B5F56',
-  textSubtle: '#A8998E',
-  accent: '#D4722A',
-  accentSoft: 'rgba(212,114,42,0.08)',
-  accentBorder: 'rgba(212,114,42,0.22)',
-  positive: '#2E8A5E',
-  positiveSoft: 'rgba(46,138,94,0.08)',
-  positiveBorder: 'rgba(46,138,94,0.22)',
-  positiveTint: 'rgba(46,138,94,0.05)',
-  warning: '#B87820',
-  warningSoft: 'rgba(184,120,32,0.08)',
-  warningBorder: 'rgba(184,120,32,0.22)',
-  warningTint: 'rgba(184,120,32,0.04)',
-  danger: '#C0472E',
-  demoBanner: 'rgba(212,114,42,0.05)',
-  demoBannerBorder: 'rgba(212,114,42,0.16)',
-  progressTrack: 'rgba(0,0,0,0.07)',
-  ringTrack: 'rgba(0,0,0,0.08)',
-  ringProgress: '#D4722A',
-  coachPrimaryTint: 'rgba(212,114,42,0.04)',
-  coachSupportTint: 'rgba(46,138,94,0.04)',
-  coachContextTint: 'transparent',
+  background:       '#FAF8F5',   // warm cream
+  surface:          '#F5F2EE',   // slightly cooler cream
+  surfaceElevated:  '#FFFFFF',   // white card
+  border:           '#E8E3DC',   // warm grey, hairline
+  borderSubtle:     '#F0EDE8',   // nearly invisible
+  text:             '#1A1714',   // near-black warm
+  textMuted:        '#5C554E',   // warm medium grey
+  textSubtle:       '#9B948C',   // muted labels
+  accent:           '#C4622D',   // apricot / terracotta
+  accentBorder:     '#E8C4A8',   // pale apricot
+  accentSoft:       '#FDF3EC',   // near-white apricot tint
+  positive:         '#3D7A5C',   // muted mint-green
+  warning:          '#B07030',   // muted amber
+  danger:           '#9B3A3A',   // muted red
+  ringTrack:        '#EDE8E2',
+  ringProgress:     '#C4622D',
+  progressTrack:    '#EDE8E2',
   profileSectionBg: '#FFFFFF',
-  profileRowBorder: '#EDE7DF',
-  sourceBadgeBg: 'rgba(212,114,42,0.06)',
-  sourceBadgeBorder: 'rgba(212,114,42,0.18)',
-  statusBar: 'dark',
+  profileRowBorder: '#F0EDE8',
+  demoBanner:       '#FDF6F0',
+  demoBannerBorder: '#EDD5C0',
+  statusBar:        'dark',
 };
 
-// Legacy shim
-export const marathonTheme = {
-  colors: darkColors,
-  spacing,
-  radius,
-  typography,
-  lineHeights,
-  layout,
-  segmentColors,
-} as const;
+export const darkColors: ThemeColors = {
+  background:       '#141210',   // warm near-black
+  surface:          '#1C1A17',   // barely-lifted surface
+  surfaceElevated:  '#211F1B',   // card surface
+  border:           '#2E2B27',   // subtle warm border
+  borderSubtle:     '#242220',   // nearly invisible
+  text:             '#F0EDE8',   // warm off-white
+  textMuted:        '#A89F96',   // warm medium grey
+  textSubtle:       '#6B6460',   // muted labels
+  accent:           '#D4724A',   // slightly lighter apricot for dark
+  accentBorder:     '#4A3020',   // dark apricot border
+  accentSoft:       '#261A12',   // dark apricot bg
+  positive:         '#4D9970',   // lifted mint for dark
+  warning:          '#C08040',   // lifted amber for dark
+  danger:           '#B84E4E',   // lifted red for dark
+  ringTrack:        '#2A2723',
+  ringProgress:     '#D4724A',
+  progressTrack:    '#2A2723',
+  profileSectionBg: '#1C1A17',
+  profileRowBorder: '#242220',
+  demoBanner:       '#1E1B17',
+  demoBannerBorder: '#3A2E22',
+  statusBar:        'light',
+};

@@ -15,10 +15,10 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
   return (
     <View style={[styles.root, { borderBottomColor: colors.borderSubtle }]}>
       <View style={styles.inner}>
-        {/* Brand */}
+        {/* Brand lockup */}
         <View style={styles.brand}>
-          <Text style={[styles.brandName, { color: colors.accent }]}>One L1fe</Text>
-          <Text style={[styles.brandSub, { color: colors.textSubtle }]}>
+          <Text style={[styles.brandName, { color: colors.text }]}>One L1fe</Text>
+          <Text style={[styles.brandSub, { color: colors.accent }]}>
             V1 — Marathon
           </Text>
         </View>
@@ -27,29 +27,27 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
         <View style={styles.controls}>
           <Pressable
             onPress={onDemoInfoPress}
-            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={styles.iconBtn}
             accessibilityLabel="About demo data"
-            hitSlop={8}
+            hitSlop={10}
           >
-            <Ionicons name="information-circle-outline" size={18} color={colors.textMuted} />
+            <Ionicons name="information-circle-outline" size={20} color={colors.textSubtle} />
           </Pressable>
-
           <Pressable
             onPress={toggle}
-            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={styles.iconBtn}
             accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-            hitSlop={8}
+            hitSlop={10}
           >
-            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={17} color={colors.textMuted} />
+            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={19} color={colors.textSubtle} />
           </Pressable>
-
           <Pressable
             onPress={onProfilePress}
-            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={styles.iconBtn}
             accessibilityLabel="Open profile"
-            hitSlop={8}
+            hitSlop={10}
           >
-            <Ionicons name="person-circle-outline" size={19} color={colors.textMuted} />
+            <Ionicons name="person-circle-outline" size={21} color={colors.textSubtle} />
           </Pressable>
         </View>
       </View>
@@ -61,41 +59,40 @@ const styles = StyleSheet.create({
   root: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.sm,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
-    alignItems: 'center',
   },
   inner: {
-    width: '100%',
     maxWidth: layout.maxWidth,
+    width: '100%',
+    alignSelf: 'center',
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brand: { gap: 1 },
+  brand: {
+    gap: 1,
+  },
   brandName: {
     fontSize: typography.heroName,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    lineHeight: 34,
+    fontWeight: '700',
+    letterSpacing: -0.8,
+    lineHeight: 30,
   },
   brandSub: {
     fontSize: typography.heroSub,
     fontWeight: '500',
-    letterSpacing: 0.1,
-    lineHeight: 17,
+    letterSpacing: 0.3,
+    lineHeight: 16,
   },
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    paddingBottom: 3,
+    gap: spacing.md,
   },
   iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
   },
