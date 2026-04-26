@@ -43,10 +43,46 @@ export const layout = {
 
 export const segmentColors = ['#EFA264', '#5DB88A', '#E8A84A', '#7FAFD4'] as const;
 
+export type ThemeScheme = 'light' | 'dark';
+export type StatusBarTone = 'light' | 'dark';
+
+export type ThemeColors = {
+  scheme: ThemeScheme;
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  border: string;
+  borderSubtle: string;
+  text: string;
+  textMuted: string;
+  textSubtle: string;
+  accent: string;
+  accentSoft: string;
+  accentBorder: string;
+  positive: string;
+  positiveSoft: string;
+  positiveBorder: string;
+  positiveTint: string;
+  warning: string;
+  warningSoft: string;
+  warningBorder: string;
+  warningTint: string;
+  danger: string;
+  demoBanner: string;
+  demoBannerBorder: string;
+  progressTrack: string;
+  coachPrimaryTint: string;
+  coachSupportTint: string;
+  coachContextTint: string;
+  profileSectionBg: string;
+  profileRowBorder: string;
+  statusBar: StatusBarTone;
+};
+
 // ─── Color palettes ──────────────────────────────────────────────────────────
 
-export const darkColors = {
-  scheme: 'dark' as const,
+export const darkColors: ThemeColors = {
+  scheme: 'dark',
   background: '#131210',
   surface: '#1C1915',
   surfaceElevated: '#242018',
@@ -75,11 +111,11 @@ export const darkColors = {
   coachContextTint: 'transparent',
   profileSectionBg: '#1C1915',
   profileRowBorder: '#252119',
-  statusBar: 'light' as const,
+  statusBar: 'light',
 };
 
-export const lightColors = {
-  scheme: 'light' as const,
+export const lightColors: ThemeColors = {
+  scheme: 'light',
   background: '#F7F3EE',
   surface: '#FFFFFF',
   surfaceElevated: '#FDF9F5',
@@ -108,10 +144,8 @@ export const lightColors = {
   coachContextTint: 'transparent',
   profileSectionBg: '#FFFFFF',
   profileRowBorder: '#EDE7DF',
-  statusBar: 'dark' as const,
+  statusBar: 'dark',
 };
-
-export type ThemeColors = typeof darkColors;
 
 // Legacy shim — keeps any missed static import alive during migration
 export const marathonTheme = {
