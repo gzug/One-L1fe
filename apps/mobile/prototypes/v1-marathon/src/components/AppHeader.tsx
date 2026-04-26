@@ -18,7 +18,7 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
         <View style={styles.brand}>
           <Text style={[styles.brandName, { color: colors.accent }]}>One L1fe</Text>
           <Text style={[styles.brandSub, { color: colors.textSubtle }]}>
-            V1 \u2014 Marathon
+            V1 — Marathon
           </Text>
         </View>
 
@@ -26,7 +26,10 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
         <View style={styles.controls}>
           <Pressable
             onPress={toggle}
-            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={[
+              styles.iconBtn,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+            ]}
             accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             hitSlop={8}
           >
@@ -39,7 +42,10 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
 
           <Pressable
             onPress={onProfilePress}
-            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            style={[
+              styles.iconBtn,
+              { borderColor: colors.border, backgroundColor: colors.surface },
+            ]}
             accessibilityLabel="Open profile"
             hitSlop={8}
           >

@@ -5,14 +5,14 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View as RNView,
+  View,
 } from 'react-native';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { AppHeader } from './components/AppHeader';
 import { BloodMarkerCard } from './components/BloodMarkerCard';
 import { CoachingCard } from './components/CoachingCard';
 import { DemoModeBanner } from './components/DemoModeBanner';
-import { NutritionContextCard } from './components/NutritionContextCard';
+import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { SignalCard } from './components/SignalCard';
@@ -63,46 +63,46 @@ function HomeView({ onProfilePress }: { onProfilePress: () => void }) {
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <RNView style={s.container}>
-
+        <View style={s.container}>
           <DemoModeBanner />
           <ReadinessOrbit />
 
           {/* Training signals */}
-          <RNView style={s.section}>
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionSignals} />
             {trainingSignals.map((signal) => (
               <SignalCard key={signal.label} signal={signal} />
             ))}
-          </RNView>
+          </View>
 
           {/* Blood context */}
-          <RNView style={s.section}>
-            <RNView style={s.sectionTitleRow}>
+          <View style={s.section}>
+            <View style={s.sectionTitleRow}>
               <SectionHeader title={prototypeCopy.sectionBlood} />
               <Text style={s.panelCount}>
                 {prototypeCopy.bloodPanelCount(bloodPanelCount)}
               </Text>
-            </RNView>
-            <RNView style={s.bloodGrid}>
+            </View>
+            <View style={s.bloodGrid}>
               {bloodMarkers.map((marker) => (
                 <BloodMarkerCard key={marker.label} marker={marker} />
               ))}
-            </RNView>
-          </RNView>
+            </View>
+          </View>
 
           {/* Coaching */}
-          <RNView style={s.section}>
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
-          </RNView>
+          </View>
 
-          <NutritionContextCard />
+          {/* Ideas & Notes */}
+          <IdeasNotesCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
-        </RNView>
+        </View>
       </ScrollView>
     </>
   );
@@ -111,10 +111,10 @@ function HomeView({ onProfilePress }: { onProfilePress: () => void }) {
 function SectionHeader({ title }: { title: string }) {
   const { colors } = useTheme();
   return (
-    <RNView style={sectionHeaderStyles.row}>
-      <RNView style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
+    <View style={sectionHeaderStyles.row}>
+      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
       <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
-    </RNView>
+    </View>
   );
 }
 

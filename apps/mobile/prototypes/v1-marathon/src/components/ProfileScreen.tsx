@@ -16,7 +16,6 @@ import type { ConnectedSource, ProfileField } from '../data/demoData';
 
 type ProfileScreenProps = { onClose: () => void };
 
-// Field keys grouped into sections
 const personalKeys = ['name', 'age', 'gender', 'height', 'weight'];
 const trainingKeys = ['goal_race', 'race_date', 'level', 'volume', 'long_run', 'train_days'];
 const prefKeys = ['units', 'pace_fmt'];
@@ -43,12 +42,17 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
     <SafeAreaView style={s.safeArea}>
       {/* Header */}
       <View style={s.header}>
-        <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
+        <Pressable
+          onPress={onClose}
+          style={s.backBtn}
+          hitSlop={8}
+          accessibilityLabel="Back"
+        >
           <Ionicons name="chevron-back" size={22} color={colors.accent} />
         </Pressable>
         <View style={s.headerCenter}>
           <Text style={s.headerTitle}>Profile</Text>
-          <Text style={s.headerSub}>One L1fe \u00b7 V1 \u2014 Marathon</Text>
+          <Text style={s.headerSub}>One L1fe · V1 — Marathon</Text>
         </View>
         <Pressable
           onPress={() => setEditMode((e) => !e)}
@@ -67,8 +71,7 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
         showsVerticalScrollIndicator={false}
       >
         <View style={s.container}>
-
-          {/* Demo context note */}
+          {/* Demo banner */}
           <View style={s.demoBanner}>
             <Text style={s.demoBannerText}>
               Profile values are demo data. Real data will sync from your account and
@@ -76,7 +79,7 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
             </Text>
           </View>
 
-          {/* Profile sections */}
+          {/* Sections */}
           {sectionDefs.map((section) => (
             <ProfileSection
               key={section.title}
@@ -111,7 +114,6 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
   );
 }
 
-// ─── ProfileSection ─────────────────────────────────────────────────────────
 function ProfileSection({
   title,
   fields,
@@ -135,16 +137,16 @@ function ProfileSection({
           >
             <Text style={s.rowLabel}>{field.label}</Text>
             <View style={s.rowRight}>
-              <Text
-                style={[
-                  s.rowValue,
-                  editMode && field.editable && s.rowValueEdit,
-                ]}
-              >
+              <Text style={[s.rowValue, editMode && field.editable && s.rowValueEdit]}>
                 {field.value}
               </Text>
               {editMode && field.editable && (
-                <Ionicons name="pencil-outline" size={11} color={colors.accent} style={s.editIcon} />
+                <Ionicons
+                  name="pencil-outline"
+                  size={11}
+                  color={colors.accent}
+                  style={s.editIcon}
+                />
               )}
             </View>
           </View>
@@ -154,7 +156,6 @@ function ProfileSection({
   );
 }
 
-// ─── SourceRow ─────────────────────────────────────────────────────────────────
 function SourceRow({
   source,
   isLast,
@@ -165,13 +166,12 @@ function SourceRow({
   colors: ThemeColors;
 }) {
   const s = createStyles(colors);
-
-  const actionIcon = source.id === 'blood_panels'
-    ? 'cloud-upload-outline'
-    : source.id === 'health_connect'
-    ? 'settings-outline'
-    : 'link-outline';
-
+  const actionIcon =
+    source.id === 'blood_panels'
+      ? 'cloud-upload-outline'
+      : source.id === 'health_connect'
+      ? 'settings-outline'
+      : 'link-outline';
   const isOnFile = source.status === 'prototype_only';
 
   return (
@@ -181,12 +181,13 @@ function SourceRow({
         <Text style={isOnFile ? s.sourceOnFile : s.sourceMuted}>
           {source.statusLabel}
         </Text>
-        {source.note ? (
-          <Text style={s.sourceNote}>{source.note}</Text>
-        ) : null}
+        {source.note ? <Text style={s.sourceNote}>{source.note}</Text> : null}
       </View>
       <Pressable
-        style={[s.sourceAction, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+        style={[
+          s.sourceAction,
+          { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
+        ]}
         accessibilityLabel={`${source.actionLabel} ${source.label}`}
         hitSlop={6}
       >
@@ -197,13 +198,9 @@ function SourceRow({
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    safeArea: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+    safeArea: { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -213,26 +210,15 @@ function createStyles(colors: ThemeColors) {
       borderBottomColor: colors.borderSubtle,
       gap: spacing.sm,
     },
-    backBtn: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    headerCenter: {
-      flex: 1,
-      gap: 1,
-    },
+    backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+    headerCenter: { flex: 1, gap: 1 },
     headerTitle: {
       color: colors.text,
       fontSize: typography.subtitle,
       fontWeight: '800',
       letterSpacing: -0.2,
     },
-    headerSub: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
-    },
+    headerSub: { color: colors.textSubtle, fontSize: typography.micro },
     editBtn: {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm - 2,
@@ -250,9 +236,7 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.bodySmall,
       fontWeight: '600',
     },
-    editBtnTextActive: {
-      color: colors.accent,
-    },
+    editBtnTextActive: { color: colors.accent },
     scroll: {
       alignItems: 'center',
       paddingVertical: spacing.xl,
@@ -324,12 +308,8 @@ function createStyles(colors: ThemeColors) {
       textAlign: 'right',
       flexShrink: 1,
     },
-    rowValueEdit: {
-      color: colors.accent,
-    },
-    editIcon: {
-      marginLeft: 2,
-    },
+    rowValueEdit: { color: colors.accent },
+    editIcon: { marginLeft: 2 },
     sourceRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -338,14 +318,8 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.md,
       gap: spacing.md,
     },
-    sourceLeft: {
-      flex: 1,
-      gap: 2,
-    },
-    sourceMuted: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
-    },
+    sourceLeft: { flex: 1, gap: 2 },
+    sourceMuted: { color: colors.textSubtle, fontSize: typography.micro },
     sourceOnFile: {
       color: colors.positive,
       fontSize: typography.micro,
