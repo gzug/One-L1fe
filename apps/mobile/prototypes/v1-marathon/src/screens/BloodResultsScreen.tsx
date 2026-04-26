@@ -74,7 +74,6 @@ export function BloodResultsScreen({ onClose }: Props) {
   }
 
   const handleSave = useCallback(async () => {
-    // Validate: enabled markers must have a non-empty value
     const current = panels.find((p) => p.id === activeTab);
     if (current) {
       const invalid = current.markers.filter(
@@ -114,7 +113,6 @@ export function BloodResultsScreen({ onClose }: Props) {
 
   return (
     <SafeAreaView style={s.safeArea}>
-      {/* Header */}
       <View style={s.header}>
         <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
           <Ionicons name="arrow-back" size={20} color={colors.text} />
@@ -143,7 +141,6 @@ export function BloodResultsScreen({ onClose }: Props) {
         )}
       </View>
 
-      {/* Panel tabs */}
       <View style={s.tabRow}>
         {panels.map((panel) => (
           <Pressable
@@ -168,7 +165,6 @@ export function BloodResultsScreen({ onClose }: Props) {
         ))}
       </View>
 
-      {/* Info banner */}
       <View style={[s.infoBanner, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
         <Ionicons name="information-circle-outline" size={13} color={colors.textSubtle} />
         <Text style={[s.infoBannerText, { color: colors.textSubtle }]}>
@@ -182,7 +178,6 @@ export function BloodResultsScreen({ onClose }: Props) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={s.container}>
-          {/* Markers */}
           {activePanel && (
             <View style={[s.card, { borderColor: colors.border }]}>
               {activePanel.markers.map((marker, index) => (
@@ -202,7 +197,6 @@ export function BloodResultsScreen({ onClose }: Props) {
             </View>
           )}
 
-          {/* Upload actions */}
           <View style={s.uploadSection}>
             <Text style={[s.uploadLabel, { color: colors.textSubtle }]}>Import</Text>
             <View style={s.uploadRow}>
@@ -221,23 +215,16 @@ export function BloodResultsScreen({ onClose }: Props) {
                 <Text style={[s.uploadBtnText, { color: colors.textMuted }]}>Upload photo</Text>
               </Pressable>
             </View>
-            <Text style={[s.uploadNote, { color: colors.textSubtle }]}>
-              Import review is planned. Values must be reviewed before saving. Not active in prototype.
-            </Text>
+            <Text style={[s.uploadNote, { color: colors.textSubtle }]}>Import review is planned. Values must be reviewed before saving. Not active in prototype.</Text>
           </View>
 
-          <Text style={[s.footer, { color: colors.textSubtle }]}>
-            Values are context only. Not a diagnosis. Consult your doctor for medical interpretation.
-          </Text>
+          <Text style={[s.footer, { color: colors.textSubtle }]}>Values are context only. Not a diagnosis. Consult your doctor for medical interpretation.</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-// ---------------------------------------------------------------------------
-// MarkerRow
-// ---------------------------------------------------------------------------
 function MarkerRow({
   marker,
   isLast,
@@ -252,7 +239,7 @@ function MarkerRow({
   marker: BloodMarker;
   isLast: boolean;
   isEditing: boolean;
-  inputRef?: React.RefObject<TextInput>;
+  inputRef?: React.RefObject<TextInput | null>;
   onStartEdit: () => void;
   onEndEdit: () => void;
   onChangeValue: (val: string) => void;
@@ -268,22 +255,11 @@ function MarkerRow({
         disabled && rowStyles.rowDisabled,
       ]}
     >
-      {/* Label + unit */}
       <View style={rowStyles.left}>
-        <Text
-          style={[
-            rowStyles.label,
-            { color: disabled ? colors.textSubtle : colors.textMuted },
-          ]}
-        >
-          {marker.label}
-        </Text>
-        <Text style={[rowStyles.unit, { color: colors.textSubtle }]}>
-          {marker.unit}
-        </Text>
+        <Text style={[rowStyles.label, { color: disabled ? colors.textSubtle : colors.textMuted }]}>{marker.label}</Text>
+        <Text style={[rowStyles.unit, { color: colors.textSubtle }]}>{marker.unit}</Text>
       </View>
 
-      {/* Value */}
       <View style={rowStyles.middle}>
         {disabled ? (
           <Text style={[rowStyles.excluded, { color: colors.textSubtle }]}>Excluded</Text>
@@ -309,24 +285,11 @@ function MarkerRow({
           />
         ) : (
           <Pressable onPress={onStartEdit} hitSlop={8}>
-            <Text
-              style={[
-                rowStyles.value,
-                {
-                  color:
-                    marker.value.trim() === ''
-                      ? colors.textSubtle
-                      : colors.text,
-                },
-              ]}
-            >
-              {marker.value.trim() === '' ? 'Add value' : marker.value}
-            </Text>
+            <Text style={[rowStyles.value, { color: marker.value.trim() === '' ? colors.textSubtle : colors.text }]}>{marker.value.trim() === '' ? 'Add value' : marker.value}</Text>
           </Pressable>
         )}
       </View>
 
-      {/* Enable/disable toggle */}
       <Switch
         value={marker.enabled}
         onValueChange={onToggle}
@@ -339,9 +302,6 @@ function MarkerRow({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Styles
-// ---------------------------------------------------------------------------
 const rowStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
