@@ -2,177 +2,79 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-24
+last_verified: 2026-04-26
 supersedes: []
 superseded_by: null
-scope: repo
+scope: branch
 ---
 
-# CHECKPOINT.md
+# CHECKPOINT.md — Prototype V1 Marathon Branch
 
 ## Verdict
 
-Increment 8 of the Dot/Score refactor is implemented on `claude/opus-refactor-one-l1fe-BjSjj` (PR #108): the mobile home now uses the warm One L1fe design tokens, a greeting header, score hero, 2x2 score-capable Dot grid with icons, source-gated Ask entry, action cards, and Home disclaimer. Ask One L1fe and the first-run guide were restyled to the same system. A simple remote Android sideload guide for the brother/OnePlus 13R tester is drafted in `docs/ops/sideload-guide.md`. Mobile typecheck, domain assertions, Expo web export, and `git diff --check` passed locally.
+This branch is the reduced Android prototype for the incubator/demo path now named **One L1fe — Prototype V1 Marathon**.
 
-## Active Refactor
+It is not the full One L1fe app state on `main`. Treat this branch as a focused APK/demo branch whose purpose is to show a narrow marathon-readiness experience without requiring Supabase login.
 
-- **Branch:** `claude/opus-refactor-one-l1fe-BjSjj`
-- **PR:** [#108](https://github.com/gzug/One-L1fe/pull/108) — Draft, CI in progress
-- **Base Commit:** `70759b5` — meta: update CHECKPOINT after Increment 1 (Dot/Score domain foundation)
-- **Remote baseline before guided demo:** `d7878ef` — refactor(domain): harden UI/domain Dot boundary
-- **Design seed baseline:** `201f315` — feat(mobile): seed design tokens, dot icons, hero demo fields
-- **Latest app/design work:** `feat(mobile): finish home design refresh`
-- **Working tree:** expected clean after committing current design/docs updates
+## Active branch
 
-## Completed Increments
+- Branch: `claude/antler-health-os-demo-O6PNI`
+- Product framing: `One L1fe — Prototype V1 Marathon`
+- Runtime entry: `apps/mobile/App.tsx` returns `AntlerHealthOsDemoScreen` unless `EXPO_PUBLIC_ANTLER_DEMO=0`
+- Primary screen: `apps/mobile/AntlerHealthOsDemoScreen.tsx`
+- Current canonical doc: `apps/mobile/docs/prototype-v1-marathon.md`
 
-### Increment 1 — Domain Foundation ✅
-- `packages/domain/dots.ts` — DotStatus (incl. `planned_locked`), DotScore, DotDefinition, full static Dot catalog. Mind & Sleep folded as sub-group under Lifestyle (5-tab constraint). Doctor Prep and Symptoms carry `scoreContribution: 'output'` — never enter aggregate formula.
-- `packages/domain/scoreAggregation.ts` — `aggregateOneL1feScore()` using `effectiveWeight = baseWeight × coverage × freshness × confidence`. Only `ready`/`needs_update` leaf Dots count. `planned_locked`, `excluded`, `missing` never penalized.
-- `packages/domain/scoreDisplay.ts` — `no_data`/`starter`/`usable`/`strong` mapping with named coverage thresholds. Never renders raw 0 for missing data.
-- Assertion tests wired into `runMinimumSliceAssertions.ts`
-- `tsc --noEmit` green, test suite green
+## What is current
 
-### Increment 2 — 5-Tab Navigation ✅
-- `apps/mobile/App.tsx` now uses the Dot catalog `TAB_ORDER` as the 5 main tab order: One L1fe / Doctor Prep / Health Data / Lifestyle / Activity.
-- Existing screens are migrated without changing their internals:
-  - `WeeklyCheckinScreen` lives under One L1fe
-  - `MinimumSliceScreen` lives under Health Data
-  - `WearableSyncScreen` lives under Activity behind the existing Health Connect permission gate
-  - `DevInsightScreen` remains available only for `is_dev=true`
-- Added `apps/mobile/FirstCheckinCard.tsx` on the One L1fe tab.
-- Added reusable `apps/mobile/LockedFeatureCard.tsx` and render planned-locked Dots from the static catalog.
-- Added static Menu card with Settings entry.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
-  - `npm --prefix apps/mobile run export:web`
+- `apps/mobile/AntlerHealthOsDemoScreen.tsx` — current UI shell for the reduced marathon prototype.
+- `apps/mobile/healthOsTheme.ts` — current light/dark visual token set for this prototype.
+- `apps/mobile/healthOsDataMode.ts` — current Real Data vs Demo Filled switch and biomarker tile mapping.
+- `apps/mobile/healthOsDemoReport.ts` — current readiness report calculation and copy.
+- `apps/mobile/realBiomarkerPanels.ts` — current static real biomarker panel data used by the prototype.
+- `apps/mobile/healthConnectGarminReader.ts` — current Android Health Connect reader for Garmin-origin wearable data.
+- `apps/mobile/healthConnectSignalRows.ts` — current wearable signal display rows.
+- `apps/mobile/biomarkerProgress.ts` — current biomarker progress display rows.
+- `apps/mobile/marathonNotesStorage.ts` — current local-only notes persistence.
+- `apps/mobile/docs/prototype-v1-marathon.md` — current status, scope, file map, and tester guide.
 
-### Increment 3 — Visible Dot/Sub-Dot Prototype ✅
-- `apps/mobile/App.tsx` now renders the full visible Dot/Sub-Dot structure for all five main dots.
-- Sub-dots are visible, tappable, and status-aware with `ready`, `needs_update`, `missing`, `excluded`, and `planned_locked` labels.
-- The following sub-dot paths now open visible detail panes:
-  - One L1fe Score
-  - Current Update
-  - Blood / Biomarkers
-  - Nutrition
-  - Wearable Sync
-- Added `packages/domain/dotStructure.ts` and assertions so the structure is centralized and testable.
-- Added `packages/domain/nutritionEstimate.ts` plus assertions for bounded confidence and uncertainty-aware mock nutrition output.
-- Added web-safe stubs for wearable permission gating so Expo web no longer trips on native-only imports.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
-  - `npm --prefix apps/mobile run export:web`
+## What is intentionally not current for this branch
 
-### Increment 4 — One L1fe Home Orbit Simplification ✅
-- `apps/mobile/App.tsx` now treats One L1fe as the Home surface instead of a peer tab.
-- The Home Orbit renders only `Health`, `Nutrition`, `Mind & Sleep`, and `Activity`; `Lifestyle`, `Doctor Prep`, `Habits`, and Dev Insight are not orbit dots.
-- `Doctor Prep` and `Menu` are Home actions. Menu contains `One L1fe`, `Health`, `Nutrition`, `Mind & Sleep`, `Activity`, `Doctor Prep`, `Profile`, and `How the One L1fe Score Works`.
-- Non-Home screens include a small Home/Menu affordance so users are not trapped in detail views.
-- `Profile` is visible as a structured placeholder containing basic information, health context, preferences, connected sources, data choices, and app settings.
-- `Nutrition` is visible and tappable but displays `Coming Soon` on the orbit; its detail path keeps the approximate photo/text nutrition prototype and states that it does not affect score yet.
-- `packages/domain/dotStructure.ts` now exposes `ORBIT_DOTS`, `MENU_ENTRIES`, score-display labels, and score-effect helpers for testable navigation structure.
-- `apps/mobile/MinimumSliceScreen.tsx` includes the shared field-status helper copy for Active / Missing / Not provided.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
-  - `npm --prefix apps/mobile run export:web`
+- `main` app flow with Supabase login is not the default runtime on this branch.
+- `scratch/antler-health-os-demo` is an older branch-level predecessor and should not be treated as canonical.
+- `scratch/antler-demo-monday` is identical to `main` and does not contain the current reduced prototype.
+- The old "Antler Health OS" naming is obsolete for user-facing copy. Keep legacy file/env names only when renaming would add avoidable build risk.
 
-### Increment 5 — Ask One L1fe Source-Gated Prototype 🚧
-- `apps/mobile/App.tsx` now shows an Ask One L1fe question entry directly on the One L1fe Home surface.
-- `apps/mobile/AskOneL1feScreen.tsx` shows the submitted question, answer, estimate confidence, sources used, missing data, and safety boundaries.
-- `packages/domain/askOneL1fe.ts` defines the shared source/fact context and deterministic answer builder for future backend use.
-- Current V1 behavior is intentionally conservative: without sourced user facts, Ask One L1fe explains that it cannot answer yet and does not invent values.
-- Domain assertions cover no-data refusal, source overview behavior, bounded confidence, excluded source handling, and no fake score-0 behavior.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
+## Boundaries
 
-### Increment 6 — Synthetic 90-Day Presentation Data + Habits Context 🚧
-- `packages/domain/syntheticDemoData.ts` adds explicitly synthetic 90-day presentation data with plausible biomarker, wearable, sleep, HRV, and activity summaries.
-- The One L1fe Home now renders synthetic demo score values for `Health`, `Mind & Sleep`, and `Activity`; `Nutrition` stays `Coming Soon` and has no score effect.
-- Ask One L1fe now uses the synthetic demo context so demo questions can return sourced answers with confidence, sources, missing data, and safety boundaries.
-- `Mind & Sleep > Habits & Context` now explains habit links such as late caffeine, walking consistency, and alcohol near bedtime as awareness context only.
-- `MinimumSliceScreen` now shows the Active / Missing / Not provided selector on every biomarker value, including ApoB, LDL-C, HbA1c, and Glucose.
-- Assertions cover synthetic source citation, Nutrition remaining unscored, habit links staying context-only, and core biomarker Missing mapping to null instead of crashing.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
+Included:
 
-### Increment 7 — First-Run Guided Overlay 🚧
-- Added `apps/mobile/FirstRunGuideOverlay.tsx` with a 7-step first-run guide for Score, Confidence/Coverage, Dots, Ask One L1fe, Doctor Prep, Menu, and first data source CTA.
-- Added `apps/mobile/firstRunGuideStorage.ts` for persistent completed state via AsyncStorage on native and localStorage on web.
-- The guide is skipable, appears on first signed-in run, and can be reopened from the Home `i` button.
-- Step 6 opens the Menu screen behind the overlay so the user sees where backup navigation lives.
-- Step 7 can route to `Activity > Wearable Sync`; Android copy calls out Health Connect, while web/iOS stays honest that Health Connect is Android-only in this prototype.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
+- Android-first APK/demo path.
+- Health Connect permission flow.
+- Garmin-origin Health Connect data read path.
+- Real Data vs Demo Filled mode.
+- Light/dark mode.
+- Static real biomarker panels for demo context.
+- Local-only profile and notes drafts.
 
-### Increment 8 — Home Design Refresh 🚧
-- `apps/mobile/src/theme/tokens.ts` and `apps/mobile/src/icons/DotIcons.tsx` provide the warm visual system and dependency-free Dot icons for Health, Nutrition, Mind & Sleep, and Activity.
-- `apps/mobile/App.tsx` now renders the Home surface with `Good Morning, Alex`, a single guide/info button, score hero, coverage/confidence meta, stable 2x2 Dot grid, current-update card, Ask entry, Doctor Prep/Menu action cards, and a Home disclaimer.
-- Nutrition stays visible/tappable but unscored; Doctor Prep and Menu remain Home actions, not Orbit Dots.
-- `apps/mobile/AskOneL1feScreen.tsx` and `apps/mobile/FirstRunGuideOverlay.tsx` were restyled to the same tokenized warm UI.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
-  - `npm --prefix apps/mobile run export:web`
-  - `git diff --check`
+Excluded:
 
-### Docs — Brother Android Sideload Guide 🚧
-- `docs/ops/sideload-guide.md` rewritten as a simple end-user guide for installing the APK on a OnePlus 13R without same Wi-Fi or physical access.
-- Covers receiving the EAS APK link, downloading on phone, allowing unknown app installs, logging in, first-run guide, Garmin watch pairing, Garmin Connect sync, Garmin-to-Health-Connect sharing, Health-Connect-to-One-L1fe permissions, OnePlus battery settings, updates, and troubleshooting.
-- No validation needed; docs-only change.
+- Direct Garmin API.
+- Terra OAuth.
+- Store release pipeline.
+- Medical diagnosis or treatment advice.
+- Claiming live Garmin sync unless Health Connect returns readable records.
 
-## Next Step
+## Cleanup decisions in this session
 
-**Next — route polish + real source integration**
-- Live-check the new warm Home layout on Android/Expo Web for small-screen spacing and text fit.
-- Split `App.tsx` into focused screen files before adding more Home behavior.
-- Replace synthetic Ask facts with real latest biomarker evaluation, wearable summaries, and profile/source settings when those flows are proven.
-- Live-check whether the guided overlay feels too long on mobile; 7 steps is the current upper limit.
+- Reframed the branch checkpoint around **Prototype V1 Marathon**.
+- Consolidated the canonical prototype documentation into `apps/mobile/docs/prototype-v1-marathon.md`.
+- Marked old Antler naming as legacy implementation detail, not product language.
+- Updated the Expo app display name to `One L1fe Prototype V1 Marathon`.
+- Removed the obsolete `apps/mobile/docs/antler-health-os-demo.md` file after replacing it with the canonical prototype doc.
 
-## Completed follow-up — Refactor/Stability slice
+## Next steps
 
-- `packages/domain/dotStructure.ts` is now marked as UI view model; domain binding is explicit via optional `SubDotDefinition.domainDotKeys` and checked by an assertion against `packages/domain/dots.ts`. No more silent drift between UI and domain catalogs.
-- `deriveOrbitDisplayState(userDotScores)` added as the runtime API the Home surface reads from. V1 returns a "no data" snapshot; future score pipeline feeds user Dot scores without changing the UI call site.
-- Orbit key renamed `mind_sleep` → `mind_and_sleep` across UI code to match the canonical domain DotKey.
-- `SubDotDefinition.kind = 'planned'` variant removed together with its dead branches in `App.tsx`.
-- Verified locally:
-  - `npm --prefix apps/mobile run typecheck`
-  - `npm run test:domain`
-  - `npm --prefix apps/mobile run export:web`
-
-## Pending PRs
-
-- `#108` — Dot/Score domain foundation (active, Draft)
-- `claude/real-app-install-id` — AsyncStorage-backed persistent UUID; intentionally held
-- `#99 feat: user-configurable panel preferences` — open, draft
-- `#101 feat: mobile scoring and build tooling` — open, draft
-
-## Blockers
-
-- No physical Garmin / Health Connect data source proof yet (WEARABLE-TD-001)
-- End-to-end Supabase ingest still needs an Android device run
-- Wearable sync request still uses placeholder payload (`as any`) — not blocking Increment 2
-
-## Decisions Made (Increment 1)
-
-- `planned_locked` replaces `planned` as sole DotStatus value for future features — forces locked UI
-- Only leaf Dots aggregate into `oneLIfeScore` — top-level groups are display rollups only
-- `WeeklyCheckinScreen` stays untouched — `FirstCheckinCard` wrapper added alongside it
-- Doctor Prep is read-only output Dot — no score input, no own data entry
-- Dot catalog lives as static array in `packages/domain/dots.ts` (not Supabase table) — V1.5 can migrate
-- Symptoms: stored as free text, not scored in V1 — Doctor Prep context only
-- Score display thresholds: coverage < 0.3 = starter, < 0.7 = usable, ≥ 0.7 = strong
-- One L1fe Score calculated at render time, not persisted
-
-## Deferred to post-v1
-
-- **Garmin Terra webhook** — Terra OAuth pairing + `wearable_observations` smoke-test (WEARABLE-TD-002)
-- Orbit animation (V1.5)
-- Ask One L1fe real LLM backend — V1 = UI stub + mocked response only
-- Server-side Dot score aggregation (V1 = client-side)
-- Supabase table for Dot catalog (V1 = static domain array)
+1. Rename `AntlerHealthOsDemoScreen.tsx` and `EXPO_PUBLIC_ANTLER_DEMO` only in a separate mechanical rename commit, if desired. Current names are tolerated to avoid build-path churn.
+2. Replace remaining in-screen text `Marathon readiness` with `Prototype V1 Marathon` after fetching/editing the large screen file safely.
+3. Run `npm --prefix apps/mobile run typecheck` and an Android APK build from a normal dev environment.
+4. Test on the target Android phone with Garmin Connect -> Health Connect sharing enabled.
