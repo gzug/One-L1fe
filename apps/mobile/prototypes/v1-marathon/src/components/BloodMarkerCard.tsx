@@ -23,15 +23,15 @@ function sColor(s: BloodMarker['status'], c: ThemeColors) {
 }
 function sBg(s: BloodMarker['status'], c: ThemeColors) {
   switch (s) {
-    case 'available': return c.positiveSoft;
-    case 'needs_attention': return c.warningSoft;
+    case 'available': return c.positive + '14';
+    case 'needs_attention': return c.warning + '14';
     default: return 'transparent';
   }
 }
 function sBorder(s: BloodMarker['status'], c: ThemeColors) {
   switch (s) {
-    case 'available': return c.positiveBorder;
-    case 'needs_attention': return c.warningBorder;
+    case 'available': return c.positive + '33';
+    case 'needs_attention': return c.warning + '33';
     default: return c.borderSubtle;
   }
 }
