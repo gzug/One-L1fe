@@ -2,7 +2,7 @@ export type PrototypeDataMode = 'demo' | 'real';
 
 export type ReadinessSegment = {
   label: string;
-  value: number;
+  value: number; // 0–100
   isDemo: boolean;
 };
 
@@ -40,15 +40,52 @@ export const readinessSegments: ReadinessSegment[] = [
 ];
 
 export const trainingSignals: TrainingSignal[] = [
-  { label: 'Resting heart rate', value: '51', unit: 'bpm', status: 'available', isDemo: true },
-  { label: 'HRV trend', value: 'Lower than baseline', status: 'needs_attention', isDemo: true },
-  { label: 'Sleep duration', value: '6h 42m', status: 'needs_attention', isDemo: true },
+  {
+    label: 'Resting heart rate',
+    value: '51',
+    unit: 'bpm',
+    status: 'available',
+    isDemo: true,
+  },
+  {
+    label: 'HRV trend',
+    value: 'Lower than baseline',
+    status: 'needs_attention',
+    isDemo: true,
+  },
+  {
+    label: 'Sleep duration',
+    value: '6h 42m',
+    status: 'needs_attention',
+    isDemo: true,
+  },
 ];
 
 export const bloodMarkers: BloodMarker[] = [
-  { label: 'ApoB', value: '78', unit: 'mg/dL', status: 'needs_attention', dateLabel: 'Apr 2025 panel', isDemo: true },
-  { label: 'hsCRP', value: '1.2', unit: 'mg/L', status: 'available', dateLabel: 'Apr 2025 panel', isDemo: true },
-  { label: 'Vitamin D', value: '36', unit: 'ng/mL', status: 'needs_attention', dateLabel: 'Apr 2025 panel', isDemo: true },
+  {
+    label: 'ApoB',
+    value: '78',
+    unit: 'mg/dL',
+    status: 'needs_attention',
+    dateLabel: 'Apr 2025 panel',
+    isDemo: true,
+  },
+  {
+    label: 'hsCRP',
+    value: '1.2',
+    unit: 'mg/L',
+    status: 'available',
+    dateLabel: 'Apr 2025 panel',
+    isDemo: true,
+  },
+  {
+    label: 'Vitamin D',
+    value: '36',
+    unit: 'ng/mL',
+    status: 'needs_attention',
+    dateLabel: 'Apr 2025 panel',
+    isDemo: true,
+  },
 ];
 
 export const coachingSteps: CoachingStep[] = [

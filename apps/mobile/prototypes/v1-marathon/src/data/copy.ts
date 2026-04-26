@@ -1,5 +1,6 @@
 export const prototypeCopy = {
-  appName: 'Prototype V1 - Marathon',
+  appName: 'One L1fe',
+  prototypeName: 'Prototype V1 — Marathon',
   demoData: 'Demo data',
   realData: 'Real data',
   demoValue: 'Demo value',
@@ -8,10 +9,26 @@ export const prototypeCopy = {
   notAvailable: 'Not available',
   needsAttention: 'Needs attention',
   planned: 'Planned',
-  readinessLabel: 'Marathon readiness context',
-  readinessHelper: 'Training and recovery context for an incubator prototype. Not medical advice.',
+
+  // Header
+  greeting: 'Good morning',
+  readinessLabel: 'Readiness context',
+  readinessHelper: 'Training and recovery context for this prototype.',
+
+  // Section eyebrows
+  sectionSignals: 'Training signals',
+  sectionBlood: 'Blood context',
+  sectionCoaching: 'Suggested focus',
+  sectionNutrition: 'Nutrition',
+
+  // Nutrition
   nutritionTitle: 'Nutrition context',
-  nutritionBody: 'Planned area. Not included in readiness score yet.',
-  coachingTitle: 'Next steps',
-  safetyNote: 'This prototype organizes training and health context. It does not diagnose, treat, or replace professional care.',
+  nutritionBody: 'Tracking planned. Not included in readiness scoring yet.',
+
+  // Coaching
+  coachingTitle: 'Suggested focus',
+
+  // Safety
+  safetyNote:
+    'This prototype organises training and health context. It does not diagnose, treat, or replace professional care.',
 } as const;

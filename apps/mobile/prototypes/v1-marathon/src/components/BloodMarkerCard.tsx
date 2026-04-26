@@ -15,19 +15,48 @@ const statusLabel: Record<BloodMarker['status'], string> = {
   not_available: prototypeCopy.notAvailable,
 };
 
+const statusColor: Record<BloodMarker['status'], string> = {
+  available: marathonTheme.colors.positive,
+  needs_attention: marathonTheme.colors.warning,
+  not_available: marathonTheme.colors.textSubtle,
+};
+
+const statusBg: Record<BloodMarker['status'], string> = {
+  available: marathonTheme.colors.positiveSoft,
+  needs_attention: marathonTheme.colors.warningSoft,
+  not_available: 'transparent',
+};
+
+const statusBorder: Record<BloodMarker['status'], string> = {
+  available: marathonTheme.colors.positiveBorder,
+  needs_attention: marathonTheme.colors.warningBorder,
+  not_available: marathonTheme.colors.borderSubtle,
+};
+
 export function BloodMarkerCard({ marker }: BloodMarkerCardProps) {
+  const color = statusColor[marker.status];
+  const bg = statusBg[marker.status];
+  const border = statusBorder[marker.status];
+
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.label}>{marker.label}</Text>
-        {marker.isDemo ? <DemoDataBadge compact /> : null}
+        {marker.isDemo && <DemoDataBadge compact />}
       </View>
       <Text style={styles.value}>
-        {marker.value}{marker.unit ? ` ${marker.unit}` : ''}
+        {marker.value}
+        {marker.unit ? (
+          <Text style={styles.unit}> {marker.unit}</Text>
+        ) : null}
       </Text>
       <View style={styles.footerRow}>
         <Text style={styles.date}>{marker.dateLabel}</Text>
-        <Text style={styles.status}>{statusLabel[marker.status]}</Text>
+        <View style={[styles.statusPill, { backgroundColor: bg, borderColor: border }]}>
+          <Text style={[styles.statusText, { color }]}>
+            {statusLabel[marker.status]}
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -35,8 +64,6 @@ export function BloodMarkerCard({ marker }: BloodMarkerCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    flex: 1,
-    minWidth: 150,
     borderRadius: marathonTheme.radius.md,
     backgroundColor: marathonTheme.colors.surface,
     borderWidth: 1,
@@ -48,27 +75,40 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: marathonTheme.spacing.sm,
   },
   label: {
     color: marathonTheme.colors.textMuted,
     fontSize: marathonTheme.typography.caption,
+    fontWeight: '600',
   },
   value: {
     color: marathonTheme.colors.text,
     fontSize: 22,
     fontWeight: '800',
+    lineHeight: 26,
+  },
+  unit: {
+    color: marathonTheme.colors.textMuted,
+    fontSize: marathonTheme.typography.body,
+    fontWeight: '400',
   },
   footerRow: {
-    gap: 2,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   date: {
     color: marathonTheme.colors.textSubtle,
-    fontSize: marathonTheme.typography.caption,
+    fontSize: marathonTheme.typography.micro,
   },
-  status: {
-    color: marathonTheme.colors.accent,
-    fontSize: marathonTheme.typography.caption,
-    fontWeight: '700',
+  statusPill: {
+    borderWidth: 1,
+    borderRadius: marathonTheme.radius.pill,
+    paddingHorizontal: marathonTheme.spacing.sm,
+    paddingVertical: 2,
+  },
+  statusText: {
+    fontSize: marathonTheme.typography.micro,
+    fontWeight: '600',
   },
 });

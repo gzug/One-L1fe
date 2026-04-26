@@ -1,5 +1,11 @@
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { BloodMarkerCard } from './components/BloodMarkerCard';
 import { CoachingCard } from './components/CoachingCard';
 import { DemoDataBadge } from './components/DemoDataBadge';
@@ -13,46 +19,62 @@ import { marathonTheme } from './theme/marathonTheme';
 export function PrototypeV1MarathonScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Header ── */}
         <View style={styles.header}>
-          <View style={styles.titleBlock}>
-            <Text style={styles.kicker}>One L1fe</Text>
-            <Text style={styles.title}>{prototypeCopy.appName}</Text>
-            <Text style={styles.subtitle}>{prototypeCopy.readinessHelper}</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.appName}>{prototypeCopy.appName}</Text>
+            <Text style={styles.greeting}>{prototypeCopy.greeting}</Text>
           </View>
           <DemoDataBadge />
         </View>
 
+        {/* ── Readiness card ── */}
         <ReadinessOrbit />
 
+        {/* ── Training signals ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Training signals</Text>
+          <SectionHeader title={prototypeCopy.sectionSignals} />
           {trainingSignals.map((signal) => (
             <SignalCard key={signal.label} signal={signal} />
           ))}
         </View>
 
+        {/* ── Blood context ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Blood marker context</Text>
-          <View style={styles.markerGrid}>
-            {bloodMarkers.map((marker) => (
-              <BloodMarkerCard key={marker.label} marker={marker} />
-            ))}
-          </View>
+          <SectionHeader title={prototypeCopy.sectionBlood} />
+          {bloodMarkers.map((marker) => (
+            <BloodMarkerCard key={marker.label} marker={marker} />
+          ))}
         </View>
 
+        {/* ── Coaching ── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{prototypeCopy.coachingTitle}</Text>
+          <SectionHeader title={prototypeCopy.sectionCoaching} />
           {coachingSteps.map((step, index) => (
             <CoachingCard key={step.title} step={step} index={index} />
           ))}
         </View>
 
+        {/* ── Nutrition — context only, not scoring-active ── */}
         <NutritionContextCard />
 
+        {/* ── Safety note ── */}
         <Text style={styles.safetyNote}>{prototypeCopy.safetyNote}</Text>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <View style={sectionStyles.row}>
+      <View style={sectionStyles.accent} />
+      <Text style={sectionStyles.title}>{title}</Text>
+    </View>
   );
 }
 
@@ -62,54 +84,61 @@ const styles = StyleSheet.create({
     backgroundColor: marathonTheme.colors.background,
   },
   content: {
-    padding: marathonTheme.spacing.lg,
+    paddingHorizontal: marathonTheme.spacing.lg,
+    paddingTop: marathonTheme.spacing.lg,
+    paddingBottom: marathonTheme.spacing.xxl,
     gap: marathonTheme.spacing.xl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    gap: marathonTheme.spacing.md,
   },
-  titleBlock: {
-    flex: 1,
-    gap: marathonTheme.spacing.xs,
+  headerLeft: {
+    gap: 2,
   },
-  kicker: {
+  appName: {
     color: marathonTheme.colors.accent,
     fontSize: marathonTheme.typography.caption,
     fontWeight: '800',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
-  title: {
+  greeting: {
     color: marathonTheme.colors.text,
     fontSize: marathonTheme.typography.title,
-    fontWeight: '900',
-  },
-  subtitle: {
-    color: marathonTheme.colors.textMuted,
-    fontSize: marathonTheme.typography.body,
-    lineHeight: 21,
+    fontWeight: '800',
+    lineHeight: 32,
   },
   section: {
-    gap: marathonTheme.spacing.md,
-  },
-  sectionTitle: {
-    color: marathonTheme.colors.text,
-    fontSize: marathonTheme.typography.subtitle,
-    fontWeight: '800',
-  },
-  markerGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: marathonTheme.spacing.md,
+    gap: marathonTheme.spacing.sm,
   },
   safetyNote: {
     color: marathonTheme.colors.textSubtle,
     fontSize: marathonTheme.typography.caption,
-    lineHeight: 18,
-    paddingBottom: marathonTheme.spacing.xl,
+    lineHeight: marathonTheme.lineHeights.caption,
+    textAlign: 'center',
+    paddingHorizontal: marathonTheme.spacing.lg,
+  },
+});
+
+const sectionStyles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: marathonTheme.spacing.sm,
+    marginBottom: 2,
+  },
+  accent: {
+    width: 3,
+    height: 14,
+    borderRadius: 2,
+    backgroundColor: marathonTheme.colors.accent,
+  },
+  title: {
+    color: marathonTheme.colors.text,
+    fontSize: marathonTheme.typography.subtitle,
+    fontWeight: '800',
   },
 });
 
