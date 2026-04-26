@@ -1,168 +1,164 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { ThemeProvider, useTheme } from './theme/ThemeContext';
+import { AppHeader } from './components/AppHeader';
 import { BloodMarkerCard } from './components/BloodMarkerCard';
 import { CoachingCard } from './components/CoachingCard';
 import { DemoModeBanner } from './components/DemoModeBanner';
 import { NutritionContextCard } from './components/NutritionContextCard';
+import { ProfileScreen } from './components/ProfileScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { SignalCard } from './components/SignalCard';
 import { bloodMarkers, coachingSteps, trainingSignals } from './data/demoData';
 import { prototypeCopy } from './data/copy';
-import { marathonTheme } from './theme/marathonTheme';
+import { layout, lineHeights, spacing, typography } from './theme/marathonTheme';
 
+// ─── Root export — wraps everything in the ThemeProvider ─────────────────────
 export function PrototypeV1MarathonScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <ThemeProvider>
+      <PrototypeShell />
+    </ThemeProvider>
+  );
+}
+
+// ─── Shell — reads theme, controls view-state ────────────────────────────────
+type View = 'home' | 'profile';
+
+function PrototypeShell() {
+  const { colors } = useTheme();
+  const [activeView, setActiveView] = useState<View>('home');
+
+  return (
+    <>
+      <StatusBar
+        barStyle={colors.statusBar === 'dark' ? 'dark-content' : 'light-content'}
+        backgroundColor={colors.background}
+      />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        {activeView === 'profile' ? (
+          <ProfileScreen onClose={() => setActiveView('home')} />
+        ) : (
+          <HomeView onProfilePress={() => setActiveView('profile')} />
+        )}
+      </SafeAreaView>
+    </>
+  );
+}
+
+// ─── Home view ───────────────────────────────────────────────────────────────
+type HomeViewProps = { onProfilePress: () => void };
+
+function HomeView({ onProfilePress }: HomeViewProps) {
+  const { colors } = useTheme();
+  const s = createHomeStyles(colors);
+
+  return (
+    <>
+      <AppHeader onProfilePress={onProfilePress} />
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* maxWidth container — keeps layout mobile-first on wider surfaces */}
-        <View style={styles.container}>
-
-          {/* ── Header ── */}
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.appKicker}>{prototypeCopy.appName}</Text>
-              <Text style={styles.prototypeName}>{prototypeCopy.prototypeName}</Text>
-              <Text style={styles.greeting}>{prototypeCopy.greeting}</Text>
-            </View>
-          </View>
-
-          {/* ── Demo mode banner (global, replaces per-card badges) ── */}
+        <View style={s.container}>
           <DemoModeBanner />
-
-          {/* ── Readiness hero card ── */}
           <ReadinessOrbit />
 
-          {/* ── Training signals ── */}
-          <View style={styles.section}>
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionSignals} />
             {trainingSignals.map((signal) => (
               <SignalCard key={signal.label} signal={signal} />
             ))}
           </View>
 
-          {/* ── Blood context — 2-column grid ── */}
-          <View style={styles.section}>
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionBlood} />
-            <View style={styles.bloodGrid}>
+            <View style={s.bloodGrid}>
               {bloodMarkers.map((marker) => (
                 <BloodMarkerCard key={marker.label} marker={marker} />
               ))}
             </View>
           </View>
 
-          {/* ── Coaching ── */}
-          <View style={styles.section}>
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
           </View>
 
-          {/* ── Nutrition — context only, not scoring-active ── */}
           <NutritionContextCard />
 
-          {/* ── Safety note ── */}
-          <Text style={styles.safetyNote}>{prototypeCopy.safetyNote}</Text>
-
+          <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 }
 
+// ─── Section header ───────────────────────────────────────────────────────────
 function SectionHeader({ title }: { title: string }) {
+  const { colors } = useTheme();
   return (
-    <View style={sectionStyles.row}>
-      <View style={sectionStyles.accent} />
-      <Text style={sectionStyles.title}>{title}</Text>
+    <View style={sectionHeaderStyles.row}>
+      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
+      <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: marathonTheme.colors.background,
-  },
-  scroll: {
-    alignItems: 'center', // centers the maxWidth container on wide surfaces
-    paddingVertical: marathonTheme.spacing.lg,
-    paddingBottom: marathonTheme.spacing.xxxl,
-  },
-  container: {
-    width: '100%',
-    maxWidth: marathonTheme.layout.maxWidth,
-    paddingHorizontal: marathonTheme.layout.screenPaddingH,
-    gap: marathonTheme.spacing.xl,
-  },
-  header: {
-    paddingTop: marathonTheme.spacing.sm,
-    gap: 2,
-  },
-  appKicker: {
-    color: marathonTheme.colors.accent,
-    fontSize: marathonTheme.typography.heroName,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    textTransform: 'uppercase',
-    marginBottom: 2,
-  },
-  prototypeName: {
-    color: marathonTheme.colors.text,
-    fontSize: marathonTheme.typography.title,
-    fontWeight: '800',
-    lineHeight: 30,
-    letterSpacing: -0.3,
-  },
-  greeting: {
-    color: marathonTheme.colors.textMuted,
-    fontSize: marathonTheme.typography.body,
-    marginTop: marathonTheme.spacing.xs,
-    lineHeight: marathonTheme.lineHeights.body,
-  },
-  section: {
-    gap: marathonTheme.spacing.sm,
-  },
-  bloodGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: marathonTheme.spacing.sm,
-  },
-  safetyNote: {
-    color: marathonTheme.colors.textSubtle,
-    fontSize: marathonTheme.typography.caption,
-    lineHeight: marathonTheme.lineHeights.caption,
-    textAlign: 'center',
-    paddingHorizontal: marathonTheme.spacing.xl,
-    paddingBottom: marathonTheme.spacing.lg,
-  },
-});
+// ─── Styles ───────────────────────────────────────────────────────────────────
+function createHomeStyles(colors: import('./theme/marathonTheme').ThemeColors) {
+  return StyleSheet.create({
+    scroll: {
+      alignItems: 'center',
+      paddingVertical: spacing.lg,
+      paddingBottom: spacing.xxxl,
+    },
+    container: {
+      width: '100%',
+      maxWidth: layout.maxWidth,
+      paddingHorizontal: layout.screenPaddingH,
+      gap: spacing.xl,
+    },
+    section: { gap: spacing.sm },
+    bloodGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    safetyNote: {
+      color: colors.textSubtle,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      textAlign: 'center',
+      paddingHorizontal: spacing.xl,
+      paddingBottom: spacing.lg,
+    },
+  });
+}
 
-const sectionStyles = StyleSheet.create({
+const sectionHeaderStyles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: marathonTheme.spacing.sm,
+    gap: spacing.sm,
     marginBottom: 2,
   },
   accent: {
     width: 3,
     height: 13,
     borderRadius: 2,
-    backgroundColor: marathonTheme.colors.accent,
   },
   title: {
-    color: marathonTheme.colors.text,
-    fontSize: marathonTheme.typography.subtitle,
+    fontSize: typography.subtitle,
     fontWeight: '800',
     letterSpacing: -0.1,
   },
