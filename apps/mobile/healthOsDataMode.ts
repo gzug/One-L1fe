@@ -13,12 +13,12 @@ export type DataMode = 'real' | 'demo-filled';
 
 export const DATA_MODE_LABELS: Record<DataMode, string> = {
   real: 'Real Data',
-  'demo-filled': 'Demo Filled',
+  'demo-filled': 'Demo data',
 };
 
-// Synthetic placeholders are plausible mid-range values used only when the
-// user has explicitly opted into Demo Filled Mode. Each synthetic field must
-// remain clearly labelled in the UI as "synthetic demo".
+// Demo placeholders are plausible mid-range values used only when the user has
+// explicitly opted into Demo data mode. Internally they remain synthetic values;
+// user-facing copy should say "Demo value" rather than technical synthetic wording.
 export const SYNTHETIC_HEALTH_CONNECT_SUMMARY: HealthConnectGarminSummary = {
   stepsTotal: 9_000,
   sleepDurationSeconds: 7.5 * 3600,
@@ -108,15 +108,15 @@ export interface BiomarkerTile {
   status: string;
 }
 
-// Synthetic demo placeholders for markers that are never measured in real
-// panels but help show a "fully connected" feel in Demo Filled Mode.
+// Demo placeholders for markers that are not measured in real panels but help
+// show a fully connected prototype state in Demo data mode.
 const SYNTHETIC_BIOMARKER_FILLERS: Partial<Record<LabMarkerKey, { value: number; unit: string; status: string }>> = {
-  apoB: { value: 82, unit: 'mg/dL', status: 'Synthetic demo' },
-  lpA: { value: 18, unit: 'mg/dL', status: 'Synthetic demo' },
-  fastingGlucose: { value: 88, unit: 'mg/dL', status: 'Synthetic demo' },
-  homocysteine: { value: 8.4, unit: 'µmol/L', status: 'Synthetic demo' },
-  uricAcid: { value: 5.6, unit: 'mg/dL', status: 'Synthetic demo' },
-  alt: { value: 22, unit: 'U/L', status: 'Synthetic demo' },
+  apoB: { value: 82, unit: 'mg/dL', status: 'Demo value' },
+  lpA: { value: 18, unit: 'mg/dL', status: 'Demo value' },
+  fastingGlucose: { value: 88, unit: 'mg/dL', status: 'Demo value' },
+  homocysteine: { value: 8.4, unit: 'µmol/L', status: 'Demo value' },
+  uricAcid: { value: 5.6, unit: 'mg/dL', status: 'Demo value' },
+  alt: { value: 22, unit: 'U/L', status: 'Demo value' },
 };
 
 const FEATURED_MARKERS: LabMarkerKey[] = [
@@ -163,7 +163,7 @@ export function getBiomarkerTiles(mode: DataMode): BiomarkerTile[] {
           marker,
           label,
           valueText: `${filler.value} ${filler.unit}`,
-          caption: 'Synthetic demo · not from real lab',
+          caption: 'Demo value · not from real lab',
           isSynthetic: true,
           status: filler.status,
         });
