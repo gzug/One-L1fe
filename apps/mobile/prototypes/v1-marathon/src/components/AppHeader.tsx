@@ -16,6 +16,10 @@ const ANDROID_TOP_INSET =
 export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
   const { colors, isDark, toggle } = useTheme();
 
+  // textMuted gives ~4.8:1 contrast on light background vs textSubtle ~2.2:1.
+  // In dark mode textMuted (#A89F95) is also clearly visible on near-black.
+  const iconColor = colors.textMuted;
+
   return (
     <View
       style={[
@@ -41,7 +45,7 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
             accessibilityLabel="About demo data"
             hitSlop={10}
           >
-            <Ionicons name="information-circle-outline" size={20} color={colors.textSubtle} />
+            <Ionicons name="information-circle-outline" size={22} color={iconColor} />
           </Pressable>
           <Pressable
             onPress={toggle}
@@ -51,8 +55,8 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
           >
             <Ionicons
               name={isDark ? 'sunny-outline' : 'moon-outline'}
-              size={19}
-              color={colors.textSubtle}
+              size={21}
+              color={iconColor}
             />
           </Pressable>
           <Pressable
@@ -61,7 +65,7 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
             accessibilityLabel="Open profile"
             hitSlop={10}
           >
-            <Ionicons name="person-circle-outline" size={21} color={colors.textSubtle} />
+            <Ionicons name="person-circle-outline" size={23} color={iconColor} />
           </Pressable>
         </View>
       </View>

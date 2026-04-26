@@ -21,7 +21,6 @@ import { loadPanels, savePanels } from '../data/bloodStorage';
 import type { BloodMarker, BloodPanel } from '../data/bloodStorage';
 import { getMarkerContext } from '../data/markerContext';
 
-// Android: header must be visible below status bar (not behind camera cutout)
 const ANDROID_TOP_INSET =
   Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0;
 
@@ -112,7 +111,7 @@ export function BloodResultsScreen({ onClose }: Props) {
 
   return (
     <SafeAreaView style={s.safeArea}>
-      {/* Header — paddingTop covers Android status bar */}
+      {/* Header */}
       <View style={[s.header, { paddingTop: ANDROID_TOP_INSET + spacing.sm }]}>
         <Pressable
           onPress={onClose}
@@ -251,69 +250,7 @@ export function BloodResultsScreen({ onClose }: Props) {
 }
 
 // ---------------------------------------------------------------------------
-// CompareView
-// ---------------------------------------------------------------------------
-function CompareView({ panels, colors }: { panels: BloodPanel[]; colors: ThemeColors }) {
-  const allMarkerIds = Array.from(
-    new Set(panels.flatMap((p) => p.markers.map((m) => m.id))),
-  );
-  const panel2023 = panels.find((p) => p.id === 'panel_2023');
-  const panel2025 = panels.find((p) => p.id === 'panel_2025');
-  const orderedIds = panel2025
-    ? [...panel2025.markers.map((m) => m.id), ...allMarkerIds.filter((id) => !panel2025.markers.find((m) => m.id === id))]
-    : allMarkerIds;
-
-  function getValue(panelId: string, markerId: string): BloodMarker | null {
-    return panels.find((p) => p.id === panelId)?.markers.find((m) => m.id === markerId) ?? null;
-  }
-
-  return (
-    <View style={{ gap: spacing.md }}>
-      {orderedIds.map((markerId) => {
-        const m2023 = panel2023 ? getValue(panel2023.id, markerId) : null;
-        const m2025 = panel2025 ? getValue(panel2025.id, markerId) : null;
-        const context = getMarkerContext(markerId);
-        const meta = m2025 ?? m2023;
-        if (!meta) return null;
-
-        const val2023 = m2023?.enabled ? m2023.value.trim() : null;
-        const val2025 = m2025?.enabled ? m2025.value.trim() : null;
-        const hasBoth = !!(val2023 && val2025);
-        const num2023 = hasBoth ? parseFloat(val2023!) : NaN;
-        const num2025 = hasBoth ? parseFloat(val2025!) : NaN;
-        const delta = hasBoth && !isNaN(num2023) && !isNaN(num2025) ? num2025 - num2023 : null;
-        let direction: 'higher' | 'lower' | 'stable' | null = null;
-        if (delta !== null) {
-          const pct = Math.abs(delta) / Math.abs(num2023);
-          direction = pct < 0.03 ? 'stable' : delta > 0 ? 'higher' : 'lower';
-        }
-
-        // Reference range — prefer m2025, fall back to m2023
-        const refLow  = (m2025?.refLow  ?? m2023?.refLow  ?? '').trim();
-        const refHigh = (m2025?.refHigh ?? m2023?.refHigh ?? '').trim();
-
-        return (
-          <CompareCard
-            key={markerId}
-            label={meta.label}
-            unit={meta.unit}
-            val2023={val2023}
-            val2025={val2025}
-            delta={delta}
-            direction={direction}
-            context={context}
-            refLow={refLow}
-            refHigh={refHigh}
-            colors={colors}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Reference context helpers
+// Reference context helpers (shared)
 // ---------------------------------------------------------------------------
 type RefStatus = 'within' | 'below' | 'above' | 'unavailable';
 
@@ -351,6 +288,242 @@ function refContextSentence(status: RefStatus, year: string): string {
 }
 
 // ---------------------------------------------------------------------------
+// CompareSummary — overall picture across all markers
+// ---------------------------------------------------------------------------
+type MarkerSummaryEntry = {
+  label: string;
+  refSt: RefStatus;
+  direction: 'higher' | 'lower' | 'stable' | null;
+};
+
+function buildSummaryEntries(
+  panels: BloodPanel[],
+  allMarkerIds: string[],
+): MarkerSummaryEntry[] {
+  const panel2023 = panels.find((p) => p.id === 'panel_2023');
+  const panel2025 = panels.find((p) => p.id === 'panel_2025');
+
+  return allMarkerIds.map((markerId) => {
+    const m2023 = panel2023?.markers.find((m) => m.id === markerId) ?? null;
+    const m2025 = panel2025?.markers.find((m) => m.id === markerId) ?? null;
+    const meta  = m2025 ?? m2023;
+    if (!meta) return null;
+
+    const val2023 = m2023?.enabled ? m2023.value.trim() : '';
+    const val2025 = m2025?.enabled ? m2025.value.trim() : '';
+    const currentVal = val2025 || val2023;
+    const refLow  = (m2025?.refLow  ?? m2023?.refLow  ?? '').trim();
+    const refHigh = (m2025?.refHigh ?? m2023?.refHigh ?? '').trim();
+    const st      = currentVal ? refStatus(currentVal, refLow, refHigh) : 'unavailable';
+
+    // Trend direction
+    let direction: 'higher' | 'lower' | 'stable' | null = null;
+    if (val2023 && val2025) {
+      const n23 = parseFloat(val2023);
+      const n25 = parseFloat(val2025);
+      if (!isNaN(n23) && !isNaN(n25)) {
+        const pct = Math.abs(n25 - n23) / Math.abs(n23);
+        direction = pct < 0.03 ? 'stable' : n25 > n23 ? 'higher' : 'lower';
+      }
+    }
+
+    return { label: meta.label, refSt: st, direction } satisfies MarkerSummaryEntry;
+  }).filter((e): e is MarkerSummaryEntry => e !== null);
+}
+
+function CompareSummary({
+  panels,
+  allMarkerIds,
+  colors,
+}: {
+  panels: BloodPanel[];
+  allMarkerIds: string[];
+  colors: ThemeColors;
+}) {
+  const s       = createStyles(colors);
+  const entries = buildSummaryEntries(panels, allMarkerIds);
+
+  const withinList  = entries.filter((e) => e.refSt === 'within');
+  const aboveList   = entries.filter((e) => e.refSt === 'above');
+  const belowList   = entries.filter((e) => e.refSt === 'below');
+  const noRangeList = entries.filter((e) => e.refSt === 'unavailable');
+  const totalWithRange = withinList.length + aboveList.length + belowList.length;
+
+  // Markers that improved between panels (direction = lower for upper-bound-only
+  // markers is usually better, but we keep language neutral — just say "changed")
+  const improvedLabels = entries
+    .filter((e) => e.direction === 'lower' && e.refSt === 'within')
+    .map((e) => e.label)
+    .slice(0, 3);
+
+  const flaggedLabels = [...aboveList, ...belowList].map((e) => e.label).slice(0, 4);
+
+  // Build summary lines — neutral, no diagnosis
+  const lines: { icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [];
+
+  if (totalWithRange > 0) {
+    const pct = Math.round((withinList.length / totalWithRange) * 100);
+    lines.push({
+      icon:  'checkmark-circle-outline',
+      color: colors.positive,
+      text:  `${withinList.length} of ${totalWithRange} assessed markers are within their available reference context (${pct}%).`,
+    });
+  }
+
+  if (flaggedLabels.length > 0) {
+    lines.push({
+      icon:  'alert-circle-outline',
+      color: colors.warning,
+      text:  `${flaggedLabels.join(', ')} ${
+        flaggedLabels.length === 1 ? 'sits' : 'sit'
+      } outside the available reference context — useful to review alongside recent lifestyle factors and to raise in a clinician discussion.`,
+    });
+  } else if (totalWithRange > 0) {
+    lines.push({
+      icon:  'shield-checkmark-outline',
+      color: colors.positive,
+      text:  'No markers sit outside their available reference context in the current panel.',
+    });
+  }
+
+  if (improvedLabels.length > 0) {
+    lines.push({
+      icon:  'trending-down-outline',
+      color: colors.textMuted,
+      text:  `${improvedLabels.join(', ')} moved lower between 2023 and 2025 — trend context useful for future follow-up tracking.`,
+    });
+  }
+
+  if (noRangeList.length > 0) {
+    lines.push({
+      icon:  'help-circle-outline',
+      color: colors.textSubtle,
+      text:  `${noRangeList.length} marker${noRangeList.length > 1 ? 's' : ''} ${
+        noRangeList.length > 1 ? 'have' : 'has'
+      } no reference range on file — can still serve as a baseline for future comparisons.`,
+    });
+  }
+
+  lines.push({
+    icon:  'information-circle-outline',
+    color: colors.textSubtle,
+    text:  'This overview is context only. It does not represent a clinical assessment. Can support discussion with a clinician about lifestyle, training, and follow-up testing.',
+  });
+
+  return (
+    <View style={[s.summaryCard, { borderColor: colors.accentBorder, backgroundColor: colors.surface }]}>
+      {/* Header row */}
+      <View style={s.summaryHeader}>
+        <Ionicons name="layers-outline" size={14} color={colors.accent} />
+        <Text style={[s.summaryTitle, { color: colors.text }]}>Panel overview</Text>
+        <View style={[s.summaryBadge, { backgroundColor: colors.accentSoft, borderColor: colors.accentBorder }]}>
+          <Text style={[s.summaryBadgeText, { color: colors.accent }]}>
+            {entries.length} markers · 2 panels
+          </Text>
+        </View>
+      </View>
+
+      {/* Stat pills */}
+      <View style={s.summaryPills}>
+        {totalWithRange > 0 && (
+          <View style={[s.pill, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+            <Text style={[s.pillNum, { color: colors.positive }]}>{withinList.length}</Text>
+            <Text style={[s.pillLabel, { color: colors.textSubtle }]}>Within</Text>
+          </View>
+        )}
+        {(aboveList.length + belowList.length) > 0 && (
+          <View style={[s.pill, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+            <Text style={[s.pillNum, { color: colors.warning }]}>{aboveList.length + belowList.length}</Text>
+            <Text style={[s.pillLabel, { color: colors.textSubtle }]}>Outside</Text>
+          </View>
+        )}
+        {noRangeList.length > 0 && (
+          <View style={[s.pill, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+            <Text style={[s.pillNum, { color: colors.textMuted }]}>{noRangeList.length}</Text>
+            <Text style={[s.pillLabel, { color: colors.textSubtle }]}>No range</Text>
+          </View>
+        )}
+      </View>
+
+      {/* Summary lines */}
+      <View style={[s.summaryDivider, { backgroundColor: colors.borderSubtle }]} />
+      <View style={s.summaryLines}>
+        {lines.map((line, i) => (
+          <View key={i} style={s.summaryLine}>
+            <Ionicons name={line.icon} size={13} color={line.color} style={{ marginTop: 1 }} />
+            <Text style={[s.summaryLineText, { color: colors.textMuted }]}>{line.text}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CompareView
+// ---------------------------------------------------------------------------
+function CompareView({ panels, colors }: { panels: BloodPanel[]; colors: ThemeColors }) {
+  const allMarkerIds = Array.from(
+    new Set(panels.flatMap((p) => p.markers.map((m) => m.id))),
+  );
+  const panel2023 = panels.find((p) => p.id === 'panel_2023');
+  const panel2025 = panels.find((p) => p.id === 'panel_2025');
+  const orderedIds = panel2025
+    ? [...panel2025.markers.map((m) => m.id), ...allMarkerIds.filter((id) => !panel2025.markers.find((m) => m.id === id))]
+    : allMarkerIds;
+
+  function getValue(panelId: string, markerId: string): BloodMarker | null {
+    return panels.find((p) => p.id === panelId)?.markers.find((m) => m.id === markerId) ?? null;
+  }
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      {/* Summary block at the top */}
+      <CompareSummary panels={panels} allMarkerIds={orderedIds} colors={colors} />
+
+      {orderedIds.map((markerId) => {
+        const m2023 = panel2023 ? getValue(panel2023.id, markerId) : null;
+        const m2025 = panel2025 ? getValue(panel2025.id, markerId) : null;
+        const context = getMarkerContext(markerId);
+        const meta = m2025 ?? m2023;
+        if (!meta) return null;
+
+        const val2023 = m2023?.enabled ? m2023.value.trim() : null;
+        const val2025 = m2025?.enabled ? m2025.value.trim() : null;
+        const hasBoth = !!(val2023 && val2025);
+        const num2023 = hasBoth ? parseFloat(val2023!) : NaN;
+        const num2025 = hasBoth ? parseFloat(val2025!) : NaN;
+        const delta = hasBoth && !isNaN(num2023) && !isNaN(num2025) ? num2025 - num2023 : null;
+        let direction: 'higher' | 'lower' | 'stable' | null = null;
+        if (delta !== null) {
+          const pct = Math.abs(delta) / Math.abs(num2023);
+          direction = pct < 0.03 ? 'stable' : delta > 0 ? 'higher' : 'lower';
+        }
+
+        const refLow  = (m2025?.refLow  ?? m2023?.refLow  ?? '').trim();
+        const refHigh = (m2025?.refHigh ?? m2023?.refHigh ?? '').trim();
+
+        return (
+          <CompareCard
+            key={markerId}
+            label={meta.label}
+            unit={meta.unit}
+            val2023={val2023}
+            val2025={val2025}
+            delta={delta}
+            direction={direction}
+            context={context}
+            refLow={refLow}
+            refHigh={refHigh}
+            colors={colors}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // CompareCard
 // ---------------------------------------------------------------------------
 function CompareCard({
@@ -376,8 +549,8 @@ function CompareCard({
     : direction === 'lower'  ? colors.positive
     : colors.textSubtle;
 
-  const directionIcon =
-    direction === 'stable' ? 'remove-outline'
+  const directionIcon: React.ComponentProps<typeof Ionicons>['name'] =
+    direction === 'stable'  ? 'remove-outline'
     : direction === 'higher' ? 'arrow-up-outline'
     : 'arrow-down-outline';
 
@@ -387,9 +560,6 @@ function CompareCard({
     : direction === 'lower'  ? 'Lower'
     : null;
 
-  const noTrend = !val2023 || !val2025;
-
-  // Current value context
   const currentVal   = val2025 ?? val2023;
   const currentYear  = val2025 ? '2025' : '2023';
   const refSt        = currentVal ? refStatus(currentVal, refLow, refHigh) : 'unavailable';
@@ -398,13 +568,11 @@ function CompareCard({
     ? refContextSentence(refSt, currentYear)
     : 'No current value available.';
 
-  // Ref label badge color
   const refBadgeColor =
     refSt === 'within'      ? colors.positive
     : refSt === 'unavailable' ? colors.textSubtle
     : colors.warning;
 
-  // Ref range display
   const refRangeText =
     (refLow || refHigh)
       ? `${refLow || '—'} – ${refHigh || '—'} ${unit}`
@@ -433,7 +601,7 @@ function CompareCard({
           <View style={s.compareDeltaCol}>
             {delta !== null && directionLabel ? (
               <>
-                <Ionicons name={directionIcon as any} size={13} color={directionColor} />
+                <Ionicons name={directionIcon} size={13} color={directionColor} />
                 <Text style={[s.compareDelta, { color: directionColor }]}>
                   {delta > 0 ? '+' : ''}{delta.toFixed(2)}
                 </Text>
@@ -446,7 +614,6 @@ function CompareCard({
         </View>
       </View>
 
-      {/* Context toggle */}
       {context && (
         <>
           <Pressable
@@ -466,11 +633,10 @@ function CompareCard({
 
           {expanded && (
             <View style={[s.contextBlock, { borderTopColor: colors.borderSubtle }]}>
-              {/* What is this marker */}
               <Text style={[s.contextWhat, { color: colors.textMuted }]}>{context.what}</Text>
 
-              {/* Trend context */}
-              {noTrend ? (
+              {/* Trend */}
+              {!val2023 || !val2025 ? (
                 <View style={s.contextRow}>
                   <Ionicons name="git-branch-outline" size={11} color={colors.textSubtle} />
                   <Text style={[s.contextBody, { color: colors.textSubtle }]}>
@@ -479,7 +645,7 @@ function CompareCard({
                 </View>
               ) : (
                 <View style={s.contextRow}>
-                  <Ionicons name={directionIcon as any} size={11} color={directionColor} />
+                  <Ionicons name={directionIcon} size={11} color={directionColor} />
                   <Text style={[s.contextBody, { color: colors.textSubtle }]}>
                     Trend context: 2025 value is {directionLabel?.toLowerCase() ?? 'changed'} than 2023
                     {delta !== null ? ` (${delta > 0 ? '+' : ''}${delta.toFixed(2)} ${unit})` : ''}.
@@ -488,7 +654,7 @@ function CompareCard({
                 </View>
               )}
 
-              {/* Current value context vs reference range */}
+              {/* Reference context block */}
               <View style={[s.refContextBlock, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
                 <View style={s.refContextHeader}>
                   <Text style={[s.refContextLabel, { color: refBadgeColor }]}>{refLabel}</Text>
@@ -602,7 +768,7 @@ const rowStyles = StyleSheet.create({
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    safeArea:          { flex: 1, backgroundColor: colors.background },
+    safeArea:       { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -619,56 +785,67 @@ function createStyles(colors: ThemeColors) {
       paddingRight: spacing.xs,
       minWidth: 80,
     },
-    backLabel: {
-      fontSize: typography.bodySmall,
-      fontWeight: '600',
-    },
-    headerCenter:      { flex: 1, gap: 1 },
-    headerTitle:       { color: colors.text, fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.2 },
-    headerSub:         { color: colors.textSubtle, fontSize: typography.micro, lineHeight: lineHeights.caption },
-    saveBtn:           { paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2, borderRadius: radius.pill, backgroundColor: colors.accent },
-    saveBtnDisabled:   { opacity: 0.5 },
-    saveBtnText:       { color: '#FFFFFF', fontSize: typography.bodySmall, fontWeight: '700' },
-    savedIndicator:    { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.sm },
-    savedText:         { fontSize: typography.caption, fontWeight: '600' },
-    tabRow:            { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
-    tab:               { flex: 1, alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    tabText:           { fontSize: typography.bodySmall },
-    infoBanner:        { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth },
-    infoBannerText:    { fontSize: typography.micro, flex: 1, lineHeight: lineHeights.caption },
-    scroll:            { alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.xxxl },
-    container:         { width: '100%', maxWidth: layout.maxWidth, paddingHorizontal: layout.screenPaddingH, gap: spacing.lg },
-    card:              { borderRadius: radius.md, backgroundColor: colors.surfaceElevated, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-    sectionLabel:      { fontSize: typography.caption, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, paddingLeft: 2 },
-    uploadSection:     { gap: spacing.sm },
-    uploadRow:         { flexDirection: 'row', gap: spacing.sm },
-    uploadBtn:         { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderWidth: 1, borderRadius: radius.md, paddingVertical: spacing.sm + 2 },
-    uploadBtnText:     { fontSize: typography.caption, fontWeight: '600' },
-    uploadNote:        { fontSize: typography.micro, lineHeight: lineHeights.caption, fontStyle: 'italic' },
-    footer:            { fontSize: typography.micro, lineHeight: lineHeights.caption, textAlign: 'center', paddingHorizontal: spacing.xl },
-    compareCard:       { borderRadius: radius.md, backgroundColor: colors.surfaceElevated, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-    compareTop:        { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
-    compareLeft:       { flex: 2, gap: 2 },
-    compareLabel:      { fontSize: typography.bodySmall, fontWeight: '600', letterSpacing: -0.1 },
-    compareUnit:       { fontSize: typography.micro },
-    compareValues:     { flex: 3, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
-    compareValueCol:   { flex: 1, alignItems: 'center', gap: 2 },
-    compareYear:       { fontSize: typography.micro, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
-    compareValue:      { fontSize: typography.bodySmall, fontWeight: '700' },
-    compareDeltaCol:   { flex: 1, alignItems: 'center', gap: 1 },
-    compareDelta:      { fontSize: typography.caption, fontWeight: '700' },
-    compareDir:        { fontSize: typography.micro, fontWeight: '600' },
-    contextToggle:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
+    backLabel:      { fontSize: typography.bodySmall, fontWeight: '600' },
+    headerCenter:   { flex: 1, gap: 1 },
+    headerTitle:    { color: colors.text, fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.2 },
+    headerSub:      { color: colors.textSubtle, fontSize: typography.micro, lineHeight: lineHeights.caption },
+    saveBtn:        { paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2, borderRadius: radius.pill, backgroundColor: colors.accent },
+    saveBtnDisabled:{ opacity: 0.5 },
+    saveBtnText:    { color: '#FFFFFF', fontSize: typography.bodySmall, fontWeight: '700' },
+    savedIndicator: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: spacing.sm },
+    savedText:      { fontSize: typography.caption, fontWeight: '600' },
+    tabRow:         { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth },
+    tab:            { flex: 1, alignItems: 'center', paddingVertical: spacing.md, borderBottomWidth: 2, borderBottomColor: 'transparent' },
+    tabText:        { fontSize: typography.bodySmall },
+    infoBanner:     { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth },
+    infoBannerText: { fontSize: typography.micro, flex: 1, lineHeight: lineHeights.caption },
+    scroll:         { alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.xxxl },
+    container:      { width: '100%', maxWidth: layout.maxWidth, paddingHorizontal: layout.screenPaddingH, gap: spacing.lg },
+    card:           { borderRadius: radius.md, backgroundColor: colors.surfaceElevated, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+    sectionLabel:   { fontSize: typography.caption, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, paddingLeft: 2 },
+    uploadSection:  { gap: spacing.sm },
+    uploadRow:      { flexDirection: 'row', gap: spacing.sm },
+    uploadBtn:      { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, borderWidth: 1, borderRadius: radius.md, paddingVertical: spacing.sm + 2 },
+    uploadBtnText:  { fontSize: typography.caption, fontWeight: '600' },
+    uploadNote:     { fontSize: typography.micro, lineHeight: lineHeights.caption, fontStyle: 'italic' },
+    footer:         { fontSize: typography.micro, lineHeight: lineHeights.caption, textAlign: 'center', paddingHorizontal: spacing.xl },
+    // CompareCard
+    compareCard:    { borderRadius: radius.md, backgroundColor: colors.surfaceElevated, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+    compareTop:     { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
+    compareLeft:    { flex: 2, gap: 2 },
+    compareLabel:   { fontSize: typography.bodySmall, fontWeight: '600', letterSpacing: -0.1 },
+    compareUnit:    { fontSize: typography.micro },
+    compareValues:  { flex: 3, flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+    compareValueCol:{ flex: 1, alignItems: 'center', gap: 2 },
+    compareYear:    { fontSize: typography.micro, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
+    compareValue:   { fontSize: typography.bodySmall, fontWeight: '700' },
+    compareDeltaCol:{ flex: 1, alignItems: 'center', gap: 1 },
+    compareDelta:   { fontSize: typography.caption, fontWeight: '700' },
+    compareDir:     { fontSize: typography.micro, fontWeight: '600' },
+    contextToggle:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
     contextToggleText: { fontSize: typography.caption, fontWeight: '600' },
-    contextBlock:      { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.sm, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
-    contextWhat:       { fontSize: typography.caption, lineHeight: lineHeights.caption, fontStyle: 'italic' },
-    contextRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
-    contextBody:       { fontSize: typography.caption, lineHeight: lineHeights.caption, flex: 1 },
-    // Reference context block
+    contextBlock:   { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.sm, gap: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth },
+    contextWhat:    { fontSize: typography.caption, lineHeight: lineHeights.caption, fontStyle: 'italic' },
+    contextRow:     { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
+    contextBody:    { fontSize: typography.caption, lineHeight: lineHeights.caption, flex: 1 },
     refContextBlock:   { borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth, padding: spacing.sm, gap: 4 },
     refContextHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
     refContextLabel:   { fontSize: typography.caption, fontWeight: '700' },
     refRangeText:      { fontSize: typography.micro },
     refContextSentence:{ fontSize: typography.caption, lineHeight: lineHeights.caption },
+    // CompareSummary
+    summaryCard:    { borderRadius: radius.md, borderWidth: 1, padding: spacing.md, gap: spacing.sm },
+    summaryHeader:  { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    summaryTitle:   { fontSize: typography.bodySmall, fontWeight: '700', flex: 1 },
+    summaryBadge:   { borderRadius: radius.pill, borderWidth: 1, paddingHorizontal: spacing.sm, paddingVertical: 2 },
+    summaryBadgeText: { fontSize: typography.micro, fontWeight: '600' },
+    summaryPills:   { flexDirection: 'row', gap: spacing.sm },
+    pill:           { flexDirection: 'row', alignItems: 'center', gap: 5, borderRadius: radius.pill, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.md, paddingVertical: spacing.xs },
+    pillNum:        { fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.5 },
+    pillLabel:      { fontSize: typography.micro, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
+    summaryDivider: { height: 1, marginVertical: 2 },
+    summaryLines:   { gap: spacing.sm },
+    summaryLine:    { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
+    summaryLineText:{ fontSize: typography.caption, lineHeight: lineHeights.caption, flex: 1 },
   });
 }
