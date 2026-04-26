@@ -5,13 +5,22 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
-    "ios": { "supportsTablet": true },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
     "android": {
       "package": "com.onel1fe.mobile",
       "minSdkVersion": 26
     },
-    "web": { "bundler": "metro" },
-    "plugins": ["./plugins/with-health-connect"]
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      "./plugins/with-health-connect",
+      "expo-font"
+    ]
   }
 }
