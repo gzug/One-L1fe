@@ -1,4 +1,7 @@
 // One L1fe — V1 Marathon — Design tokens
+// Single source of truth for both Android and Web.
+// Platform-specific rendering fixes live in useWebBackground and
+// component-level elevation only — not in token forks.
 
 export const spacing = {
   xs:   4,
@@ -41,7 +44,7 @@ export const layout = {
   maxWidth:       480,
 } as const;
 
-// --- Color palettes ---------------------------------------------------
+// --- Color palettes -------------------------------------------------------
 
 export type ThemeColors = {
   // Backgrounds
@@ -55,7 +58,7 @@ export type ThemeColors = {
   text:              string;
   textMuted:         string;
   textSubtle:        string;
-  // Accent (apricot)
+  // Accent (apricot / terracotta)
   accent:            string;
   accentBorder:      string;
   accentSoft:        string;
@@ -78,52 +81,54 @@ export type ThemeColors = {
   statusBar:         'dark' | 'light';
 };
 
+// Light — warm cream, white cards, terracotta accent
 export const lightColors: ThemeColors = {
-  background:       '#FAF8F5',   // warm cream
-  surface:          '#F5F2EE',   // slightly cooler cream
-  surfaceElevated:  '#FFFFFF',   // white card
-  border:           '#E8E3DC',   // warm grey, hairline
-  borderSubtle:     '#F0EDE8',   // nearly invisible
-  text:             '#1A1714',   // near-black warm
-  textMuted:        '#5C554E',   // warm medium grey
-  textSubtle:       '#9B948C',   // muted labels
-  accent:           '#C4622D',   // apricot / terracotta
-  accentBorder:     '#E8C4A8',   // pale apricot
-  accentSoft:       '#FDF3EC',   // near-white apricot tint
-  positive:         '#3D7A5C',   // muted mint-green
-  warning:          '#B07030',   // muted amber
-  danger:           '#9B3A3A',   // muted red
+  background:       '#F9F7F4',   // warm cream — slightly deeper than pure white
+  surface:          '#F3F0EB',   // one step below bg
+  surfaceElevated:  '#FFFFFF',   // card surface
+  border:           'rgba(60,40,20,0.10)',   // warm, very faint
+  borderSubtle:     'rgba(60,40,20,0.055)',  // nearly invisible
+  text:             '#1C1917',   // warm near-black
+  textMuted:        '#5A5249',   // warm medium-dark
+  textSubtle:       '#9A928A',   // quiet labels
+  accent:           '#C4612C',   // apricot / terracotta — Android primary
+  accentBorder:     'rgba(196,97,44,0.25)',
+  accentSoft:       'rgba(196,97,44,0.06)',
+  positive:         '#3A7A58',
+  warning:          '#A86E28',
+  danger:           '#993636',
   ringTrack:        '#EDE8E2',
-  ringProgress:     '#C4622D',
+  ringProgress:     '#C4612C',
   progressTrack:    '#EDE8E2',
   profileSectionBg: '#FFFFFF',
-  profileRowBorder: '#F0EDE8',
-  demoBanner:       '#FDF6F0',
-  demoBannerBorder: '#EDD5C0',
+  profileRowBorder: 'rgba(60,40,20,0.06)',
+  demoBanner:       '#FEF7F2',
+  demoBannerBorder: 'rgba(196,97,44,0.18)',
   statusBar:        'dark',
 };
 
+// Dark — warm near-black, cards barely lifted, restrained accent
 export const darkColors: ThemeColors = {
-  background:       '#141210',   // warm near-black
-  surface:          '#1C1A17',   // barely-lifted surface
-  surfaceElevated:  '#211F1B',   // card surface
-  border:           '#2E2B27',   // subtle warm border
-  borderSubtle:     '#242220',   // nearly invisible
-  text:             '#F0EDE8',   // warm off-white
-  textMuted:        '#A89F96',   // warm medium grey
-  textSubtle:       '#6B6460',   // muted labels
-  accent:           '#D4724A',   // slightly lighter apricot for dark
-  accentBorder:     '#4A3020',   // dark apricot border
-  accentSoft:       '#261A12',   // dark apricot bg
-  positive:         '#4D9970',   // lifted mint for dark
-  warning:          '#C08040',   // lifted amber for dark
-  danger:           '#B84E4E',   // lifted red for dark
-  ringTrack:        '#2A2723',
-  ringProgress:     '#D4724A',
-  progressTrack:    '#2A2723',
-  profileSectionBg: '#1C1A17',
-  profileRowBorder: '#242220',
-  demoBanner:       '#1E1B17',
-  demoBannerBorder: '#3A2E22',
+  background:       '#111009',   // deep warm black
+  surface:          '#181611',   // one step up
+  surfaceElevated:  '#1E1C16',   // card surface — close to bg, not loud
+  border:           'rgba(255,240,200,0.08)',   // warm white, very faint
+  borderSubtle:     'rgba(255,240,200,0.04)',
+  text:             '#EDE8E0',   // warm off-white
+  textMuted:        '#A89F95',   // warm mid-grey
+  textSubtle:       '#6A6158',   // quiet labels
+  accent:           '#D0683A',   // apricot lifted for dark contrast
+  accentBorder:     'rgba(208,104,58,0.28)',
+  accentSoft:       'rgba(208,104,58,0.09)',
+  positive:         '#4A9468',
+  warning:          '#BE8838',
+  danger:           '#B84848',
+  ringTrack:        '#26231C',
+  ringProgress:     '#D0683A',
+  progressTrack:    '#26231C',
+  profileSectionBg: '#1E1C16',
+  profileRowBorder: 'rgba(255,240,200,0.05)',
+  demoBanner:       '#1A1710',
+  demoBannerBorder: 'rgba(208,104,58,0.20)',
   statusBar:        'light',
 };

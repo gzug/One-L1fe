@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
+import { useWebBackground } from './theme/useWebBackground';
 import { AppHeader } from './components/AppHeader';
 import { BloodPanelsCard } from './components/BloodPanelsCard';
 import { CoachingCard } from './components/CoachingCard';
@@ -37,6 +38,9 @@ function PrototypeShell() {
   const { colors } = useTheme();
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
+
+  // Prevent white flash on web when dark mode is active
+  useWebBackground(colors.background);
 
   function openProfile() {
     setDemoInfoVisible(false);
@@ -72,8 +76,12 @@ function PrototypeShell() {
           style={demoOverlay.backdrop}
           onPress={() => setDemoInfoVisible(false)}
         >
-          {/* Inner sheet: stop propagation so tapping inside doesn't close */}
-          <Pressable style={[demoOverlay.sheet, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+          <Pressable
+            style={[
+              demoOverlay.sheet,
+              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+            ]}
+          >
             <Ionicons
               name="information-circle"
               size={24}
@@ -86,17 +94,16 @@ function PrototypeShell() {
             <Text style={[demoOverlay.body, { color: colors.textMuted }]}>
               {prototypeCopy.demoInfoBody}
             </Text>
-
-            {/* Divider */}
             <View style={[demoOverlay.divider, { backgroundColor: colors.borderSubtle }]} />
-
-            {/* Connect CTA */}
             <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}>
               {prototypeCopy.demoInfoConnectHelper}
             </Text>
             <Pressable
               onPress={openProfile}
-              style={[demoOverlay.connectBtn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+              style={[
+                demoOverlay.connectBtn,
+                { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
+              ]}
               accessibilityLabel="Connect a source"
             >
               <Ionicons name="link-outline" size={14} color={colors.accent} />
@@ -104,12 +111,9 @@ function PrototypeShell() {
                 {prototypeCopy.demoInfoConnectCta}
               </Text>
             </Pressable>
-
-            {/* Dismiss */}
             <Pressable
               onPress={() => setDemoInfoVisible(false)}
               style={demoOverlay.dismissBtn}
-              accessibilityLabel="Dismiss demo info"
             >
               <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}>
                 {prototypeCopy.demoInfoDismiss}
