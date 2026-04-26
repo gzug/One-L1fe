@@ -3,27 +3,24 @@ import { StyleSheet, Text, View } from 'react-native';
 import { readinessSegments, dataCoveragePercent } from '../data/demoData';
 import { prototypeCopy } from '../data/copy';
 import { useTheme } from '../theme/ThemeContext';
-import {
-  lineHeights,
-  radius,
-  segmentColors,
-  spacing,
-  typography,
-} from '../theme/marathonTheme';
+import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
+import type { ThemeColors } from '../theme/marathonTheme';
 
 function clamp(v: number) {
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
-/**
- * Progress ring using the classic rotation + clip technique.
- * Two half-circle Views, each rotated to fill the arc.
- * No SVG, no reanimated, no deps.
- */
+/** Semantic bar color: >=70 positive, 50-69 warning, <50 danger */
+function segmentColor(value: number, colors: ThemeColors): string {
+  if (value >= 70) return colors.positive;
+  if (value >= 50) return colors.warning;
+  return colors.danger;
+}
+
 function ProgressRing({
   size,
   strokeWidth,
-  progress, // 0–100
+  progress,
   trackColor,
   progressColor,
   children,
@@ -37,33 +34,22 @@ function ProgressRing({
 }) {
   const half = size / 2;
   const pct = clamp(progress) / 100;
-  // degrees for the progress arc
   const deg = pct * 360;
-  // We clip at 180° boundary
   const firstHalfDeg = Math.min(deg, 180);
   const secondHalfDeg = Math.max(deg - 180, 0);
 
   return (
     <View style={{ width: size, height: size }}>
-      {/* Track circle */}
+      {/* Track */}
       <View
         style={[
           StyleSheet.absoluteFillObject,
-          {
-            borderRadius: half,
-            borderWidth: strokeWidth,
-            borderColor: trackColor,
-          },
+          { borderRadius: half, borderWidth: strokeWidth, borderColor: trackColor },
         ]}
       />
-
-      {/* Left half-clip container */}
+      {/* Left arc */}
       <View
-        style={[
-          StyleSheet.absoluteFillObject,
-          { overflow: 'hidden', borderRadius: half },
-          { width: half, left: 0 },
-        ]}
+        style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', width: half, left: 0 }]}
         pointerEvents="none"
       >
         <View
@@ -79,15 +65,10 @@ function ProgressRing({
           ]}
         />
       </View>
-
-      {/* Right half-clip container */}
+      {/* Right arc */}
       {secondHalfDeg > 0 && (
         <View
-          style={[
-            StyleSheet.absoluteFillObject,
-            { overflow: 'hidden', borderRadius: half },
-            { width: half, left: half },
-          ]}
+          style={[StyleSheet.absoluteFillObject, { overflow: 'hidden', width: half, left: half }]}
           pointerEvents="none"
         >
           <View
@@ -104,13 +85,9 @@ function ProgressRing({
           />
         </View>
       )}
-
       {/* Center content */}
       <View
-        style={[
-          StyleSheet.absoluteFillObject,
-          { alignItems: 'center', justifyContent: 'center' },
-        ]}
+        style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center' }]}
         pointerEvents="none"
       >
         {children}
@@ -124,13 +101,12 @@ export function ReadinessOrbit() {
   const s = createStyles(colors);
 
   const average = clamp(
-    readinessSegments.reduce((sum, seg) => sum + seg.value, 0) /
-      readinessSegments.length,
+    readinessSegments.reduce((sum, seg) => sum + seg.value, 0) / readinessSegments.length,
   );
 
   return (
     <View style={s.card}>
-      {/* Interpretation — primary */}
+      {/* Interpretation leads */}
       <Text style={s.interpretation}>{prototypeCopy.readinessInterpretation}</Text>
       <Text style={s.interpretationSub}>{prototypeCopy.readinessInterpretationSub}</Text>
 
@@ -144,14 +120,15 @@ export function ReadinessOrbit() {
             trackColor={colors.ringTrack}
             progressColor={colors.ringProgress}
           >
+            {/* Small score label — present but subordinate */}
             <Text style={s.score}>{average}</Text>
-            <Text style={s.scoreCtx}>{prototypeCopy.readinessScoreContext}</Text>
+            <Text style={s.scoreLabel}>{prototypeCopy.readinessScoreLabel}</Text>
           </ProgressRing>
         </View>
 
         <View style={s.segmentList}>
-          {readinessSegments.map((seg, i) => {
-            const color = segmentColors[i % segmentColors.length];
+          {readinessSegments.map((seg) => {
+            const color = segmentColor(seg.value, colors);
             return (
               <View key={seg.label} style={s.segmentRow}>
                 <Text style={s.segmentLabel}>{seg.label}</Text>
@@ -159,10 +136,7 @@ export function ReadinessOrbit() {
                   <View
                     style={[
                       s.barFill,
-                      {
-                        width: `${clamp(seg.value)}%` as `${number}%`,
-                        backgroundColor: color,
-                      },
+                      { width: `${clamp(seg.value)}%` as `${number}%`, backgroundColor: color },
                     ]}
                   />
                 </View>
@@ -172,7 +146,7 @@ export function ReadinessOrbit() {
         </View>
       </View>
 
-      {/* Data coverage — inline text, not a bar */}
+      {/* Data coverage — subtle text only */}
       <Text style={s.coverageNote}>
         {prototypeCopy.dataCoverageLabel}: {dataCoveragePercent}% of signals available
       </Text>
@@ -180,7 +154,7 @@ export function ReadinessOrbit() {
   );
 }
 
-function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
+function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       borderRadius: radius.lg,
@@ -207,18 +181,15 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
       alignItems: 'center',
       gap: spacing.lg,
     },
-    ringWrapper: {
-      flexShrink: 0,
-      alignItems: 'center',
-    },
+    ringWrapper: { flexShrink: 0, alignItems: 'center' },
     score: {
       color: colors.text,
-      fontSize: 24,
+      fontSize: 20,
       fontWeight: '800',
-      lineHeight: 28,
+      lineHeight: 24,
       textAlign: 'center',
     },
-    scoreCtx: {
+    scoreLabel: {
       color: colors.textSubtle,
       fontSize: 8,
       fontWeight: '600',
@@ -226,10 +197,7 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
       letterSpacing: 0.3,
       textAlign: 'center',
     },
-    segmentList: {
-      flex: 1,
-      gap: spacing.sm,
-    },
+    segmentList: { flex: 1, gap: spacing.sm },
     segmentRow: { gap: spacing.xs },
     segmentLabel: {
       color: colors.textSubtle,
@@ -244,10 +212,7 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
       backgroundColor: colors.progressTrack,
       overflow: 'hidden',
     },
-    barFill: {
-      height: 4,
-      borderRadius: 2,
-    },
+    barFill: { height: 4, borderRadius: 2 },
     coverageNote: {
       color: colors.textSubtle,
       fontSize: typography.micro,

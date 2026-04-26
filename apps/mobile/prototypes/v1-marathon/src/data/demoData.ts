@@ -1,4 +1,4 @@
-// All values are demo data. isDemo: true = never real user data.
+// All values are demo data. isDemo: true = not real user data.
 
 export type TrainingSignal = {
   label: string;
@@ -18,9 +18,17 @@ export type BloodMarker = {
   isDemo: boolean;
 };
 
+export type BloodPanel = {
+  id: string;
+  label: string;
+  dateLabel: string;
+  markerCount: number;
+  isDemo: boolean;
+};
+
 export type ReadinessSegment = {
   label: string;
-  value: number; // 0–100
+  value: number; // 0-100
 };
 
 export type CoachingStep = {
@@ -46,58 +54,38 @@ export type ProfileField = {
   editable: boolean;
 };
 
-// ─── Training signals ──────────────────────────────────────────────────────
+// --- Training signals ---------------------------------------------------
 export const trainingSignals: TrainingSignal[] = [
   { label: 'Resting heart rate', value: '51', unit: 'bpm', status: 'available', isDemo: true },
   { label: 'HRV trend', value: 'Lower than baseline', status: 'needs_attention', isDemo: true },
   { label: 'Sleep duration', value: '6h 42m', status: 'needs_attention', isDemo: true },
 ];
 
-// ─── Readiness segments (no blue / no Data coverage bar) ─────────────────────
-export const readinessSegments = [
+// --- Readiness segments (3 only, no Mental load) ------------------------
+export const readinessSegments: ReadinessSegment[] = [
   { label: 'Recovery', value: 68 },
   { label: 'Training load', value: 74 },
   { label: 'Biomarkers', value: 61 },
-  { label: 'Mental load', value: 72 },
 ];
 
-// Data coverage shown as inline text, not a bar
 export const dataCoveragePercent = 72;
 
-// ─── Blood markers ──────────────────────────────────────────────────────────
-export const bloodMarkers: BloodMarker[] = [
-  {
-    label: 'ApoB',
-    value: '78',
-    unit: 'mg/dL',
-    status: 'needs_attention',
-    dateLabel: 'Apr 2025',
-    panelNote: 'Only 2025 data available',
-    isDemo: true,
-  },
-  {
-    label: 'hsCRP',
-    value: '1.2',
-    unit: 'mg/L',
-    status: 'available',
-    dateLabel: 'Apr 2025',
-    panelNote: 'Only 2025 data available',
-    isDemo: true,
-  },
-  {
-    label: 'Vitamin D',
-    value: '36',
-    unit: 'ng/mL',
-    status: 'needs_attention',
-    dateLabel: 'Apr 2025',
-    panelNote: 'Only 2025 data available',
-    isDemo: true,
-  },
+// --- Blood panels -------------------------------------------------------
+export const bloodPanels: BloodPanel[] = [
+  { id: 'panel_2023', label: 'Blood panel 2023', dateLabel: 'Nov 2023', markerCount: 14, isDemo: true },
+  { id: 'panel_2025', label: 'Blood panel 2025', dateLabel: 'Apr 2025', markerCount: 18, isDemo: true },
 ];
 
-export const bloodPanelCount = 2; // panels on file (demo)
+export const bloodPanelCount = bloodPanels.length;
 
-// ─── Coaching ───────────────────────────────────────────────────────────────
+// Legacy — kept for potential detail view use, not shown on home
+export const bloodMarkers: BloodMarker[] = [
+  { label: 'ApoB',      value: '78',  unit: 'mg/dL', status: 'needs_attention', dateLabel: 'Apr 2025', panelNote: 'Only 2025 data available', isDemo: true },
+  { label: 'hsCRP',     value: '1.2', unit: 'mg/L',  status: 'available',       dateLabel: 'Apr 2025', panelNote: 'Only 2025 data available', isDemo: true },
+  { label: 'Vitamin D', value: '36',  unit: 'ng/mL', status: 'needs_attention', dateLabel: 'Apr 2025', panelNote: 'Only 2025 data available', isDemo: true },
+];
+
+// --- Coaching -----------------------------------------------------------
 export const coachingSteps: CoachingStep[] = [
   {
     title: 'Keep the next session controlled',
@@ -116,7 +104,7 @@ export const coachingSteps: CoachingStep[] = [
   },
 ];
 
-// ─── Connected sources (honest — no fake connections) ─────────────────────────
+// --- Connected sources --------------------------------------------------
 export const connectedSources: ConnectedSource[] = [
   {
     id: 'garmin',
@@ -144,19 +132,19 @@ export const connectedSources: ConnectedSource[] = [
   },
 ];
 
-// ─── Profile fields ───────────────────────────────────────────────────────────
+// --- Profile fields -----------------------------------------------------
 export const profileFields: ProfileField[] = [
-  { key: 'name',       label: 'Name',            value: 'Markus Sommer',    source: 'manual',  editable: true },
-  { key: 'age',        label: 'Age',             value: '34',               source: 'manual',  editable: true },
-  { key: 'gender',     label: 'Gender',          value: 'Male',             source: 'manual',  editable: true },
-  { key: 'height',     label: 'Height',          value: '182 cm',           source: 'manual',  editable: true },
-  { key: 'weight',     label: 'Weight',          value: '78 kg',            source: 'manual',  editable: true },
-  { key: 'goal_race',  label: 'Goal race',       value: 'Brisbane Marathon', source: 'manual', editable: true },
-  { key: 'race_date',  label: 'Race date',       value: 'Jun 07, 2026',     source: 'manual',  editable: true },
-  { key: 'level',      label: 'Experience',      value: 'Intermediate',     source: 'manual',  editable: true },
-  { key: 'volume',     label: 'Weekly volume',   value: '55 km / week',     source: 'manual',  editable: true },
-  { key: 'long_run',   label: 'Long run range',  value: 'Up to 32 km',      source: 'manual',  editable: true },
-  { key: 'train_days', label: 'Training days',   value: 'Mon / Wed / Thu / Sat', source: 'manual', editable: true },
-  { key: 'units',      label: 'Units',           value: 'Metric',           source: 'manual',  editable: true },
-  { key: 'pace_fmt',   label: 'Pace format',     value: 'min/km',           source: 'manual',  editable: true },
+  { key: 'name',       label: 'Name',           value: 'Markus Sommer',      source: 'manual', editable: true },
+  { key: 'age',        label: 'Age',            value: '34',                 source: 'manual', editable: true },
+  { key: 'gender',     label: 'Gender',         value: 'Male',               source: 'manual', editable: true },
+  { key: 'height',     label: 'Height',         value: '182 cm',             source: 'manual', editable: true },
+  { key: 'weight',     label: 'Weight',         value: '78 kg',              source: 'manual', editable: true },
+  { key: 'goal_race',  label: 'Goal race',      value: 'Brisbane Marathon',  source: 'manual', editable: true },
+  { key: 'race_date',  label: 'Race date',      value: 'Jun 07, 2026',       source: 'manual', editable: true },
+  { key: 'level',      label: 'Experience',     value: 'Intermediate',       source: 'manual', editable: true },
+  { key: 'volume',     label: 'Weekly volume',  value: '55 km / week',       source: 'manual', editable: true },
+  { key: 'long_run',   label: 'Long run range', value: 'Up to 32 km',        source: 'manual', editable: true },
+  { key: 'train_days', label: 'Training days',  value: 'Mon / Wed / Thu / Sat', source: 'manual', editable: true },
+  { key: 'units',      label: 'Units',          value: 'Metric',             source: 'manual', editable: true },
+  { key: 'pace_fmt',   label: 'Pace format',    value: 'min/km',             source: 'manual', editable: true },
 ];

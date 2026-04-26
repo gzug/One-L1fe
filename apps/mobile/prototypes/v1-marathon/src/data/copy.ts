@@ -3,9 +3,11 @@ export const prototypeCopy = {
   appName: 'One L1fe',
   prototypeSub: 'V1 — Marathon',
 
-  // Demo mode
-  demoData: 'Demo data',
-  demoModeBanner: 'Running with demo data — connect real sources to see your numbers.',
+  // Demo info (header icon overlay)
+  demoInfoTitle: 'Demo data',
+  demoInfoBody:
+    'All values shown are illustrative demo data. No real health data is stored or transmitted in this prototype. Connect real sources in the full product.',
+  demoInfoDismiss: 'Got it',
 
   // Status labels
   available: 'Available',
@@ -14,29 +16,31 @@ export const prototypeCopy = {
   planned: 'Planned',
 
   // Readiness
-  readinessLabel: 'Readiness context',
   readinessInterpretation: 'Build carefully today.',
   readinessInterpretationSub:
     'Recovery signals are softer than recent load. Use as context for planning — not a medical assessment.',
-  readinessScoreContext: 'context score',
+  readinessScoreLabel: 'readiness',
   dataCoverageLabel: 'Data coverage',
 
   // Sections
   sectionSignals: 'Training signals',
-  sectionBlood: 'Blood context',
+  sectionBlood: 'Blood panels',
   sectionCoaching: 'Suggested focus',
   sectionNotes: 'Ideas & Notes',
-  sectionSources: 'Connected sources',
 
-  // Signal status glyphs (plain ASCII-safe)
+  // Signal status glyphs
   signalGlyphs: {
     available: '•',
     needs_attention: '•',
     not_available: '◦',
   } as Record<string, string>,
 
-  // Blood
+  // Blood panels
   bloodPanelCount: (n: number) => `${n} panel${n === 1 ? '' : 's'} on file`,
+  bloodPanelsViewCta: 'View blood panels',
+  bloodPanelsUploadPdf: 'Upload PDF',
+  bloodPanelsUploadPhoto: 'Upload photo',
+  bloodPanelsProtoNote: 'Upload not active in prototype',
 
   // Notes
   notesPlaceholder: 'Add a thought, observation, or question…',

@@ -5,25 +5,27 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
-import { profileFields, connectedSources } from '../data/demoData';
+import { profileFields, connectedSources, bloodPanels } from '../data/demoData';
 import type { ConnectedSource, ProfileField } from '../data/demoData';
+import { prototypeCopy } from '../data/copy';
 
 type ProfileScreenProps = { onClose: () => void };
 
-const personalKeys = ['name', 'age', 'gender', 'height', 'weight'];
-const trainingKeys = ['goal_race', 'race_date', 'level', 'volume', 'long_run', 'train_days'];
-const prefKeys = ['units', 'pace_fmt'];
+const personalKeys  = ['name', 'age', 'gender', 'height', 'weight'];
+const trainingKeys  = ['goal_race', 'race_date', 'level', 'volume', 'long_run', 'train_days'];
+const prefKeys      = ['units', 'pace_fmt'];
 
 type SectionDef = { title: string; keys: string[] };
 const sectionDefs: SectionDef[] = [
-  { title: 'Personal', keys: personalKeys },
-  { title: 'Training', keys: trainingKeys },
+  { title: 'Personal',    keys: personalKeys },
+  { title: 'Training',    keys: trainingKeys },
   { title: 'Preferences', keys: prefKeys },
 ];
 
@@ -36,18 +38,21 @@ function fieldsByKeys(keys: string[]): ProfileField[] {
 export function ProfileScreen({ onClose }: ProfileScreenProps) {
   const { colors } = useTheme();
   const [editMode, setEditMode] = useState(false);
+  // Local editable values — initialised from demoData
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>(
+    () => Object.fromEntries(profileFields.map((f) => [f.key, f.value])),
+  );
   const s = createStyles(colors);
+
+  function updateField(key: string, val: string) {
+    setFieldValues((prev) => ({ ...prev, [key]: val }));
+  }
 
   return (
     <SafeAreaView style={s.safeArea}>
       {/* Header */}
       <View style={s.header}>
-        <Pressable
-          onPress={onClose}
-          style={s.backBtn}
-          hitSlop={8}
-          accessibilityLabel="Back"
-        >
+        <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
           <Ionicons name="chevron-back" size={22} color={colors.accent} />
         </Pressable>
         <View style={s.headerCenter}>
@@ -66,31 +71,31 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
         </Pressable>
       </View>
 
-      <ScrollView
-        contentContainerStyle={s.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
         <View style={s.container}>
+
           {/* Demo banner */}
           <View style={s.demoBanner}>
             <Text style={s.demoBannerText}>
-              Profile values are demo data. Real data will sync from your account and
-              connected sources in the full product.
+              Profile values are demo data. Real data will sync from your account and connected
+              sources in the full product.
             </Text>
           </View>
 
-          {/* Sections */}
+          {/* Profile sections */}
           {sectionDefs.map((section) => (
             <ProfileSection
               key={section.title}
               title={section.title}
               fields={fieldsByKeys(section.keys)}
               editMode={editMode}
+              fieldValues={fieldValues}
+              onChangeField={updateField}
               colors={colors}
             />
           ))}
 
-          {/* Connected sources */}
+          {/* Connected sources + blood panels disclosure */}
           <View style={s.section}>
             <Text style={s.sectionTitle}>Connected sources</Text>
             <View style={s.card}>
@@ -105,6 +110,50 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
             </View>
           </View>
 
+          {/* Blood panels disclosure */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Blood panels on file</Text>
+            <View style={s.card}>
+              {bloodPanels.map((panel, i) => (
+                <View key={panel.id} style={[s.panelRow, i < bloodPanels.length - 1 && s.rowBorder]}>
+                  <View style={s.panelLeft}>
+                    <Text style={s.rowValue}>{panel.label}</Text>
+                    <Text style={s.panelMeta}>
+                      {panel.dateLabel} · {panel.markerCount} markers
+                    </Text>
+                    <Text style={s.panelDemoNote}>Demo data</Text>
+                  </View>
+                  <View style={s.panelActions}>
+                    <Pressable
+                      style={[s.uploadBtn, { borderColor: colors.border }]}
+                      accessibilityLabel={`${prototypeCopy.bloodPanelsUploadPdf} for ${panel.label}`}
+                      hitSlop={6}
+                    >
+                      <Ionicons name="document-outline" size={12} color={colors.textMuted} />
+                      <Text style={[s.uploadBtnText, { color: colors.textMuted }]}>
+                        {prototypeCopy.bloodPanelsUploadPdf}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={[s.uploadBtn, { borderColor: colors.border }]}
+                      accessibilityLabel={`${prototypeCopy.bloodPanelsUploadPhoto} for ${panel.label}`}
+                      hitSlop={6}
+                    >
+                      <Ionicons name="camera-outline" size={12} color={colors.textMuted} />
+                      <Text style={[s.uploadBtnText, { color: colors.textMuted }]}>
+                        {prototypeCopy.bloodPanelsUploadPhoto}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+              <View style={[s.panelProtoNote, { borderTopColor: colors.borderSubtle }]}>
+                <Ionicons name="information-circle-outline" size={12} color={colors.textSubtle} />
+                <Text style={s.panelProtoNoteText}>{prototypeCopy.bloodPanelsProtoNote}</Text>
+              </View>
+            </View>
+          </View>
+
           <Text style={s.footer}>
             One L1fe does not store or transmit profile data in prototype mode.
           </Text>
@@ -114,15 +163,15 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
   );
 }
 
+// --- ProfileSection -----------------------------------------------------
 function ProfileSection({
-  title,
-  fields,
-  editMode,
-  colors,
+  title, fields, editMode, fieldValues, onChangeField, colors,
 }: {
   title: string;
   fields: ProfileField[];
   editMode: boolean;
+  fieldValues: Record<string, string>;
+  onChangeField: (key: string, val: string) => void;
   colors: ThemeColors;
 }) {
   const s = createStyles(colors);
@@ -131,22 +180,33 @@ function ProfileSection({
       <Text style={s.sectionTitle}>{title}</Text>
       <View style={s.card}>
         {fields.map((field, i) => (
-          <View
-            key={field.key}
-            style={[s.row, i < fields.length - 1 && s.rowBorder]}
-          >
+          <View key={field.key} style={[s.row, i < fields.length - 1 && s.rowBorder]}>
             <Text style={s.rowLabel}>{field.label}</Text>
             <View style={s.rowRight}>
-              <Text style={[s.rowValue, editMode && field.editable && s.rowValueEdit]}>
-                {field.value}
-              </Text>
-              {editMode && field.editable && (
-                <Ionicons
-                  name="pencil-outline"
-                  size={11}
-                  color={colors.accent}
-                  style={s.editIcon}
+              {editMode && field.editable ? (
+                <TextInput
+                  value={fieldValues[field.key] ?? field.value}
+                  onChangeText={(val) => onChangeField(field.key, val)}
+                  style={[
+                    s.inlineInput,
+                    {
+                      color: colors.accent,
+                      borderBottomColor: colors.accentBorder,
+                    },
+                  ]}
+                  selectTextOnFocus
+                  returnKeyType="done"
+                  accessibilityLabel={`Edit ${field.label}`}
                 />
+              ) : (
+                <Text
+                  style={[
+                    s.rowValue,
+                    !field.editable && s.rowValueDimmed,
+                  ]}
+                >
+                  {fieldValues[field.key] ?? field.value}
+                </Text>
               )}
             </View>
           </View>
@@ -156,10 +216,9 @@ function ProfileSection({
   );
 }
 
+// --- SourceRow ----------------------------------------------------------
 function SourceRow({
-  source,
-  isLast,
-  colors,
+  source, isLast, colors,
 }: {
   source: ConnectedSource;
   isLast: boolean;
@@ -178,16 +237,11 @@ function SourceRow({
     <View style={[s.sourceRow, !isLast && s.rowBorder]}>
       <View style={s.sourceLeft}>
         <Text style={s.rowLabel}>{source.label}</Text>
-        <Text style={isOnFile ? s.sourceOnFile : s.sourceMuted}>
-          {source.statusLabel}
-        </Text>
+        <Text style={isOnFile ? s.sourceOnFile : s.sourceMuted}>{source.statusLabel}</Text>
         {source.note ? <Text style={s.sourceNote}>{source.note}</Text> : null}
       </View>
       <Pressable
-        style={[
-          s.sourceAction,
-          { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
-        ]}
+        style={[s.sourceAction, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
         accessibilityLabel={`${source.actionLabel} ${source.label}`}
         hitSlop={6}
       >
@@ -198,6 +252,7 @@ function SourceRow({
   );
 }
 
+// --- Styles -------------------------------------------------------------
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },
@@ -227,21 +282,10 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    editBtnActive: {
-      borderColor: colors.accentBorder,
-      backgroundColor: colors.accentSoft,
-    },
-    editBtnText: {
-      color: colors.textMuted,
-      fontSize: typography.bodySmall,
-      fontWeight: '600',
-    },
+    editBtnActive: { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
+    editBtnText: { color: colors.textMuted, fontSize: typography.bodySmall, fontWeight: '600' },
     editBtnTextActive: { color: colors.accent },
-    scroll: {
-      alignItems: 'center',
-      paddingVertical: spacing.xl,
-      paddingBottom: spacing.xxxl,
-    },
+    scroll: { alignItems: 'center', paddingVertical: spacing.xl, paddingBottom: spacing.xxxl },
     container: {
       width: '100%',
       maxWidth: layout.maxWidth,
@@ -308,7 +352,16 @@ function createStyles(colors: ThemeColors) {
       textAlign: 'right',
       flexShrink: 1,
     },
-    rowValueEdit: { color: colors.accent },
+    rowValueDimmed: { color: colors.textSubtle, fontWeight: '400' },
+    inlineInput: {
+      fontSize: typography.bodySmall,
+      fontWeight: '600',
+      textAlign: 'right',
+      borderBottomWidth: 1,
+      paddingVertical: 2,
+      minWidth: 80,
+      flexShrink: 1,
+    },
     editIcon: { marginLeft: 2 },
     sourceRow: {
       flexDirection: 'row',
@@ -320,16 +373,8 @@ function createStyles(colors: ThemeColors) {
     },
     sourceLeft: { flex: 1, gap: 2 },
     sourceMuted: { color: colors.textSubtle, fontSize: typography.micro },
-    sourceOnFile: {
-      color: colors.positive,
-      fontSize: typography.micro,
-      fontWeight: '600',
-    },
-    sourceNote: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
-      opacity: 0.7,
-    },
+    sourceOnFile: { color: colors.positive, fontSize: typography.micro, fontWeight: '600' },
+    sourceNote: { color: colors.textSubtle, fontSize: typography.micro, opacity: 0.7 },
     sourceAction: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -345,6 +390,50 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.micro,
       fontWeight: '700',
       letterSpacing: 0.2,
+    },
+    panelRow: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      gap: spacing.sm,
+    },
+    panelLeft: { gap: 3 },
+    panelMeta: { color: colors.textSubtle, fontSize: typography.micro },
+    panelDemoNote: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      opacity: 0.6,
+      fontStyle: 'italic',
+    },
+    panelActions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      flexWrap: 'wrap',
+    },
+    uploadBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderWidth: 1,
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs + 1,
+    },
+    uploadBtnText: {
+      fontSize: typography.micro,
+      fontWeight: '600',
+    },
+    panelProtoNote: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+    },
+    panelProtoNoteText: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      opacity: 0.8,
     },
     footer: {
       color: colors.textSubtle,

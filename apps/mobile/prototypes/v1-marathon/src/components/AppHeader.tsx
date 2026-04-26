@@ -6,9 +6,10 @@ import { layout, spacing, typography } from '../theme/marathonTheme';
 
 type AppHeaderProps = {
   onProfilePress: () => void;
+  onDemoInfoPress: () => void;
 };
 
-export function AppHeader({ onProfilePress }: AppHeaderProps) {
+export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
   const { colors, isDark, toggle } = useTheme();
 
   return (
@@ -25,27 +26,26 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
         {/* Controls */}
         <View style={styles.controls}>
           <Pressable
+            onPress={onDemoInfoPress}
+            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
+            accessibilityLabel="About demo data"
+            hitSlop={8}
+          >
+            <Ionicons name="information-circle-outline" size={18} color={colors.textMuted} />
+          </Pressable>
+
+          <Pressable
             onPress={toggle}
-            style={[
-              styles.iconBtn,
-              { borderColor: colors.border, backgroundColor: colors.surface },
-            ]}
+            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
             accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             hitSlop={8}
           >
-            <Ionicons
-              name={isDark ? 'sunny-outline' : 'moon-outline'}
-              size={17}
-              color={colors.textMuted}
-            />
+            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={17} color={colors.textMuted} />
           </Pressable>
 
           <Pressable
             onPress={onProfilePress}
-            style={[
-              styles.iconBtn,
-              { borderColor: colors.border, backgroundColor: colors.surface },
-            ]}
+            style={[styles.iconBtn, { borderColor: colors.border, backgroundColor: colors.surface }]}
             accessibilityLabel="Open profile"
             hitSlop={8}
           >
