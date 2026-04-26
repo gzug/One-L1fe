@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { ErrorUtils, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { PrototypeV1MarathonScreen } from './prototypes/v1-marathon/src/PrototypeV1MarathonScreen';
 import { createMinimumSliceScreenController } from './minimumSliceScreenController.ts';
 import {
   getOneL1feSupabaseUrl,
@@ -18,6 +19,12 @@ import DevInsightScreen from './DevInsightScreen.tsx';
 import WeeklyCheckinScreen from './WeeklyCheckinScreen.tsx';
 import { captureAppError, initSentry } from './sentry';
 
+// ─── Prototype gate ────────────────────────────────────────────────────────────
+// Set EXPO_PUBLIC_PROTOTYPE_V1_MARATHON=true in your .env (or .env.prototype)
+// to render the V1 Marathon prototype directly, bypassing auth and navigation.
+// Remove or set to any other value to restore the full app shell.
+const PROTOTYPE_MODE = process.env.EXPO_PUBLIC_PROTOTYPE_V1_MARATHON === 'true';
+
 const controller = createMinimumSliceScreenController({
   authSessionProvider: createMobileSupabaseAuthSessionProvider(),
   supabaseUrl:
@@ -31,13 +38,26 @@ type ActiveScreen = 'minimum-slice' | 'wearable-sync' | 'weekly-checkin' | 'dev-
 initSentry();
 
 export default function App(): React.JSX.Element {
+  // ── Prototype shortcut ─────────────────────────────────────────────────────
+  if (PROTOTYPE_MODE) {
+    return (
+      <>
+        <StatusBar style="light" />
+        <PrototypeV1MarathonScreen />
+      </>
+    );
+  }
+
+  // ── Full app shell (unchanged) ─────────────────────────────────────────────
+  return <AppShell />;
+}
+
+function AppShell(): React.JSX.Element {
   const { authState, error, user, signOut } = useAuthSession();
   const [activeScreen, setActiveScreen] = useState<ActiveScreen>('minimum-slice');
   const [isDevUser, setIsDevUser] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<string>('MinimumSlice');
 
-  // Resolve HC permission status at App level so the tab bar can reflect
-  // the gate state without mounting a second hook instance inside the tab.
   const { status: hcStatus } = useWearablePermissions();
   const hcBlocked = hcStatus === 'denied' || hcStatus === 'unavailable';
 
