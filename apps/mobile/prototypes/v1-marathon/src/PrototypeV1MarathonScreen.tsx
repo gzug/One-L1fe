@@ -35,8 +35,13 @@ type ActiveView = 'home' | 'profile';
 
 function PrototypeShell() {
   const { colors } = useTheme();
-  const [activeView, setActiveView]         = useState<ActiveView>('home');
+  const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
+
+  function openProfile() {
+    setDemoInfoVisible(false);
+    setActiveView('profile');
+  }
 
   return (
     <>
@@ -67,24 +72,46 @@ function PrototypeShell() {
           style={demoOverlay.backdrop}
           onPress={() => setDemoInfoVisible(false)}
         >
-          <Pressable
-            style={[
-              demoOverlay.sheet,
-              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-            ]}
-          >
-            <Ionicons name="information-circle" size={24} color={colors.accent} style={{ alignSelf: 'center' }} />
+          {/* Inner sheet: stop propagation so tapping inside doesn't close */}
+          <Pressable style={[demoOverlay.sheet, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+            <Ionicons
+              name="information-circle"
+              size={24}
+              color={colors.accent}
+              style={{ alignSelf: 'center' }}
+            />
             <Text style={[demoOverlay.title, { color: colors.text }]}>
               {prototypeCopy.demoInfoTitle}
             </Text>
             <Text style={[demoOverlay.body, { color: colors.textMuted }]}>
               {prototypeCopy.demoInfoBody}
             </Text>
+
+            {/* Divider */}
+            <View style={[demoOverlay.divider, { backgroundColor: colors.borderSubtle }]} />
+
+            {/* Connect CTA */}
+            <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}>
+              {prototypeCopy.demoInfoConnectHelper}
+            </Text>
+            <Pressable
+              onPress={openProfile}
+              style={[demoOverlay.connectBtn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+              accessibilityLabel="Connect a source"
+            >
+              <Ionicons name="link-outline" size={14} color={colors.accent} />
+              <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>
+                {prototypeCopy.demoInfoConnectCta}
+              </Text>
+            </Pressable>
+
+            {/* Dismiss */}
             <Pressable
               onPress={() => setDemoInfoVisible(false)}
-              style={[demoOverlay.btn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+              style={demoOverlay.dismissBtn}
+              accessibilityLabel="Dismiss demo info"
             >
-              <Text style={[demoOverlay.btnText, { color: colors.accent }]}>
+              <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}>
                 {prototypeCopy.demoInfoDismiss}
               </Text>
             </Pressable>
@@ -116,7 +143,6 @@ function HomeView({
         keyboardShouldPersistTaps="handled"
       >
         <View style={s.container}>
-
           <ReadinessOrbit />
 
           <View style={s.section}>
@@ -199,7 +225,7 @@ const demoOverlay = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: 1,
     padding: spacing.xl,
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   title: {
     fontSize: typography.subtitle,
@@ -212,17 +238,40 @@ const demoOverlay = StyleSheet.create({
     lineHeight: lineHeights.bodySmall,
     textAlign: 'center',
   },
-  btn: {
-    alignSelf: 'center',
+  divider: {
+    height: 1,
+    marginVertical: spacing.xs,
+  },
+  helperText: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    textAlign: 'center',
+  },
+  connectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    alignSelf: 'stretch',
     borderWidth: 1,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
-    marginTop: spacing.xs,
+    paddingHorizontal: spacing.lg,
   },
-  btnText: {
+  connectBtnText: {
     fontSize: typography.bodySmall,
     fontWeight: '700',
+    letterSpacing: 0.1,
+  },
+  dismissBtn: {
+    alignSelf: 'center',
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.xs,
+  },
+  dismissText: {
+    fontSize: typography.caption,
+    fontWeight: '500',
   },
 });
 
