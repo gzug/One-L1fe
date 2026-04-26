@@ -1,29 +1,37 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import type { TrainingSignal } from '../data/demoData';
+import { prototypeCopy } from '../data/copy';
 import { marathonTheme } from '../theme/marathonTheme';
-import { DemoDataBadge } from './DemoDataBadge';
 
 type SignalCardProps = {
   signal: TrainingSignal;
 };
 
-const STATUS_DOT: Record<TrainingSignal['status'], string> = {
+const STATUS_COLOR: Record<TrainingSignal['status'], string> = {
   available: marathonTheme.colors.positive,
   needs_attention: marathonTheme.colors.warning,
   not_available: marathonTheme.colors.textSubtle,
 };
 
+const STATUS_BG: Record<TrainingSignal['status'], string> = {
+  available: marathonTheme.colors.positiveTint,
+  needs_attention: marathonTheme.colors.warningTint,
+  not_available: 'transparent',
+};
+
 export function SignalCard({ signal }: SignalCardProps) {
-  const dotColor = STATUS_DOT[signal.status];
+  const stripeColor = STATUS_COLOR[signal.status];
+  const bgColor = STATUS_BG[signal.status];
+  const glyph = prototypeCopy.signalGlyphs[signal.status] ?? '\u25cf';
 
   return (
-    <View style={styles.card}>
-      <View style={[styles.statusStripe, { backgroundColor: dotColor }]} />
+    <View style={[styles.card, { backgroundColor: bgColor }]}>
+      <View style={[styles.stripe, { backgroundColor: stripeColor }]} />
       <View style={styles.inner}>
-        <View style={styles.topRow}>
+        <View style={styles.labelRow}>
+          <Text style={[styles.glyph, { color: stripeColor }]}>{glyph}</Text>
           <Text style={styles.label}>{signal.label}</Text>
-          {signal.isDemo && <DemoDataBadge compact />}
         </View>
         <Text style={styles.value}>
           {signal.value}
@@ -40,36 +48,40 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     borderRadius: marathonTheme.radius.md,
-    backgroundColor: marathonTheme.colors.surface,
     borderWidth: 1,
     borderColor: marathonTheme.colors.border,
     overflow: 'hidden',
   },
-  statusStripe: {
+  stripe: {
     width: 3,
-    borderRadius: 0,
   },
   inner: {
     flex: 1,
-    padding: marathonTheme.spacing.md,
+    paddingVertical: marathonTheme.spacing.md,
+    paddingHorizontal: marathonTheme.spacing.lg,
     gap: marathonTheme.spacing.xs,
   },
-  topRow: {
+  labelRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: marathonTheme.spacing.xs,
+  },
+  glyph: {
+    fontSize: 7,
+    lineHeight: 16,
   },
   label: {
-    color: marathonTheme.colors.textMuted,
+    color: marathonTheme.colors.textSubtle,
     fontSize: marathonTheme.typography.caption,
     fontWeight: '600',
-    letterSpacing: 0.2,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   value: {
     color: marathonTheme.colors.text,
     fontSize: marathonTheme.typography.subtitle,
     fontWeight: '700',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   unit: {
     color: marathonTheme.colors.textMuted,

@@ -8,12 +8,16 @@ export function NutritionContextCard() {
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.label}>{prototypeCopy.sectionNutrition}</Text>
+        <View style={styles.labelRow}>
+          <Text style={styles.lockGlyph}>\uD83D\uDD12</Text>
+          <Text style={styles.label}>{prototypeCopy.sectionNutrition}</Text>
+        </View>
         <View style={styles.plannedPill}>
           <Text style={styles.plannedText}>{prototypeCopy.planned}</Text>
         </View>
       </View>
       <Text style={styles.body}>{prototypeCopy.nutritionBody}</Text>
+      <Text style={styles.lockNote}>{prototypeCopy.nutritionLockNote}</Text>
     </View>
   );
 }
@@ -25,13 +29,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: marathonTheme.colors.borderSubtle,
-    padding: marathonTheme.spacing.md,
+    padding: marathonTheme.spacing.lg,
     gap: marathonTheme.spacing.sm,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: marathonTheme.spacing.sm,
+  },
+  lockGlyph: {
+    fontSize: 13,
+    opacity: 0.4,
   },
   label: {
     color: marathonTheme.colors.textSubtle,
@@ -57,5 +70,10 @@ const styles = StyleSheet.create({
     color: marathonTheme.colors.textSubtle,
     fontSize: marathonTheme.typography.bodySmall,
     lineHeight: marathonTheme.lineHeights.bodySmall,
+  },
+  lockNote: {
+    color: marathonTheme.colors.textSubtle,
+    fontSize: marathonTheme.typography.micro,
+    opacity: 0.6,
   },
 });

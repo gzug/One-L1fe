@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { BloodMarker } from '../data/demoData';
 import { prototypeCopy } from '../data/copy';
 import { marathonTheme } from '../theme/marathonTheme';
-import { DemoDataBadge } from './DemoDataBadge';
 
 type BloodMarkerCardProps = {
   marker: BloodMarker;
@@ -40,9 +39,13 @@ export function BloodMarkerCard({ marker }: BloodMarkerCardProps) {
 
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
+      <View style={styles.topRow}>
         <Text style={styles.label}>{marker.label}</Text>
-        {marker.isDemo && <DemoDataBadge compact />}
+        <View style={[styles.statusPill, { backgroundColor: bg, borderColor: border }]}>
+          <Text style={[styles.statusText, { color }]}>
+            {statusLabel[marker.status]}
+          </Text>
+        </View>
       </View>
       <Text style={styles.value}>
         {marker.value}
@@ -50,65 +53,61 @@ export function BloodMarkerCard({ marker }: BloodMarkerCardProps) {
           <Text style={styles.unit}> {marker.unit}</Text>
         ) : null}
       </Text>
-      <View style={styles.footerRow}>
-        <Text style={styles.date}>{marker.dateLabel}</Text>
-        <View style={[styles.statusPill, { backgroundColor: bg, borderColor: border }]}>
-          <Text style={[styles.statusText, { color }]}>
-            {statusLabel[marker.status]}
-          </Text>
-        </View>
-      </View>
+      <Text style={styles.date}>{marker.dateLabel}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
+    minWidth: 0,
     borderRadius: marathonTheme.radius.md,
     backgroundColor: marathonTheme.colors.surface,
     borderWidth: 1,
     borderColor: marathonTheme.colors.border,
     padding: marathonTheme.spacing.md,
-    gap: marathonTheme.spacing.sm,
+    gap: marathonTheme.spacing.xs,
   },
-  headerRow: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: marathonTheme.spacing.xs,
   },
   label: {
     color: marathonTheme.colors.textMuted,
     fontSize: marathonTheme.typography.caption,
     fontWeight: '600',
+    flex: 1,
   },
   value: {
     color: marathonTheme.colors.text,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
-    lineHeight: 26,
+    lineHeight: 24,
+    letterSpacing: -0.2,
   },
   unit: {
     color: marathonTheme.colors.textMuted,
-    fontSize: marathonTheme.typography.body,
+    fontSize: marathonTheme.typography.bodySmall,
     fontWeight: '400',
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   date: {
     color: marathonTheme.colors.textSubtle,
     fontSize: marathonTheme.typography.micro,
+    marginTop: 2,
   },
   statusPill: {
     borderWidth: 1,
     borderRadius: marathonTheme.radius.pill,
-    paddingHorizontal: marathonTheme.spacing.sm,
-    paddingVertical: 2,
+    paddingHorizontal: marathonTheme.spacing.xs + 2,
+    paddingVertical: 1,
+    flexShrink: 0,
   },
   statusText: {
-    fontSize: marathonTheme.typography.micro,
-    fontWeight: '600',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });

@@ -1,8 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { readinessSegments } from '../data/demoData';
+import { prototypeCopy } from '../data/copy';
 import { marathonTheme } from '../theme/marathonTheme';
-import { DemoDataBadge } from './DemoDataBadge';
 
 function clampScore(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
@@ -16,45 +16,47 @@ export function ReadinessOrbit() {
 
   return (
     <View style={styles.card}>
-      {/* Top row: eyebrow + demo badge */}
-      <View style={styles.headerRow}>
-        <Text style={styles.eyebrow}>Readiness context</Text>
-        <DemoDataBadge compact />
-      </View>
+      {/* Interpretation — primary claim */}
+      <Text style={styles.interpretation}>
+        {prototypeCopy.readinessInterpretation}
+      </Text>
+      <Text style={styles.interpretationSub}>
+        {prototypeCopy.readinessInterpretationSub}
+      </Text>
 
-      {/* Score ring */}
-      <View style={styles.ringWrapper}>
-        <View style={styles.ring}>
-          <Text style={styles.score}>{average}</Text>
-          <Text style={styles.scoreLabel}>/ 100</Text>
+      {/* Ring + segments row */}
+      <View style={styles.bodyRow}>
+        {/* Score ring — supporting context */}
+        <View style={styles.ringWrapper}>
+          <View style={styles.ring}>
+            <Text style={styles.score}>{average}</Text>
+            <Text style={styles.scoreContext}>{prototypeCopy.readinessScoreContext}</Text>
+          </View>
         </View>
-      </View>
 
-      {/* Segment bars */}
-      <View style={styles.segmentList}>
-        {readinessSegments.map((seg, i) => {
-          const color =
-            marathonTheme.segmentColors[i % marathonTheme.segmentColors.length];
-          return (
-            <View key={seg.label} style={styles.segmentRow}>
-              <Text style={styles.segmentLabel}>{seg.label}</Text>
-              <View style={styles.barTrack}>
-                <View
-                  style={[
-                    styles.barFill,
-                    {
-                      width: `${clampScore(seg.value)}%` as `${number}%`,
-                      backgroundColor: color,
-                    },
-                  ]}
-                />
+        {/* Segment bars */}
+        <View style={styles.segmentList}>
+          {readinessSegments.map((seg, i) => {
+            const color =
+              marathonTheme.segmentColors[i % marathonTheme.segmentColors.length];
+            return (
+              <View key={seg.label} style={styles.segmentRow}>
+                <Text style={styles.segmentLabel}>{seg.label}</Text>
+                <View style={styles.barTrack}>
+                  <View
+                    style={[
+                      styles.barFill,
+                      {
+                        width: `${clampScore(seg.value)}%` as `${number}%`,
+                        backgroundColor: color,
+                      },
+                    ]}
+                  />
+                </View>
               </View>
-              <Text style={[styles.segmentValue, { color }]}>
-                {clampScore(seg.value)}
-              </Text>
-            </View>
-          );
-        })}
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -69,77 +71,79 @@ const styles = StyleSheet.create({
     padding: marathonTheme.spacing.lg,
     gap: marathonTheme.spacing.lg,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  eyebrow: {
-    color: marathonTheme.colors.textSubtle,
-    fontSize: marathonTheme.typography.caption,
+  interpretation: {
+    color: marathonTheme.colors.text,
+    fontSize: marathonTheme.typography.heroInterpretation,
     fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.9,
+    lineHeight: marathonTheme.lineHeights.heroInterpretation,
+    letterSpacing: -0.3,
+  },
+  interpretationSub: {
+    color: marathonTheme.colors.textMuted,
+    fontSize: marathonTheme.typography.bodySmall,
+    lineHeight: marathonTheme.lineHeights.bodySmall,
+    marginTop: -marathonTheme.spacing.sm,
+  },
+  bodyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: marathonTheme.spacing.lg,
   },
   ringWrapper: {
     alignItems: 'center',
-    paddingVertical: marathonTheme.spacing.sm,
+    flexShrink: 0,
   },
   ring: {
-    width: 148,
-    height: 148,
-    borderRadius: 74,
-    borderWidth: 9,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 6,
     borderColor: marathonTheme.colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: marathonTheme.colors.surface,
-    // Glow via shadow (iOS) — Android shows elevation tint
     shadowColor: marathonTheme.colors.accent,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
-    elevation: 10,
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8,
   },
   score: {
     color: marathonTheme.colors.text,
-    fontSize: 44,
+    fontSize: 26,
     fontWeight: '800',
-    lineHeight: 48,
+    lineHeight: 30,
   },
-  scoreLabel: {
+  scoreContext: {
     color: marathonTheme.colors.textSubtle,
-    fontSize: marathonTheme.typography.bodySmall,
+    fontSize: 9,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    textAlign: 'center',
   },
   segmentList: {
-    gap: marathonTheme.spacing.md,
-  },
-  segmentRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flex: 1,
     gap: marathonTheme.spacing.sm,
   },
+  segmentRow: {
+    gap: marathonTheme.spacing.xs,
+  },
   segmentLabel: {
-    color: marathonTheme.colors.textMuted,
-    fontSize: marathonTheme.typography.bodySmall,
-    width: 110,
+    color: marathonTheme.colors.textSubtle,
+    fontSize: 10,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
   },
   barTrack: {
-    flex: 1,
-    height: 5,
-    borderRadius: 3,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: marathonTheme.colors.progressTrack,
     overflow: 'hidden',
   },
   barFill: {
-    height: 5,
-    borderRadius: 3,
-  },
-  segmentValue: {
-    fontSize: marathonTheme.typography.bodySmall,
-    fontWeight: '700',
-    width: 26,
-    textAlign: 'right',
+    height: 4,
+    borderRadius: 2,
   },
 });

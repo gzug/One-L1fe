@@ -1,10 +1,13 @@
 export const prototypeCopy = {
+  // Identity
   appName: 'One L1fe',
-  prototypeName: 'Prototype V1 — Marathon',
+  prototypeName: 'Prototype V1 \u2014 Marathon',
+
+  // Demo mode
   demoData: 'Demo data',
-  realData: 'Real data',
-  demoValue: 'Demo value',
-  connected: 'Connected',
+  demoModeBanner: 'Running with demo data \u2014 connect real sources to see your numbers.',
+
+  // Status labels
   available: 'Available',
   notAvailable: 'Not available',
   needsAttention: 'Needs attention',
@@ -13,7 +16,12 @@ export const prototypeCopy = {
   // Header
   greeting: 'Good morning',
   readinessLabel: 'Readiness context',
-  readinessHelper: 'Training and recovery context for this prototype.',
+
+  // Readiness interpretation
+  // In production this will be derived from signals. Demo value here.
+  readinessInterpretation: 'Build carefully today.',
+  readinessInterpretationSub: 'Recovery signals are softer than recent load. Use as context for planning, not a medical assessment.',
+  readinessScoreContext: 'context score',
 
   // Section eyebrows
   sectionSignals: 'Training signals',
@@ -21,9 +29,17 @@ export const prototypeCopy = {
   sectionCoaching: 'Suggested focus',
   sectionNutrition: 'Nutrition',
 
+  // Signal glyphs (emoji safe on Android)
+  signalGlyphs: {
+    available: '\u25cf',
+    needs_attention: '\u25cf',
+    not_available: '\u25e6',
+  } as Record<string, string>,
+
   // Nutrition
   nutritionTitle: 'Nutrition context',
   nutritionBody: 'Tracking planned. Not included in readiness scoring yet.',
+  nutritionLockNote: 'Coming in a future release.',
 
   // Coaching
   coachingTitle: 'Suggested focus',

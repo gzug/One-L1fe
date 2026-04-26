@@ -14,16 +14,22 @@ const priorityAccent: Record<CoachingStep['priority'], string> = {
   context: marathonTheme.colors.textSubtle,
 };
 
+const priorityBg: Record<CoachingStep['priority'], string> = {
+  primary: marathonTheme.colors.coachPrimaryTint,
+  supporting: marathonTheme.colors.coachSupportTint,
+  context: marathonTheme.colors.coachContextTint,
+};
+
 export function CoachingCard({ step, index }: CoachingCardProps) {
   const accent = priorityAccent[step.priority];
+  const bg = priorityBg[step.priority];
 
   return (
-    <View style={styles.card}>
-      {/* Left accent stripe */}
+    <View style={[styles.card, { backgroundColor: bg }]}>
       <View style={[styles.stripe, { backgroundColor: accent }]} />
       <View style={styles.inner}>
-        <View style={styles.headerRow}>
-          <Text style={[styles.indexText, { color: accent }]}>{index + 1}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.index, { color: accent }]}>{index + 1}</Text>
           <Text style={styles.title}>{step.title}</Text>
         </View>
         <Text style={styles.body}>{step.body}</Text>
@@ -36,7 +42,6 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     borderRadius: marathonTheme.radius.md,
-    backgroundColor: marathonTheme.colors.surface,
     borderWidth: 1,
     borderColor: marathonTheme.colors.border,
     overflow: 'hidden',
@@ -46,19 +51,20 @@ const styles = StyleSheet.create({
   },
   inner: {
     flex: 1,
-    padding: marathonTheme.spacing.md,
+    paddingVertical: marathonTheme.spacing.lg,
+    paddingHorizontal: marathonTheme.spacing.lg,
     gap: marathonTheme.spacing.sm,
   },
-  headerRow: {
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: marathonTheme.spacing.sm,
   },
-  indexText: {
+  index: {
     fontSize: marathonTheme.typography.bodySmall,
     fontWeight: '800',
-    lineHeight: 20,
-    width: 16,
+    lineHeight: 21,
+    width: 14,
   },
   title: {
     flex: 1,
@@ -71,6 +77,6 @@ const styles = StyleSheet.create({
     color: marathonTheme.colors.textMuted,
     fontSize: marathonTheme.typography.bodySmall,
     lineHeight: marathonTheme.lineHeights.bodySmall,
-    paddingLeft: 16 + marathonTheme.spacing.sm, // aligns under title
+    paddingLeft: 14 + marathonTheme.spacing.sm,
   },
 });

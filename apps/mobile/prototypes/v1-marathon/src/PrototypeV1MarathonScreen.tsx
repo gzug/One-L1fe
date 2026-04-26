@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { BloodMarkerCard } from './components/BloodMarkerCard';
 import { CoachingCard } from './components/CoachingCard';
-import { DemoDataBadge } from './components/DemoDataBadge';
+import { DemoModeBanner } from './components/DemoModeBanner';
 import { NutritionContextCard } from './components/NutritionContextCard';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { SignalCard } from './components/SignalCard';
@@ -20,50 +20,60 @@ export function PrototypeV1MarathonScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── Header ── */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.appName}>{prototypeCopy.appName}</Text>
-            <Text style={styles.greeting}>{prototypeCopy.greeting}</Text>
+        {/* maxWidth container — keeps layout mobile-first on wider surfaces */}
+        <View style={styles.container}>
+
+          {/* ── Header ── */}
+          <View style={styles.header}>
+            <View>
+              <Text style={styles.appKicker}>{prototypeCopy.appName}</Text>
+              <Text style={styles.prototypeName}>{prototypeCopy.prototypeName}</Text>
+              <Text style={styles.greeting}>{prototypeCopy.greeting}</Text>
+            </View>
           </View>
-          <DemoDataBadge />
+
+          {/* ── Demo mode banner (global, replaces per-card badges) ── */}
+          <DemoModeBanner />
+
+          {/* ── Readiness hero card ── */}
+          <ReadinessOrbit />
+
+          {/* ── Training signals ── */}
+          <View style={styles.section}>
+            <SectionHeader title={prototypeCopy.sectionSignals} />
+            {trainingSignals.map((signal) => (
+              <SignalCard key={signal.label} signal={signal} />
+            ))}
+          </View>
+
+          {/* ── Blood context — 2-column grid ── */}
+          <View style={styles.section}>
+            <SectionHeader title={prototypeCopy.sectionBlood} />
+            <View style={styles.bloodGrid}>
+              {bloodMarkers.map((marker) => (
+                <BloodMarkerCard key={marker.label} marker={marker} />
+              ))}
+            </View>
+          </View>
+
+          {/* ── Coaching ── */}
+          <View style={styles.section}>
+            <SectionHeader title={prototypeCopy.sectionCoaching} />
+            {coachingSteps.map((step, index) => (
+              <CoachingCard key={step.title} step={step} index={index} />
+            ))}
+          </View>
+
+          {/* ── Nutrition — context only, not scoring-active ── */}
+          <NutritionContextCard />
+
+          {/* ── Safety note ── */}
+          <Text style={styles.safetyNote}>{prototypeCopy.safetyNote}</Text>
+
         </View>
-
-        {/* ── Readiness card ── */}
-        <ReadinessOrbit />
-
-        {/* ── Training signals ── */}
-        <View style={styles.section}>
-          <SectionHeader title={prototypeCopy.sectionSignals} />
-          {trainingSignals.map((signal) => (
-            <SignalCard key={signal.label} signal={signal} />
-          ))}
-        </View>
-
-        {/* ── Blood context ── */}
-        <View style={styles.section}>
-          <SectionHeader title={prototypeCopy.sectionBlood} />
-          {bloodMarkers.map((marker) => (
-            <BloodMarkerCard key={marker.label} marker={marker} />
-          ))}
-        </View>
-
-        {/* ── Coaching ── */}
-        <View style={styles.section}>
-          <SectionHeader title={prototypeCopy.sectionCoaching} />
-          {coachingSteps.map((step, index) => (
-            <CoachingCard key={step.title} step={step} index={index} />
-          ))}
-        </View>
-
-        {/* ── Nutrition — context only, not scoring-active ── */}
-        <NutritionContextCard />
-
-        {/* ── Safety note ── */}
-        <Text style={styles.safetyNote}>{prototypeCopy.safetyNote}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -83,34 +93,48 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: marathonTheme.colors.background,
   },
-  content: {
-    paddingHorizontal: marathonTheme.spacing.lg,
-    paddingTop: marathonTheme.spacing.lg,
-    paddingBottom: marathonTheme.spacing.xxl,
+  scroll: {
+    alignItems: 'center', // centers the maxWidth container on wide surfaces
+    paddingVertical: marathonTheme.spacing.lg,
+    paddingBottom: marathonTheme.spacing.xxxl,
+  },
+  container: {
+    width: '100%',
+    maxWidth: marathonTheme.layout.maxWidth,
+    paddingHorizontal: marathonTheme.layout.screenPaddingH,
     gap: marathonTheme.spacing.xl,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  headerLeft: {
+    paddingTop: marathonTheme.spacing.sm,
     gap: 2,
   },
-  appName: {
+  appKicker: {
     color: marathonTheme.colors.accent,
-    fontSize: marathonTheme.typography.caption,
-    fontWeight: '800',
-    letterSpacing: 1.2,
+    fontSize: marathonTheme.typography.heroName,
+    fontWeight: '700',
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
+    marginBottom: 2,
   },
-  greeting: {
+  prototypeName: {
     color: marathonTheme.colors.text,
     fontSize: marathonTheme.typography.title,
     fontWeight: '800',
-    lineHeight: 32,
+    lineHeight: 30,
+    letterSpacing: -0.3,
+  },
+  greeting: {
+    color: marathonTheme.colors.textMuted,
+    fontSize: marathonTheme.typography.body,
+    marginTop: marathonTheme.spacing.xs,
+    lineHeight: marathonTheme.lineHeights.body,
   },
   section: {
+    gap: marathonTheme.spacing.sm,
+  },
+  bloodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: marathonTheme.spacing.sm,
   },
   safetyNote: {
@@ -118,7 +142,8 @@ const styles = StyleSheet.create({
     fontSize: marathonTheme.typography.caption,
     lineHeight: marathonTheme.lineHeights.caption,
     textAlign: 'center',
-    paddingHorizontal: marathonTheme.spacing.lg,
+    paddingHorizontal: marathonTheme.spacing.xl,
+    paddingBottom: marathonTheme.spacing.lg,
   },
 });
 
@@ -131,7 +156,7 @@ const sectionStyles = StyleSheet.create({
   },
   accent: {
     width: 3,
-    height: 14,
+    height: 13,
     borderRadius: 2,
     backgroundColor: marathonTheme.colors.accent,
   },
@@ -139,6 +164,7 @@ const sectionStyles = StyleSheet.create({
     color: marathonTheme.colors.text,
     fontSize: marathonTheme.typography.subtitle,
     fontWeight: '800',
+    letterSpacing: -0.1,
   },
 });
 
