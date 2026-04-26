@@ -44,9 +44,49 @@ export const layout = {
 // Warm palette only — no blue
 export const segmentColors = ['#EFA264', '#5DB88A', '#E8A84A', '#C4A882'] as const;
 
+export type ThemeScheme = 'light' | 'dark';
+export type StatusBarTone = 'light' | 'dark';
+
+export type ThemeColors = {
+  scheme: ThemeScheme;
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  border: string;
+  borderSubtle: string;
+  text: string;
+  textMuted: string;
+  textSubtle: string;
+  accent: string;
+  accentSoft: string;
+  accentBorder: string;
+  positive: string;
+  positiveSoft: string;
+  positiveBorder: string;
+  positiveTint: string;
+  warning: string;
+  warningSoft: string;
+  warningBorder: string;
+  warningTint: string;
+  danger: string;
+  demoBanner: string;
+  demoBannerBorder: string;
+  progressTrack: string;
+  ringTrack: string;
+  ringProgress: string;
+  coachPrimaryTint: string;
+  coachSupportTint: string;
+  coachContextTint: string;
+  profileSectionBg: string;
+  profileRowBorder: string;
+  sourceBadgeBg: string;
+  sourceBadgeBorder: string;
+  statusBar: StatusBarTone;
+};
+
 // ─── Dark palette ───────────────────────────────────────────────────────
-export const darkColors = {
-  scheme: 'dark' as const,
+export const darkColors: ThemeColors = {
+  scheme: 'dark',
   background: '#0E0D0B',
   surface: '#181510',
   surfaceElevated: '#201D17',
@@ -79,12 +119,12 @@ export const darkColors = {
   profileRowBorder: '#221F19',
   sourceBadgeBg: 'rgba(239,162,100,0.07)',
   sourceBadgeBorder: 'rgba(239,162,100,0.18)',
-  statusBar: 'light' as const,
+  statusBar: 'light',
 };
 
 // ─── Light palette ───────────────────────────────────────────────────────
-export const lightColors = {
-  scheme: 'light' as const,
+export const lightColors: ThemeColors = {
+  scheme: 'light',
   background: '#F7F3EE',
   surface: '#FFFFFF',
   surfaceElevated: '#FDF9F5',
@@ -117,10 +157,8 @@ export const lightColors = {
   profileRowBorder: '#EDE7DF',
   sourceBadgeBg: 'rgba(212,114,42,0.06)',
   sourceBadgeBorder: 'rgba(212,114,42,0.18)',
-  statusBar: 'dark' as const,
+  statusBar: 'dark',
 };
-
-export type ThemeColors = typeof darkColors;
 
 // Legacy shim
 export const marathonTheme = {
