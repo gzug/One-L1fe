@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { useWebBackground } from './theme/useWebBackground';
 import { AppHeader } from './components/AppHeader';
-import { BloodPanelsCard } from './components/BloodPanelsCard';
+import { BloodContextCard } from './components/BloodContextCard';
 import { CoachingCard } from './components/CoachingCard';
 import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
@@ -74,11 +74,6 @@ function PrototypeShell() {
         )}
       </SafeAreaView>
 
-      {/*
-        Modal backdrop: TouchableWithoutFeedback wraps a plain View so we
-        avoid the nested-Pressable React Native warning. Inner sheet is a
-        plain View — taps on it stop propagation via second TWOF.
-      */}
       <Modal
         visible={demoInfoVisible}
         transparent
@@ -170,7 +165,8 @@ function HomeView({
 
           <ActivityTrendCard />
 
-          <BloodPanelsCard onViewPress={onViewBloodPanels} />
+          {/* BloodContextCard replaces shallow BloodPanelsCard */}
+          <BloodContextCard onViewPress={onViewBloodPanels} />
 
           <View style={s.section}>
             <SectionLabel text="Recommendations" />
