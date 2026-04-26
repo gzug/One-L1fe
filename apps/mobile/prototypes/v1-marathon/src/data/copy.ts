@@ -17,17 +17,18 @@ export const prototypeCopy = {
   needsAttention: 'Review',
   planned: 'Planned',
 
-  // Readiness
-  readinessInterpretation: 'Build carefully today.',
+  // Score card
+  readinessInterpretation: 'One L1fe Score',
   readinessInterpretationSub:
-    'Recovery signals are softer than recent load. Use as context for planning — not a medical assessment.',
-  readinessScoreLabel: 'readiness',
+    'Recovery signals are softer than recent load. Useful context for planning — not a medical assessment.',
+  readinessScoreLabel: 'Score',
   dataCoverageLabel: 'Data coverage',
 
   // Sections
   sectionSignals: 'Training signals',
   sectionBlood: 'Blood panels',
-  sectionCoaching: 'Suggested focus',
+  sectionCoaching: 'Next Actions',
+  sectionTrend: 'Activity trend',
   sectionNotes: 'Ideas & Notes',
 
   // Signal status glyphs

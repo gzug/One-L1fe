@@ -1,28 +1,61 @@
+/**
+ * CoachingCard — replaced with NextActionCard (F8).
+ *
+ * Compact action card:
+ *   [icon]  Title text
+ *           1-line reason
+ *           [impact tag]
+ *
+ * Rules:
+ * - No medical advice
+ * - No treatment wording
+ * - No "you should" / "you need"
+ * - Assistive language: Focus on / Keep / Check / Review
+ */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
-import type { CoachingStep } from '../data/demoData';
+import type { NextAction } from '../data/demoData';
 
-type CoachingCardProps = {
-  step: CoachingStep;
-  index: number;
+// Impact tag colors by category — uses theme semantic colors
+function impactTagColors(
+  impactKey: NextAction['impactKey'],
+  colors: ThemeColors,
+): { bg: string; text: string } {
+  switch (impactKey) {
+    case 'recovery': return { bg: colors.accentSoft,   text: colors.accent };
+    case 'training': return { bg: colors.warningSoft ?? colors.progressTrack, text: colors.warning };
+    case 'data':     return { bg: colors.progressTrack, text: colors.textMuted };
+  }
+}
+
+type NextActionCardProps = {
+  action: NextAction;
 };
 
-export function CoachingCard({ step, index }: CoachingCardProps) {
+export function CoachingCard({ action }: NextActionCardProps) {
   const { colors } = useTheme();
   const s = createStyles(colors);
-
-  const isPrimary = step.priority === 'primary';
+  const tag = impactTagColors(action.impactKey, colors);
 
   return (
-    <View style={[s.card, isPrimary && s.cardPrimary]}>
-      <View style={s.topRow}>
-        <Text style={s.index}>{String(index + 1).padStart(2, '0')}</Text>
-        <Text style={s.title}>{step.title}</Text>
+    <View style={s.card}>
+      {/* Left: icon */}
+      <View style={s.iconWrap}>
+        <Ionicons name={action.icon as any} size={18} color={colors.textMuted} />
       </View>
-      <Text style={s.body}>{step.body}</Text>
+
+      {/* Right: text */}
+      <View style={s.content}>
+        <Text style={s.title} numberOfLines={1}>{action.title}</Text>
+        <Text style={s.reason} numberOfLines={1}>{action.reason}</Text>
+        <View style={[s.tag, { backgroundColor: tag.bg }]}>
+          <Text style={[s.tagText, { color: tag.text }]}>{action.impact}</Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -30,42 +63,51 @@ export function CoachingCard({ step, index }: CoachingCardProps) {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
       borderRadius: radius.md,
       backgroundColor: colors.surfaceElevated,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
-      paddingHorizontal: spacing.lg,
+      paddingHorizontal: spacing.md,
       paddingVertical: spacing.md,
-      gap: spacing.sm,
+      gap: spacing.md,
     },
-    cardPrimary: {
-      borderLeftWidth: 2,
-      borderLeftColor: colors.accent,
+    iconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      marginTop: 1,
     },
-    topRow: {
-      flexDirection: 'row',
-      alignItems: 'baseline',
-      gap: spacing.sm,
-    },
-    index: {
-      color: colors.textSubtle,
-      fontSize: typography.caption,
-      fontWeight: '600',
-      letterSpacing: 0.5,
-      lineHeight: lineHeights.bodySmall,
-    },
+    content: { flex: 1, gap: 4 },
     title: {
-      flex: 1,
       color: colors.text,
       fontSize: typography.bodySmall,
       fontWeight: '600',
       lineHeight: lineHeights.bodySmall,
       letterSpacing: -0.1,
     },
-    body: {
+    reason: {
       color: colors.textMuted,
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
+    },
+    tag: {
+      alignSelf: 'flex-start',
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 2,
+      marginTop: 2,
+    },
+    tagText: {
+      fontSize: typography.micro,
+      fontWeight: '700',
+      letterSpacing: 0.3,
+      textTransform: 'uppercase',
     },
   });
 }

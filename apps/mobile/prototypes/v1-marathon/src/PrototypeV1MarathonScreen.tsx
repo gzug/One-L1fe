@@ -19,8 +19,9 @@ import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
 import { BloodResultsScreen } from './screens/BloodResultsScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
+import { ActivityTrendCard } from './components/ActivityTrendCard';
 import { SignalGroup } from './components/SignalCard';
-import { coachingSteps, trainingSignals } from './data/demoData';
+import { nextActions, trainingSignals } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
@@ -76,52 +77,25 @@ function PrototypeShell() {
         animationType="fade"
         onRequestClose={() => setDemoInfoVisible(false)}
       >
-        <Pressable
-          style={demoOverlay.backdrop}
-          onPress={() => setDemoInfoVisible(false)}
-        >
+        <Pressable style={demoOverlay.backdrop} onPress={() => setDemoInfoVisible(false)}>
           <Pressable
-            style={[
-              demoOverlay.sheet,
-              { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-            ]}
+            style={[demoOverlay.sheet, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}
           >
-            <Ionicons
-              name="information-circle"
-              size={24}
-              color={colors.accent}
-              style={{ alignSelf: 'center' }}
-            />
-            <Text style={[demoOverlay.title, { color: colors.text }]}>
-              {prototypeCopy.demoInfoTitle}
-            </Text>
-            <Text style={[demoOverlay.body, { color: colors.textMuted }]}>
-              {prototypeCopy.demoInfoBody}
-            </Text>
+            <Ionicons name="information-circle" size={24} color={colors.accent} style={{ alignSelf: 'center' }} />
+            <Text style={[demoOverlay.title, { color: colors.text }]}>{prototypeCopy.demoInfoTitle}</Text>
+            <Text style={[demoOverlay.body, { color: colors.textMuted }]}>{prototypeCopy.demoInfoBody}</Text>
             <View style={[demoOverlay.divider, { backgroundColor: colors.borderSubtle }]} />
-            <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}>
-              {prototypeCopy.demoInfoConnectHelper}
-            </Text>
+            <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}>{prototypeCopy.demoInfoConnectHelper}</Text>
             <Pressable
               onPress={openProfile}
-              style={[
-                demoOverlay.connectBtn,
-                { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
-              ]}
+              style={[demoOverlay.connectBtn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
               accessibilityLabel="Connect a source"
             >
               <Ionicons name="link-outline" size={14} color={colors.accent} />
-              <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>
-                {prototypeCopy.demoInfoConnectCta}
-              </Text>
+              <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>{prototypeCopy.demoInfoConnectCta}</Text>
             </Pressable>
-            <Pressable
-              onPress={() => setDemoInfoVisible(false)}
-              style={demoOverlay.dismissBtn}
-            >
-              <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}>
-                {prototypeCopy.demoInfoDismiss}
-              </Text>
+            <Pressable onPress={() => setDemoInfoVisible(false)} style={demoOverlay.dismissBtn}>
+              <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}>{prototypeCopy.demoInfoDismiss}</Text>
             </Pressable>
           </Pressable>
         </Pressable>
@@ -151,22 +125,30 @@ function HomeView({
         keyboardShouldPersistTaps="handled"
       >
         <View style={s.container}>
+          {/* Score ring */}
           <ReadinessOrbit />
 
+          {/* Training signals */}
           <View style={s.section}>
             <SectionLabel text={prototypeCopy.sectionSignals} />
             <SignalGroup signals={trainingSignals} />
           </View>
 
+          {/* Activity trend mini chart */}
+          <ActivityTrendCard />
+
+          {/* Blood panels */}
           <BloodPanelsCard onViewPress={onViewBloodPanels} />
 
+          {/* Next Actions */}
           <View style={s.section}>
             <SectionLabel text={prototypeCopy.sectionCoaching} />
-            {coachingSteps.map((step, index) => (
-              <CoachingCard key={step.title} step={step} index={index} />
+            {nextActions.map((action) => (
+              <CoachingCard key={action.id} action={action} />
             ))}
           </View>
 
+          {/* Notes */}
           <IdeasNotesCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
@@ -196,17 +178,8 @@ function SectionLabel({ text }: { text: string }) {
 
 function createHomeStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    scroll: {
-      alignItems: 'center',
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.xxxl,
-    },
-    container: {
-      width: '100%',
-      maxWidth: layout.maxWidth,
-      paddingHorizontal: layout.screenPaddingH,
-      gap: spacing.lg,
-    },
+    scroll: { alignItems: 'center', paddingTop: spacing.lg, paddingBottom: spacing.xxxl },
+    container: { width: '100%', maxWidth: layout.maxWidth, paddingHorizontal: layout.screenPaddingH, gap: spacing.lg },
     section: { gap: spacing.sm },
     safetyNote: {
       color: colors.textSubtle,
@@ -220,60 +193,15 @@ function createHomeStyles(colors: ThemeColors) {
 }
 
 const demoOverlay = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-  },
-  sheet: {
-    width: '100%',
-    maxWidth: 340,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    padding: spacing.xl,
-    gap: spacing.sm,
-  },
-  title: {
-    fontSize: typography.subtitle,
-    fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.2,
-  },
-  body: {
-    fontSize: typography.bodySmall,
-    lineHeight: lineHeights.bodySmall,
-    textAlign: 'center',
-  },
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center', padding: spacing.xl },
+  sheet: { width: '100%', maxWidth: 340, borderRadius: radius.xl, borderWidth: 1, padding: spacing.xl, gap: spacing.sm },
+  title: { fontSize: typography.subtitle, fontWeight: '700', textAlign: 'center', letterSpacing: -0.2 },
+  body: { fontSize: typography.bodySmall, lineHeight: lineHeights.bodySmall, textAlign: 'center' },
   divider: { height: 1, marginVertical: spacing.xs },
-  helperText: {
-    fontSize: typography.caption,
-    lineHeight: lineHeights.caption,
-    textAlign: 'center',
-  },
-  connectBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    alignSelf: 'stretch',
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  connectBtnText: {
-    fontSize: typography.bodySmall,
-    fontWeight: '700',
-    letterSpacing: 0.1,
-  },
-  dismissBtn: {
-    alignSelf: 'center',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.xs,
-  },
+  helperText: { fontSize: typography.caption, lineHeight: lineHeights.caption, textAlign: 'center' },
+  connectBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs, alignSelf: 'stretch', borderWidth: 1, borderRadius: radius.pill, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
+  connectBtnText: { fontSize: typography.bodySmall, fontWeight: '700', letterSpacing: 0.1 },
+  dismissBtn: { alignSelf: 'center', paddingVertical: spacing.xs, paddingHorizontal: spacing.md, marginTop: spacing.xs },
   dismissText: { fontSize: typography.caption, fontWeight: '500' },
 });
 
