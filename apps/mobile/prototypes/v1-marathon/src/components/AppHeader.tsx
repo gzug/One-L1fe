@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
-import { spacing, typography, layout } from '../theme/marathonTheme';
+import { layout, spacing, typography } from '../theme/marathonTheme';
 
 type AppHeaderProps = {
   onProfilePress: () => void;
@@ -13,13 +14,15 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
   return (
     <View style={[styles.root, { borderBottomColor: colors.borderSubtle }]}>
       <View style={styles.inner}>
-        {/* ── Brand ── */}
+        {/* Brand */}
         <View style={styles.brand}>
           <Text style={[styles.brandName, { color: colors.accent }]}>One L1fe</Text>
-          <Text style={[styles.brandSub, { color: colors.textSubtle }]}>V1 \u2014 Marathon</Text>
+          <Text style={[styles.brandSub, { color: colors.textSubtle }]}>
+            V1 \u2014 Marathon
+          </Text>
         </View>
 
-        {/* ── Right controls ── */}
+        {/* Controls */}
         <View style={styles.controls}>
           <Pressable
             onPress={toggle}
@@ -27,9 +30,11 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
             accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             hitSlop={8}
           >
-            <Text style={[styles.iconGlyph, { color: colors.textMuted }]}>
-              {isDark ? '\u2600' : '\u25D0'}
-            </Text>
+            <Ionicons
+              name={isDark ? 'sunny-outline' : 'moon-outline'}
+              size={17}
+              color={colors.textMuted}
+            />
           </Pressable>
 
           <Pressable
@@ -38,7 +43,7 @@ export function AppHeader({ onProfilePress }: AppHeaderProps) {
             accessibilityLabel="Open profile"
             hitSlop={8}
           >
-            <Text style={[styles.iconGlyph, { color: colors.textMuted }]}>\u25A3</Text>
+            <Ionicons name="person-circle-outline" size={19} color={colors.textMuted} />
           </Pressable>
         </View>
       </View>
@@ -61,9 +66,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
   },
-  brand: {
-    gap: 1,
-  },
+  brand: { gap: 1 },
   brandName: {
     fontSize: typography.heroName,
     fontWeight: '800',
@@ -89,10 +92,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconGlyph: {
-    fontSize: 15,
-    lineHeight: 18,
-    includeFontPadding: false,
   },
 });

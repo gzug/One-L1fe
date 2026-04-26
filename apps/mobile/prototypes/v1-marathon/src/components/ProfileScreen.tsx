@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Pressable,
   SafeAreaView,
@@ -7,120 +7,58 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
-import {
-  layout,
-  lineHeights,
-  radius,
-  spacing,
-  typography,
-} from '../theme/marathonTheme';
+import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
+import type { ThemeColors } from '../theme/marathonTheme';
+import { profileFields, connectedSources } from '../data/demoData';
+import type { ConnectedSource, ProfileField } from '../data/demoData';
 
-type ProfileScreenProps = {
-  onClose: () => void;
-};
+type ProfileScreenProps = { onClose: () => void };
 
-// ─── Data shapes ─────────────────────────────────────────────────────────────
+// Field keys grouped into sections
+const personalKeys = ['name', 'age', 'gender', 'height', 'weight'];
+const trainingKeys = ['goal_race', 'race_date', 'level', 'volume', 'long_run', 'train_days'];
+const prefKeys = ['units', 'pace_fmt'];
 
-type ProfileRow = {
-  label: string;
-  value: string;
-  note?: string;
-};
-
-type ProfileSection = {
-  title: string;
-  rows: ProfileRow[];
-};
-
-const profileSections: ProfileSection[] = [
-  {
-    title: 'Personal',
-    rows: [
-      { label: 'Name', value: 'Demo User' },
-      { label: 'Age', value: '34' },
-      { label: 'Sex', value: 'Male' },
-      { label: 'Height', value: '182 cm' },
-      { label: 'Weight', value: '78 kg', note: 'Demo value' },
-    ],
-  },
-  {
-    title: 'Training goal',
-    rows: [
-      { label: 'Primary goal', value: 'Marathon finish' },
-      { label: 'Target race', value: 'Munich Marathon 2025', note: 'Demo value' },
-      { label: 'Race date', value: 'Oct 12, 2025', note: 'Demo value' },
-      { label: 'Weeks to race', value: '24 weeks', note: 'Demo value' },
-    ],
-  },
-  {
-    title: 'Training profile',
-    rows: [
-      { label: 'Experience level', value: 'Intermediate' },
-      { label: 'Weekly volume', value: '55 km / week', note: 'Demo value' },
-      { label: 'Long run peak', value: '32 km', note: 'Demo value' },
-      { label: 'Typical intensity', value: 'Zone 2 base with tempo blocks' },
-    ],
-  },
-  {
-    title: 'Preferences',
-    rows: [
-      { label: 'Units', value: 'Metric' },
-      { label: 'Pace format', value: 'min/km' },
-      { label: 'Language', value: 'English' },
-    ],
-  },
-  {
-    title: 'Connected sources',
-    rows: [
-      {
-        label: 'Garmin',
-        value: 'Not connected',
-        note: 'Live sync not available in prototype',
-      },
-      {
-        label: 'Health Connect',
-        value: 'Not connected',
-        note: 'Live sync not available in prototype',
-      },
-      {
-        label: 'Blood panel',
-        value: 'Apr 2025 — demo data',
-        note: 'Manual import only in prototype',
-      },
-    ],
-  },
-  {
-    title: 'Sync status',
-    rows: [
-      { label: 'Last sync', value: 'N/A — prototype mode' },
-      { label: 'Data freshness', value: 'Demo data active' },
-      { label: 'Live wearable data', value: 'Not available', note: 'Coming in a future release' },
-    ],
-  },
+type SectionDef = { title: string; keys: string[] };
+const sectionDefs: SectionDef[] = [
+  { title: 'Personal', keys: personalKeys },
+  { title: 'Training', keys: trainingKeys },
+  { title: 'Preferences', keys: prefKeys },
 ];
 
-// ─── Component ───────────────────────────────────────────────────────────────
+function fieldsByKeys(keys: string[]): ProfileField[] {
+  return keys
+    .map((k) => profileFields.find((f) => f.key === k))
+    .filter((f): f is ProfileField => f !== undefined);
+}
 
 export function ProfileScreen({ onClose }: ProfileScreenProps) {
   const { colors } = useTheme();
+  const [editMode, setEditMode] = useState(false);
   const s = createStyles(colors);
 
   return (
-    <SafeAreaView style={[s.safeArea]}>
+    <SafeAreaView style={s.safeArea}>
       {/* Header */}
       <View style={s.header}>
-        <View>
+        <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
+          <Ionicons name="chevron-back" size={22} color={colors.accent} />
+        </Pressable>
+        <View style={s.headerCenter}>
           <Text style={s.headerTitle}>Profile</Text>
-          <Text style={s.headerSub}>One L1fe · V1 — Marathon</Text>
+          <Text style={s.headerSub}>One L1fe \u00b7 V1 \u2014 Marathon</Text>
         </View>
         <Pressable
-          onPress={onClose}
-          style={s.closeBtn}
-          accessibilityLabel="Close profile"
+          onPress={() => setEditMode((e) => !e)}
+          style={[s.editBtn, editMode && s.editBtnActive]}
           hitSlop={8}
+          accessibilityLabel={editMode ? 'Done editing' : 'Edit profile'}
         >
-          <Text style={s.closeBtnText}>Close</Text>
+          <Text style={[s.editBtnText, editMode && s.editBtnTextActive]}>
+            {editMode ? 'Done' : 'Edit'}
+          </Text>
         </Pressable>
       </View>
 
@@ -133,35 +71,36 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
           {/* Demo context note */}
           <View style={s.demoBanner}>
             <Text style={s.demoBannerText}>
-              Profile fields are demo values. In the full product these will sync from
-              your account and connected sources.
+              Profile values are demo data. Real data will sync from your account and
+              connected sources in the full product.
             </Text>
           </View>
 
-          {profileSections.map((section) => (
-            <View key={section.title} style={s.section}>
-              <Text style={s.sectionTitle}>{section.title}</Text>
-              <View style={s.card}>
-                {section.rows.map((row, i) => (
-                  <View
-                    key={row.label}
-                    style={[
-                      s.row,
-                      i < section.rows.length - 1 && s.rowBorder,
-                    ]}
-                  >
-                    <Text style={s.rowLabel}>{row.label}</Text>
-                    <View style={s.rowRight}>
-                      <Text style={s.rowValue}>{row.value}</Text>
-                      {row.note ? (
-                        <Text style={s.rowNote}>{row.note}</Text>
-                      ) : null}
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </View>
+          {/* Profile sections */}
+          {sectionDefs.map((section) => (
+            <ProfileSection
+              key={section.title}
+              title={section.title}
+              fields={fieldsByKeys(section.keys)}
+              editMode={editMode}
+              colors={colors}
+            />
           ))}
+
+          {/* Connected sources */}
+          <View style={s.section}>
+            <Text style={s.sectionTitle}>Connected sources</Text>
+            <View style={s.card}>
+              {connectedSources.map((source, i) => (
+                <SourceRow
+                  key={source.id}
+                  source={source}
+                  isLast={i === connectedSources.length - 1}
+                  colors={colors}
+                />
+              ))}
+            </View>
+          </View>
 
           <Text style={s.footer}>
             One L1fe does not store or transmit profile data in prototype mode.
@@ -172,9 +111,94 @@ export function ProfileScreen({ onClose }: ProfileScreenProps) {
   );
 }
 
-// ─── Styles factory ──────────────────────────────────────────────────────────
+// ─── ProfileSection ─────────────────────────────────────────────────────────
+function ProfileSection({
+  title,
+  fields,
+  editMode,
+  colors,
+}: {
+  title: string;
+  fields: ProfileField[];
+  editMode: boolean;
+  colors: ThemeColors;
+}) {
+  const s = createStyles(colors);
+  return (
+    <View style={s.section}>
+      <Text style={s.sectionTitle}>{title}</Text>
+      <View style={s.card}>
+        {fields.map((field, i) => (
+          <View
+            key={field.key}
+            style={[s.row, i < fields.length - 1 && s.rowBorder]}
+          >
+            <Text style={s.rowLabel}>{field.label}</Text>
+            <View style={s.rowRight}>
+              <Text
+                style={[
+                  s.rowValue,
+                  editMode && field.editable && s.rowValueEdit,
+                ]}
+              >
+                {field.value}
+              </Text>
+              {editMode && field.editable && (
+                <Ionicons name="pencil-outline" size={11} color={colors.accent} style={s.editIcon} />
+              )}
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
-function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
+// ─── SourceRow ─────────────────────────────────────────────────────────────────
+function SourceRow({
+  source,
+  isLast,
+  colors,
+}: {
+  source: ConnectedSource;
+  isLast: boolean;
+  colors: ThemeColors;
+}) {
+  const s = createStyles(colors);
+
+  const actionIcon = source.id === 'blood_panels'
+    ? 'cloud-upload-outline'
+    : source.id === 'health_connect'
+    ? 'settings-outline'
+    : 'link-outline';
+
+  const isOnFile = source.status === 'prototype_only';
+
+  return (
+    <View style={[s.sourceRow, !isLast && s.rowBorder]}>
+      <View style={s.sourceLeft}>
+        <Text style={s.rowLabel}>{source.label}</Text>
+        <Text style={isOnFile ? s.sourceOnFile : s.sourceMuted}>
+          {source.statusLabel}
+        </Text>
+        {source.note ? (
+          <Text style={s.sourceNote}>{source.note}</Text>
+        ) : null}
+      </View>
+      <Pressable
+        style={[s.sourceAction, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
+        accessibilityLabel={`${source.actionLabel} ${source.label}`}
+        hitSlop={6}
+      >
+        <Ionicons name={actionIcon} size={13} color={colors.accent} />
+        <Text style={s.sourceActionText}>{source.actionLabel}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     safeArea: {
       flex: 1,
@@ -182,38 +206,52 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
     },
     header: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-      paddingHorizontal: layout.screenPaddingH,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.md,
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.borderSubtle,
+      gap: spacing.sm,
+    },
+    backBtn: {
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerCenter: {
+      flex: 1,
+      gap: 1,
     },
     headerTitle: {
       color: colors.text,
-      fontSize: typography.title,
+      fontSize: typography.subtitle,
       fontWeight: '800',
       letterSpacing: -0.2,
     },
     headerSub: {
       color: colors.textSubtle,
       fontSize: typography.micro,
-      marginTop: 2,
     },
-    closeBtn: {
+    editBtn: {
       paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
+      paddingVertical: spacing.sm - 2,
       borderRadius: radius.pill,
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.surface,
-      marginTop: 2,
     },
-    closeBtnText: {
-      color: colors.accent,
+    editBtnActive: {
+      borderColor: colors.accentBorder,
+      backgroundColor: colors.accentSoft,
+    },
+    editBtnText: {
+      color: colors.textMuted,
       fontSize: typography.bodySmall,
       fontWeight: '600',
+    },
+    editBtnTextActive: {
+      color: colors.accent,
     },
     scroll: {
       alignItems: 'center',
@@ -238,9 +276,7 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
     },
-    section: {
-      gap: spacing.sm,
-    },
+    section: { gap: spacing.sm },
     sectionTitle: {
       color: colors.textSubtle,
       fontSize: typography.caption,
@@ -258,7 +294,7 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
     },
     row: {
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
@@ -275,20 +311,66 @@ function createStyles(colors: import('../theme/marathonTheme').ThemeColors) {
       flex: 1,
     },
     rowRight: {
-      alignItems: 'flex-end',
-      gap: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
       flex: 2,
+      justifyContent: 'flex-end',
     },
     rowValue: {
       color: colors.text,
       fontSize: typography.bodySmall,
       fontWeight: '600',
       textAlign: 'right',
+      flexShrink: 1,
     },
-    rowNote: {
+    rowValueEdit: {
+      color: colors.accent,
+    },
+    editIcon: {
+      marginLeft: 2,
+    },
+    sourceRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      gap: spacing.md,
+    },
+    sourceLeft: {
+      flex: 1,
+      gap: 2,
+    },
+    sourceMuted: {
       color: colors.textSubtle,
       fontSize: typography.micro,
-      textAlign: 'right',
+    },
+    sourceOnFile: {
+      color: colors.positive,
+      fontSize: typography.micro,
+      fontWeight: '600',
+    },
+    sourceNote: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      opacity: 0.7,
+    },
+    sourceAction: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      borderWidth: 1,
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs + 2,
+      flexShrink: 0,
+    },
+    sourceActionText: {
+      color: colors.accent,
+      fontSize: typography.micro,
+      fontWeight: '700',
+      letterSpacing: 0.2,
     },
     footer: {
       color: colors.textSubtle,

@@ -14,25 +14,25 @@ const statusLabel: Record<BloodMarker['status'], string> = {
   not_available: prototypeCopy.notAvailable,
 };
 
-function sColor(status: BloodMarker['status'], colors: ThemeColors) {
-  switch (status) {
-    case 'available': return colors.positive;
-    case 'needs_attention': return colors.warning;
-    default: return colors.textSubtle;
+function sColor(s: BloodMarker['status'], c: ThemeColors) {
+  switch (s) {
+    case 'available': return c.positive;
+    case 'needs_attention': return c.warning;
+    default: return c.textSubtle;
   }
 }
-function sBg(status: BloodMarker['status'], colors: ThemeColors) {
-  switch (status) {
-    case 'available': return colors.positiveSoft;
-    case 'needs_attention': return colors.warningSoft;
+function sBg(s: BloodMarker['status'], c: ThemeColors) {
+  switch (s) {
+    case 'available': return c.positiveSoft;
+    case 'needs_attention': return c.warningSoft;
     default: return 'transparent';
   }
 }
-function sBorder(status: BloodMarker['status'], colors: ThemeColors) {
-  switch (status) {
-    case 'available': return colors.positiveBorder;
-    case 'needs_attention': return colors.warningBorder;
-    default: return colors.borderSubtle;
+function sBorder(s: BloodMarker['status'], c: ThemeColors) {
+  switch (s) {
+    case 'available': return c.positiveBorder;
+    case 'needs_attention': return c.warningBorder;
+    default: return c.borderSubtle;
   }
 }
 
@@ -55,7 +55,12 @@ export function BloodMarkerCard({ marker }: BloodMarkerCardProps) {
         {marker.value}
         {marker.unit ? <Text style={s.unit}> {marker.unit}</Text> : null}
       </Text>
-      <Text style={s.date}>{marker.dateLabel}</Text>
+      <View style={s.footer}>
+        <Text style={s.date}>{marker.dateLabel}</Text>
+        {marker.panelNote ? (
+          <Text style={s.panelNote}>{marker.panelNote}</Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -96,10 +101,17 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.bodySmall,
       fontWeight: '400',
     },
+    footer: {
+      gap: 2,
+    },
     date: {
       color: colors.textSubtle,
       fontSize: typography.micro,
-      marginTop: 2,
+    },
+    panelNote: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      opacity: 0.75,
     },
     pill: {
       borderWidth: 1,

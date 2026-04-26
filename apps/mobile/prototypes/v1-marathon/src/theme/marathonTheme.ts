@@ -1,4 +1,4 @@
-// ─── Theme-independent static tokens ────────────────────────────────────────
+// ─── Static tokens (theme-independent) ──────────────────────────────────────
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -20,7 +20,7 @@ export const radius = {
 export const typography = {
   heroName: 28,
   heroSub: 13,
-  heroInterpretation: 22,
+  heroInterpretation: 21,
   title: 20,
   subtitle: 17,
   body: 15,
@@ -30,7 +30,7 @@ export const typography = {
 } as const;
 
 export const lineHeights = {
-  heroInterpretation: 30,
+  heroInterpretation: 28,
   body: 22,
   bodySmall: 19,
   caption: 17,
@@ -41,81 +41,50 @@ export const layout = {
   screenPaddingH: 16,
 } as const;
 
-export const segmentColors = ['#EFA264', '#5DB88A', '#E8A84A', '#7FAFD4'] as const;
+// Warm palette only — no blue
+export const segmentColors = ['#EFA264', '#5DB88A', '#E8A84A', '#C4A882'] as const;
 
-export type ThemeScheme = 'light' | 'dark';
-export type StatusBarTone = 'light' | 'dark';
-
-export type ThemeColors = {
-  scheme: ThemeScheme;
-  background: string;
-  surface: string;
-  surfaceElevated: string;
-  border: string;
-  borderSubtle: string;
-  text: string;
-  textMuted: string;
-  textSubtle: string;
-  accent: string;
-  accentSoft: string;
-  accentBorder: string;
-  positive: string;
-  positiveSoft: string;
-  positiveBorder: string;
-  positiveTint: string;
-  warning: string;
-  warningSoft: string;
-  warningBorder: string;
-  warningTint: string;
-  danger: string;
-  demoBanner: string;
-  demoBannerBorder: string;
-  progressTrack: string;
-  coachPrimaryTint: string;
-  coachSupportTint: string;
-  coachContextTint: string;
-  profileSectionBg: string;
-  profileRowBorder: string;
-  statusBar: StatusBarTone;
-};
-
-// ─── Color palettes ──────────────────────────────────────────────────────────
-
-export const darkColors: ThemeColors = {
-  scheme: 'dark',
-  background: '#131210',
-  surface: '#1C1915',
-  surfaceElevated: '#242018',
-  border: '#302B22',
-  borderSubtle: '#252119',
-  text: '#F2EAE0',
-  textMuted: '#ADA69C',
-  textSubtle: '#6A6460',
+// ─── Dark palette ───────────────────────────────────────────────────────
+export const darkColors = {
+  scheme: 'dark' as const,
+  background: '#0E0D0B',
+  surface: '#181510',
+  surfaceElevated: '#201D17',
+  border: '#2C2720',
+  borderSubtle: '#221F19',
+  text: '#F0E8DE',
+  textMuted: '#A8A096',
+  textSubtle: '#65605A',
   accent: '#EFA264',
-  accentSoft: 'rgba(239,162,100,0.12)',
-  accentBorder: 'rgba(239,162,100,0.30)',
+  accentSoft: 'rgba(239,162,100,0.10)',
+  accentBorder: 'rgba(239,162,100,0.26)',
   positive: '#5DB88A',
   positiveSoft: 'rgba(93,184,138,0.10)',
-  positiveBorder: 'rgba(93,184,138,0.26)',
+  positiveBorder: 'rgba(93,184,138,0.24)',
   positiveTint: 'rgba(93,184,138,0.06)',
   warning: '#E8A84A',
   warningSoft: 'rgba(232,168,74,0.10)',
-  warningBorder: 'rgba(232,168,74,0.26)',
+  warningBorder: 'rgba(232,168,74,0.24)',
   warningTint: 'rgba(232,168,74,0.05)',
   danger: '#E07A6A',
-  demoBanner: 'rgba(239,162,100,0.07)',
-  demoBannerBorder: 'rgba(239,162,100,0.16)',
+  demoBanner: 'rgba(239,162,100,0.06)',
+  demoBannerBorder: 'rgba(239,162,100,0.14)',
   progressTrack: 'rgba(255,255,255,0.06)',
-  coachPrimaryTint: 'rgba(239,162,100,0.05)',
-  coachSupportTint: 'rgba(93,184,138,0.05)',
+  ringTrack: 'rgba(255,255,255,0.08)',
+  ringProgress: '#EFA264',
+  coachPrimaryTint: 'rgba(239,162,100,0.04)',
+  coachSupportTint: 'rgba(93,184,138,0.04)',
   coachContextTint: 'transparent',
-  profileSectionBg: '#1C1915',
-  profileRowBorder: '#252119',
-  statusBar: 'light',
+  profileSectionBg: '#181510',
+  profileRowBorder: '#221F19',
+  sourceBadgeBg: 'rgba(239,162,100,0.07)',
+  sourceBadgeBorder: 'rgba(239,162,100,0.18)',
+  statusBar: 'light' as const,
 };
 
-export const lightColors: ThemeColors = {
-  scheme: 'light',
+// ─── Light palette ───────────────────────────────────────────────────────
+export const lightColors = {
+  scheme: 'light' as const,
   background: '#F7F3EE',
   surface: '#FFFFFF',
   surfaceElevated: '#FDF9F5',
@@ -136,18 +105,24 @@ export const lightColors: ThemeColors = {
   warningBorder: 'rgba(184,120,32,0.22)',
   warningTint: 'rgba(184,120,32,0.04)',
   danger: '#C0472E',
-  demoBanner: 'rgba(212,114,42,0.06)',
-  demoBannerBorder: 'rgba(212,114,42,0.18)',
+  demoBanner: 'rgba(212,114,42,0.05)',
+  demoBannerBorder: 'rgba(212,114,42,0.16)',
   progressTrack: 'rgba(0,0,0,0.07)',
+  ringTrack: 'rgba(0,0,0,0.08)',
+  ringProgress: '#D4722A',
   coachPrimaryTint: 'rgba(212,114,42,0.04)',
   coachSupportTint: 'rgba(46,138,94,0.04)',
   coachContextTint: 'transparent',
   profileSectionBg: '#FFFFFF',
   profileRowBorder: '#EDE7DF',
-  statusBar: 'dark',
+  sourceBadgeBg: 'rgba(212,114,42,0.06)',
+  sourceBadgeBorder: 'rgba(212,114,42,0.18)',
+  statusBar: 'dark' as const,
 };
 
-// Legacy shim — keeps any missed static import alive during migration
+export type ThemeColors = typeof darkColors;
+
+// Legacy shim
 export const marathonTheme = {
   colors: darkColors,
   spacing,

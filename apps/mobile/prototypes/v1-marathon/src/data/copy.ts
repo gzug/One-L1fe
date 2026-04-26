@@ -1,7 +1,7 @@
 export const prototypeCopy = {
   // Identity
   appName: 'One L1fe',
-  prototypeName: 'Prototype V1 \u2014 Marathon',
+  prototypeSub: 'V1 \u2014 Marathon',
 
   // Demo mode
   demoData: 'Demo data',
@@ -10,39 +10,37 @@ export const prototypeCopy = {
   // Status labels
   available: 'Available',
   notAvailable: 'Not available',
-  needsAttention: 'Needs attention',
+  needsAttention: 'Review',
   planned: 'Planned',
 
-  // Header
-  greeting: 'Good morning',
+  // Readiness
   readinessLabel: 'Readiness context',
-
-  // Readiness interpretation
-  // In production this will be derived from signals. Demo value here.
   readinessInterpretation: 'Build carefully today.',
-  readinessInterpretationSub: 'Recovery signals are softer than recent load. Use as context for planning, not a medical assessment.',
+  readinessInterpretationSub:
+    'Recovery signals are softer than recent load. Use as context for planning \u2014 not a medical assessment.',
   readinessScoreContext: 'context score',
+  dataCoverageLabel: 'Data coverage',
 
-  // Section eyebrows
+  // Sections
   sectionSignals: 'Training signals',
   sectionBlood: 'Blood context',
   sectionCoaching: 'Suggested focus',
   sectionNutrition: 'Nutrition',
+  sectionSources: 'Connected sources',
 
-  // Signal glyphs (emoji safe on Android)
+  // Signal status glyphs
   signalGlyphs: {
     available: '\u25cf',
     needs_attention: '\u25cf',
     not_available: '\u25e6',
   } as Record<string, string>,
 
+  // Blood
+  bloodPanelCount: (n: number) => `${n} panel${n === 1 ? '' : 's'} on file`,
+
   // Nutrition
-  nutritionTitle: 'Nutrition context',
   nutritionBody: 'Tracking planned. Not included in readiness scoring yet.',
   nutritionLockNote: 'Coming in a future release.',
-
-  // Coaching
-  coachingTitle: 'Suggested focus',
 
   // Safety
   safetyNote:

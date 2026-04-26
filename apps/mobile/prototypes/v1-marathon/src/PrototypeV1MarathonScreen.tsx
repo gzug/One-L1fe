@@ -5,7 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  View as RNView,
+  View,
 } from 'react-native';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { AppHeader } from './components/AppHeader';
@@ -16,12 +16,11 @@ import { NutritionContextCard } from './components/NutritionContextCard';
 import { ProfileScreen } from './components/ProfileScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { SignalCard } from './components/SignalCard';
-import { bloodMarkers, coachingSteps, trainingSignals } from './data/demoData';
+import { bloodMarkers, coachingSteps, trainingSignals, bloodPanelCount } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
 
-// ─── Root export — wraps everything in the ThemeProvider ─────────────────────
 export function PrototypeV1MarathonScreen() {
   return (
     <ThemeProvider>
@@ -30,7 +29,6 @@ export function PrototypeV1MarathonScreen() {
   );
 }
 
-// ─── Shell — reads theme, controls view-state ────────────────────────────────
 type ActiveView = 'home' | 'profile';
 
 function PrototypeShell() {
@@ -54,10 +52,7 @@ function PrototypeShell() {
   );
 }
 
-// ─── Home view ───────────────────────────────────────────────────────────────
-type HomeViewProps = { onProfilePress: () => void };
-
-function HomeView({ onProfilePress }: HomeViewProps) {
+function HomeView({ onProfilePress }: { onProfilePress: () => void }) {
   const { colors } = useTheme();
   const s = createHomeStyles(colors);
 
@@ -68,54 +63,61 @@ function HomeView({ onProfilePress }: HomeViewProps) {
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <RNView style={s.container}>
+        <View style={s.container}>
+
           <DemoModeBanner />
           <ReadinessOrbit />
 
-          <RNView style={s.section}>
+          {/* Training signals */}
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionSignals} />
             {trainingSignals.map((signal) => (
               <SignalCard key={signal.label} signal={signal} />
             ))}
-          </RNView>
+          </View>
 
-          <RNView style={s.section}>
-            <SectionHeader title={prototypeCopy.sectionBlood} />
-            <RNView style={s.bloodGrid}>
+          {/* Blood context */}
+          <View style={s.section}>
+            <View style={s.sectionTitleRow}>
+              <SectionHeader title={prototypeCopy.sectionBlood} />
+              <Text style={s.panelCount}>
+                {prototypeCopy.bloodPanelCount(bloodPanelCount)}
+              </Text>
+            </View>
+            <View style={s.bloodGrid}>
               {bloodMarkers.map((marker) => (
                 <BloodMarkerCard key={marker.label} marker={marker} />
               ))}
-            </RNView>
-          </RNView>
+            </View>
+          </View>
 
-          <RNView style={s.section}>
+          {/* Coaching */}
+          <View style={s.section}>
             <SectionHeader title={prototypeCopy.sectionCoaching} />
             {coachingSteps.map((step, index) => (
               <CoachingCard key={step.title} step={step} index={index} />
             ))}
-          </RNView>
+          </View>
 
           <NutritionContextCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>
-        </RNView>
+        </View>
       </ScrollView>
     </>
   );
 }
 
-// ─── Section header ───────────────────────────────────────────────────────────
 function SectionHeader({ title }: { title: string }) {
   const { colors } = useTheme();
   return (
-    <RNView style={sectionHeaderStyles.row}>
-      <RNView style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
+    <View style={sectionHeaderStyles.row}>
+      <View style={[sectionHeaderStyles.accent, { backgroundColor: colors.accent }]} />
       <Text style={[sectionHeaderStyles.title, { color: colors.text }]}>{title}</Text>
-    </RNView>
+    </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 function createHomeStyles(colors: ThemeColors) {
   return StyleSheet.create({
     scroll: {
@@ -130,6 +132,16 @@ function createHomeStyles(colors: ThemeColors) {
       gap: spacing.xl,
     },
     section: { gap: spacing.sm },
+    sectionTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    panelCount: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      fontWeight: '500',
+    },
     bloodGrid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
