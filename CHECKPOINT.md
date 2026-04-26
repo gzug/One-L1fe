@@ -20,13 +20,15 @@ It is not the full One L1fe app state on `main`. Treat this branch as a focused 
 
 - Branch: `claude/antler-health-os-demo-O6PNI`
 - Product framing: `One L1fe — Prototype V1 Marathon`
-- Runtime entry: `apps/mobile/App.tsx` returns `AntlerHealthOsDemoScreen` unless `EXPO_PUBLIC_ANTLER_DEMO=0`
-- Primary screen: `apps/mobile/AntlerHealthOsDemoScreen.tsx`
+- Runtime entry: `apps/mobile/App.tsx` opens the reduced prototype unless `EXPO_PUBLIC_ANTLER_DEMO=0`
+- Preferred screen import: `apps/mobile/PrototypeV1MarathonScreen.tsx`
+- Current implementation screen: `apps/mobile/AntlerHealthOsDemoScreen.tsx`
 - Current canonical doc: `apps/mobile/docs/prototype-v1-marathon.md`
 
 ## What is current
 
-- `apps/mobile/AntlerHealthOsDemoScreen.tsx` — current UI shell for the reduced marathon prototype.
+- `apps/mobile/PrototypeV1MarathonScreen.tsx` — preferred import alias for the reduced marathon prototype.
+- `apps/mobile/AntlerHealthOsDemoScreen.tsx` — current implementation shell; legacy name tolerated until a safe full-file rename is done.
 - `apps/mobile/healthOsTheme.ts` — current light/dark visual token set for this prototype.
 - `apps/mobile/healthOsDataMode.ts` — current Real Data vs Demo Filled switch and biomarker tile mapping.
 - `apps/mobile/healthOsDemoReport.ts` — current readiness report calculation and copy.
@@ -71,10 +73,12 @@ Excluded:
 - Marked old Antler naming as legacy implementation detail, not product language.
 - Updated the Expo app display name to `One L1fe Prototype V1 Marathon`.
 - Removed the obsolete `apps/mobile/docs/antler-health-os-demo.md` file after replacing it with the canonical prototype doc.
+- Added `apps/mobile/PrototypeV1MarathonScreen.tsx` as the preferred import alias.
 
 ## Next steps
 
-1. Rename `AntlerHealthOsDemoScreen.tsx` and `EXPO_PUBLIC_ANTLER_DEMO` only in a separate mechanical rename commit, if desired. Current names are tolerated to avoid build-path churn.
-2. Replace remaining in-screen text `Marathon readiness` with `Prototype V1 Marathon` after fetching/editing the large screen file safely.
-3. Run `npm --prefix apps/mobile run typecheck` and an Android APK build from a normal dev environment.
-4. Test on the target Android phone with Garmin Connect -> Health Connect sharing enabled.
+1. Point `apps/mobile/App.tsx` at `PrototypeV1MarathonScreen.tsx` when the full file can be patched safely.
+2. Rename `AntlerHealthOsDemoScreen.tsx` and `EXPO_PUBLIC_ANTLER_DEMO` only in a separate mechanical rename commit, if desired. Current names are tolerated to avoid build-path churn.
+3. Replace remaining in-screen text `Marathon readiness` with `Prototype V1 Marathon` after fetching/editing the large screen file safely.
+4. Run `npm --prefix apps/mobile run typecheck` and an Android APK build from a normal dev environment.
+5. Test on the target Android phone with Garmin Connect -> Health Connect sharing enabled.
