@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import {
+  Modal,
+  Platform,
+  Pressable,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -7,8 +10,6 @@ import {
   Text,
   TouchableWithoutFeedback,
   View,
-  Pressable,
-  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
@@ -76,8 +77,7 @@ function PrototypeShell() {
       {/*
         Modal backdrop: TouchableWithoutFeedback wraps a plain View so we
         avoid the nested-Pressable React Native warning. Inner sheet is a
-        plain View — taps on it stop propagation via the inner Pressable
-        only for action buttons.
+        plain View — taps on it stop propagation via second TWOF.
       */}
       <Modal
         visible={demoInfoVisible}
@@ -87,7 +87,6 @@ function PrototypeShell() {
       >
         <TouchableWithoutFeedback onPress={() => setDemoInfoVisible(false)}>
           <View style={demoOverlay.backdrop}>
-            {/* Stops tap-through to backdrop */}
             <TouchableWithoutFeedback onPress={() => { /* absorb */ }}>
               <View
                 style={[
@@ -174,7 +173,7 @@ function HomeView({
           <BloodPanelsCard onViewPress={onViewBloodPanels} />
 
           <View style={s.section}>
-            <SectionLabel text={prototypeCopy.sectionCoaching} />
+            <SectionLabel text="Recommendations" />
             {nextActions.map((action) => (
               <CoachingCard key={action.id} action={action} />
             ))}

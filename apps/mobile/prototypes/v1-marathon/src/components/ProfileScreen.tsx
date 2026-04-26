@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import {
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -15,6 +17,10 @@ import type { ThemeColors } from '../theme/marathonTheme';
 import { profileFields, connectedSources, bloodPanels } from '../data/demoData';
 import type { ConnectedSource, ProfileField } from '../data/demoData';
 import { prototypeCopy } from '../data/copy';
+
+// Android: header must clear status bar
+const ANDROID_TOP_INSET =
+  Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0;
 
 type ProfileScreenProps = {
   onClose: () => void;
@@ -52,10 +58,16 @@ export function ProfileScreen({ onClose, onViewBlood }: ProfileScreenProps) {
 
   return (
     <SafeAreaView style={s.safeArea}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
+      {/* Header — paddingTop covers Android status bar */}
+      <View style={[s.header, { paddingTop: ANDROID_TOP_INSET + spacing.sm }]}>
+        <Pressable
+          onPress={onClose}
+          style={s.backBtn}
+          hitSlop={10}
+          accessibilityLabel="Back to Overview"
+        >
           <Ionicons name="arrow-back" size={20} color={colors.text} />
+          <Text style={[s.backLabel, { color: colors.textMuted }]}>Overview</Text>
         </Pressable>
         <View style={s.headerCenter}>
           <Text style={s.headerTitle}>Profile</Text>
@@ -144,10 +156,7 @@ export function ProfileScreen({ onClose, onViewBlood }: ProfileScreenProps) {
               ))}
               <View style={s.panelActions}>
                 <Pressable
-                  style={[
-                    s.uploadBtn,
-                    { borderColor: colors.border },
-                  ]}
+                  style={[s.uploadBtn, { borderColor: colors.border }]}
                   onPress={() => {}}
                   accessibilityLabel="Upload PDF"
                 >
@@ -157,10 +166,7 @@ export function ProfileScreen({ onClose, onViewBlood }: ProfileScreenProps) {
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[
-                    s.uploadBtn,
-                    { borderColor: colors.border },
-                  ]}
+                  style={[s.uploadBtn, { borderColor: colors.border }]}
                   onPress={() => {}}
                   accessibilityLabel="Upload photo"
                 >
@@ -206,23 +212,14 @@ function ProfileSection({
   return (
     <View style={s.card}>
       {fields.map((field, i) => (
-        <View
-          key={field.key}
-          style={[
-            s.row,
-            i < fields.length - 1 && s.rowBorder,
-          ]}
-        >
+        <View key={field.key} style={[s.row, i < fields.length - 1 && s.rowBorder]}>
           <Text style={s.rowLabel}>{field.label}</Text>
           <View style={s.rowRight}>
             {editMode && field.editable ? (
               <TextInput
                 value={fieldValues[field.key] ?? field.value}
                 onChangeText={(val) => onChangeField(field.key, val)}
-                style={[
-                  s.inlineInput,
-                  { color: colors.accent, borderBottomColor: colors.accentBorder },
-                ]}
+                style={[s.inlineInput, { color: colors.accent, borderBottomColor: colors.accentBorder }]}
                 selectTextOnFocus
                 returnKeyType="done"
                 accessibilityLabel={`Edit ${field.label}`}
@@ -239,9 +236,7 @@ function ProfileSection({
 
 // --- SourceRow -------------------------------------------------------
 function SourceRow({
-  source,
-  isLast,
-  colors,
+  source, isLast, colors,
 }: {
   source: ConnectedSource;
   isLast: boolean;
@@ -249,7 +244,7 @@ function SourceRow({
 }) {
   const s = createStyles(colors);
   const actionIcon =
-    source.id === 'blood_panels' ? 'cloud-upload-outline'
+    source.id === 'blood_panels'    ? 'cloud-upload-outline'
     : source.id === 'health_connect' ? 'settings-outline'
     : 'link-outline';
   const isOnFile = source.status === 'prototype_only';
@@ -257,10 +252,7 @@ function SourceRow({
     <View
       style={[
         s.sourceRow,
-        !isLast && {
-          borderBottomWidth: StyleSheet.hairlineWidth,
-          borderBottomColor: colors.profileRowBorder,
-        },
+        !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.profileRowBorder },
       ]}
     >
       <View style={s.sourceLeft}>
@@ -269,10 +261,7 @@ function SourceRow({
         {source.note ? <Text style={s.sourceNote}>{source.note}</Text> : null}
       </View>
       <Pressable
-        style={[
-          s.sourceAction,
-          { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
-        ]}
+        style={[s.sourceAction, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}
         accessibilityLabel={source.actionLabel}
       >
         <Ionicons name={actionIcon as any} size={11} color={colors.accent} />
@@ -285,115 +274,75 @@ function SourceRow({
 // --- Styles ----------------------------------------------------------
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    safeArea:      { flex: 1, backgroundColor: colors.background },
+    safeArea: { flex: 1, backgroundColor: colors.background },
     header: {
-      flexDirection: 'row', alignItems: 'center',
-      paddingHorizontal: spacing.md, paddingVertical: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.borderSubtle,
       gap: spacing.sm,
     },
-    backBtn:       { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-    headerCenter:  { flex: 1, gap: 1 },
-    headerTitle: {
-      color: colors.text, fontSize: typography.subtitle,
-      fontWeight: '800', letterSpacing: -0.2,
+    backBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingRight: spacing.xs,
+      minWidth: 80,
     },
-    headerSub:     { color: colors.textSubtle, fontSize: typography.micro },
+    backLabel: {
+      fontSize: typography.bodySmall,
+      fontWeight: '600',
+    },
+    headerCenter: { flex: 1, gap: 1 },
+    headerTitle:  { color: colors.text, fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.2 },
+    headerSub:    { color: colors.textSubtle, fontSize: typography.micro },
     editBtn: {
-      paddingHorizontal: spacing.md, paddingVertical: spacing.sm - 2,
-      borderRadius: radius.pill, borderWidth: 1,
-      borderColor: colors.border, backgroundColor: colors.surface,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm - 2,
+      borderRadius: radius.pill,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
     },
-    editBtnActive: { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
-    editBtnText:   { color: colors.textMuted, fontSize: typography.bodySmall, fontWeight: '600' },
+    editBtnActive:     { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft },
+    editBtnText:       { color: colors.textMuted, fontSize: typography.bodySmall, fontWeight: '600' },
     editBtnTextActive: { color: colors.accent },
-    scroll: { alignItems: 'center', paddingVertical: spacing.xl, paddingBottom: spacing.xxxl },
-    container: {
-      width: '100%', maxWidth: layout.maxWidth,
-      paddingHorizontal: layout.screenPaddingH, gap: spacing.xl,
-    },
+    scroll:    { alignItems: 'center', paddingVertical: spacing.xl, paddingBottom: spacing.xxxl },
+    container: { width: '100%', maxWidth: layout.maxWidth, paddingHorizontal: layout.screenPaddingH, gap: spacing.xl },
     demoBanner: {
-      borderRadius: radius.md, backgroundColor: colors.demoBanner,
-      borderWidth: 1, borderColor: colors.demoBannerBorder, padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.demoBanner,
+      borderWidth: 1,
+      borderColor: colors.demoBannerBorder,
+      padding: spacing.md,
     },
-    demoBannerText: {
-      color: colors.textMuted, fontSize: typography.caption, lineHeight: lineHeights.caption,
-    },
-    section:       { gap: spacing.sm },
-    sectionTitle: {
-      color: colors.textSubtle, fontSize: typography.caption,
-      fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, paddingLeft: 2,
-    },
-    card: {
-      borderRadius: radius.md, backgroundColor: colors.profileSectionBg,
-      borderWidth: 1, borderColor: colors.border, overflow: 'hidden',
-    },
-    row: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.lg,
-    },
-    rowBorder: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.profileRowBorder,
-    },
-    rowLabel: { color: colors.textMuted, fontSize: typography.bodySmall, fontWeight: '500', flex: 1 },
-    rowRight: {
-      flexDirection: 'row', alignItems: 'center',
-      gap: spacing.xs, flex: 2, justifyContent: 'flex-end',
-    },
-    rowValue: {
-      color: colors.text, fontSize: typography.bodySmall,
-      fontWeight: '600', textAlign: 'right', flexShrink: 1,
-    },
-    inlineInput: {
-      fontSize: typography.bodySmall, fontWeight: '600',
-      textAlign: 'right', borderBottomWidth: 1,
-      paddingVertical: 2, minWidth: 80, flexShrink: 1,
-    },
-    sourceRow: {
-      flexDirection: 'row', alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md,
-    },
-    sourceLeft:    { flex: 1, gap: 2 },
-    sourceMuted:   { color: colors.textSubtle, fontSize: typography.micro },
-    sourceOnFile:  { color: colors.positive, fontSize: typography.micro, fontWeight: '600' },
-    sourceNote:    { color: colors.textSubtle, fontSize: typography.micro, opacity: 0.7 },
-    sourceAction: {
-      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-      borderWidth: 1, borderRadius: radius.pill,
-      paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, flexShrink: 0,
-    },
+    demoBannerText: { color: colors.textMuted, fontSize: typography.caption, lineHeight: lineHeights.caption },
+    section:      { gap: spacing.sm },
+    sectionTitle: { color: colors.textSubtle, fontSize: typography.caption, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8, paddingLeft: 2 },
+    card:         { borderRadius: radius.md, backgroundColor: colors.profileSectionBg, borderWidth: 1, borderColor: colors.border, overflow: 'hidden' },
+    row:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.lg },
+    rowBorder:    { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.profileRowBorder },
+    rowLabel:     { color: colors.textMuted, fontSize: typography.bodySmall, fontWeight: '500', flex: 1 },
+    rowRight:     { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flex: 2, justifyContent: 'flex-end' },
+    rowValue:     { color: colors.text, fontSize: typography.bodySmall, fontWeight: '600', textAlign: 'right', flexShrink: 1 },
+    inlineInput:  { fontSize: typography.bodySmall, fontWeight: '600', textAlign: 'right', borderBottomWidth: 1, paddingVertical: 2, minWidth: 80, flexShrink: 1 },
+    sourceRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md, gap: spacing.md },
+    sourceLeft:   { flex: 1, gap: 2 },
+    sourceMuted:  { color: colors.textSubtle, fontSize: typography.micro },
+    sourceOnFile: { color: colors.positive, fontSize: typography.micro, fontWeight: '600' },
+    sourceNote:   { color: colors.textSubtle, fontSize: typography.micro, opacity: 0.7 },
+    sourceAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 2, flexShrink: 0 },
     sourceActionText: { color: colors.accent, fontSize: typography.micro, fontWeight: '700', letterSpacing: 0.2 },
-    panelRow: {
-      flexDirection: 'row', alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.md,
-    },
-    panelLeft:     { flex: 1, gap: 3 },
-    panelMeta:     { color: colors.textSubtle, fontSize: typography.micro },
-    panelActions: {
-      flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap',
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.profileRowBorder,
-    },
-    uploadBtn: {
-      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-      borderWidth: 1, borderRadius: radius.pill,
-      paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 1,
-    },
-    uploadBtnText: { fontSize: typography.micro, fontWeight: '600' },
-    panelProtoNote: {
-      flexDirection: 'row', alignItems: 'center', gap: spacing.xs,
-      borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.profileRowBorder,
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.sm,
-    },
+    panelRow:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
+    panelLeft:        { flex: 1, gap: 3 },
+    panelMeta:        { color: colors.textSubtle, fontSize: typography.micro },
+    panelActions:     { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap', paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.profileRowBorder },
+    uploadBtn:        { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, borderWidth: 1, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.xs + 1 },
+    uploadBtnText:    { fontSize: typography.micro, fontWeight: '600' },
+    panelProtoNote:   { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.profileRowBorder, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm },
     panelProtoNoteText: { color: colors.textSubtle, fontSize: typography.micro, opacity: 0.8 },
-    footer: {
-      color: colors.textSubtle, fontSize: typography.micro,
-      lineHeight: lineHeights.caption, textAlign: 'center', paddingHorizontal: spacing.xl,
-    },
+    footer:           { color: colors.textSubtle, fontSize: typography.micro, lineHeight: lineHeights.caption, textAlign: 'center', paddingHorizontal: spacing.xl },
   });
 }

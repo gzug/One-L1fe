@@ -33,8 +33,9 @@ export type ReadinessSegment = {
 
 export type NextAction = {
   id: string;
-  icon: string;         // Ionicons name
+  iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';  // resolved to Ionicon in component
   title: string;
+  sourceChip: string;   // data source label
   reason: string;       // 1 line, no medical advice
   impact: string;       // tag label
   impactKey: 'recovery' | 'training' | 'data';
@@ -84,30 +85,33 @@ export const readinessSegments: ReadinessSegment[] = [
 
 export const dataCoveragePercent = 72;
 
-// --- Next actions -------------------------------------------------------
+// --- Recommendations ----------------------------------------------------
 export const nextActions: NextAction[] = [
   {
     id: 'recovery',
-    icon: 'moon-outline',
+    iconKey: 'moon',
     title: 'Prioritize recovery tonight',
+    sourceChip: 'Garmin · HRV · demo',
     reason: 'HRV is below baseline.',
     impact: 'Recovery',
     impactKey: 'recovery',
   },
   {
     id: 'training',
-    icon: 'speedometer-outline',
+    iconKey: 'speedometer',
     title: 'Keep today controlled',
-    reason: 'Recent load is higher than recovery signals.',
+    sourceChip: 'Garmin · Training · demo',
+    reason: 'Load is higher than recovery context.',
     impact: 'Training load',
     impactKey: 'training',
   },
   {
     id: 'data',
-    icon: 'sync-outline',
-    title: 'Check source freshness',
-    reason: 'Wearable and blood context should stay current.',
-    impact: 'Data quality',
+    iconKey: 'flask',
+    title: 'Review blood context',
+    sourceChip: 'Blood Panels',
+    reason: '2023 and 2025 panels available for comparison.',
+    impact: 'Biomarkers',
     impactKey: 'data',
   },
 ];

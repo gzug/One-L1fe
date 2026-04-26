@@ -2,9 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Switch,
   Text,
@@ -18,6 +20,10 @@ import type { ThemeColors } from '../theme/marathonTheme';
 import { loadPanels, savePanels } from '../data/bloodStorage';
 import type { BloodMarker, BloodPanel } from '../data/bloodStorage';
 import { getMarkerContext } from '../data/markerContext';
+
+// Android: header must be visible below status bar (not behind camera cutout)
+const ANDROID_TOP_INSET =
+  Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0;
 
 type Props = { onClose: () => void };
 type ViewMode = 'panel' | 'compare';
@@ -106,17 +112,23 @@ export function BloodResultsScreen({ onClose }: Props) {
 
   return (
     <SafeAreaView style={s.safeArea}>
-      {/* Header */}
-      <View style={s.header}>
-        <Pressable onPress={onClose} style={s.backBtn} hitSlop={8} accessibilityLabel="Back">
+      {/* Header — paddingTop covers Android status bar */}
+      <View style={[s.header, { paddingTop: ANDROID_TOP_INSET + spacing.sm }]}>
+        <Pressable
+          onPress={onClose}
+          style={s.backBtn}
+          hitSlop={10}
+          accessibilityLabel="Back to Overview"
+        >
           <Ionicons name="arrow-back" size={20} color={colors.text} />
+          <Text style={[s.backLabel, { color: colors.textMuted }]}>Overview</Text>
         </Pressable>
         <View style={s.headerCenter}>
           <Text style={s.headerTitle}>Blood Results</Text>
           <Text style={s.headerSub}>
             {viewMode === 'compare'
-              ? 'Comparing one blood panel from 2023 with one from 2025'
-              : 'One blood panel is available for each year'}
+              ? 'Comparing 2023 and 2025 panels · context only'
+              : 'One panel per year · demo data'}
           </Text>
         </View>
         {viewMode === 'panel' && dirty ? (
@@ -177,7 +189,7 @@ export function BloodResultsScreen({ onClose }: Props) {
         <View style={[s.infoBanner, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
           <Ionicons name="information-circle-outline" size={13} color={colors.textSubtle} />
           <Text style={[s.infoBannerText, { color: colors.textSubtle }]}>
-            Comparing one blood panel from 2023 with one blood panel from 2025. Context only — not a diagnosis.
+            Context only — not a diagnosis. Can support a clinician discussion and future follow-up tracking.
           </Text>
         </View>
       )}
@@ -230,7 +242,7 @@ export function BloodResultsScreen({ onClose }: Props) {
           )}
 
           <Text style={[s.footer, { color: colors.textSubtle }]}>
-            Values are context only. Not a diagnosis. Consult your doctor for medical interpretation.
+            Context only — not a diagnosis. Consult your clinician for medical interpretation.
           </Text>
         </View>
       </ScrollView>
@@ -276,6 +288,10 @@ function CompareView({ panels, colors }: { panels: BloodPanel[]; colors: ThemeCo
           direction = pct < 0.03 ? 'stable' : delta > 0 ? 'higher' : 'lower';
         }
 
+        // Reference range — prefer m2025, fall back to m2023
+        const refLow  = (m2025?.refLow  ?? m2023?.refLow  ?? '').trim();
+        const refHigh = (m2025?.refHigh ?? m2023?.refHigh ?? '').trim();
+
         return (
           <CompareCard
             key={markerId}
@@ -286,6 +302,8 @@ function CompareView({ panels, colors }: { panels: BloodPanel[]; colors: ThemeCo
             delta={delta}
             direction={direction}
             context={context}
+            refLow={refLow}
+            refHigh={refHigh}
             colors={colors}
           />
         );
@@ -295,10 +313,48 @@ function CompareView({ panels, colors }: { panels: BloodPanel[]; colors: ThemeCo
 }
 
 // ---------------------------------------------------------------------------
+// Reference context helpers
+// ---------------------------------------------------------------------------
+type RefStatus = 'within' | 'below' | 'above' | 'unavailable';
+
+function refStatus(val: string, refLow: string, refHigh: string): RefStatus {
+  const n    = parseFloat(val);
+  const low  = refLow  ? parseFloat(refLow)  : NaN;
+  const high = refHigh ? parseFloat(refHigh) : NaN;
+  if (isNaN(n)) return 'unavailable';
+  if (isNaN(low) && isNaN(high)) return 'unavailable';
+  if (!isNaN(low)  && n < low)  return 'below';
+  if (!isNaN(high) && n > high) return 'above';
+  return 'within';
+}
+
+function refStatusLabel(status: RefStatus): string {
+  switch (status) {
+    case 'within':      return 'Within reference context';
+    case 'below':       return 'Below reference context';
+    case 'above':       return 'Above reference context';
+    case 'unavailable': return 'Reference range not available';
+  }
+}
+
+function refContextSentence(status: RefStatus, year: string): string {
+  switch (status) {
+    case 'within':
+      return `${year} value is within the available reference context.`;
+    case 'below':
+      return `${year} value sits below the available reference context. This can support a clinician discussion and future follow-up tracking.`;
+    case 'above':
+      return `${year} value sits above the available reference context. This can support a clinician discussion and future follow-up tracking.`;
+    case 'unavailable':
+      return 'Reference range not available for this marker.';
+  }
+}
+
+// ---------------------------------------------------------------------------
 // CompareCard
 // ---------------------------------------------------------------------------
 function CompareCard({
-  label, unit, val2023, val2025, delta, direction, context, colors,
+  label, unit, val2023, val2025, delta, direction, context, refLow, refHigh, colors,
 }: {
   label: string;
   unit: string;
@@ -307,6 +363,8 @@ function CompareCard({
   delta: number | null;
   direction: 'higher' | 'lower' | 'stable' | null;
   context: ReturnType<typeof getMarkerContext>;
+  refLow: string;
+  refHigh: string;
   colors: ThemeColors;
 }) {
   const s = createStyles(colors);
@@ -330,6 +388,27 @@ function CompareCard({
     : null;
 
   const noTrend = !val2023 || !val2025;
+
+  // Current value context
+  const currentVal   = val2025 ?? val2023;
+  const currentYear  = val2025 ? '2025' : '2023';
+  const refSt        = currentVal ? refStatus(currentVal, refLow, refHigh) : 'unavailable';
+  const refLabel     = refStatusLabel(refSt);
+  const refSentence  = currentVal
+    ? refContextSentence(refSt, currentYear)
+    : 'No current value available.';
+
+  // Ref label badge color
+  const refBadgeColor =
+    refSt === 'within'      ? colors.positive
+    : refSt === 'unavailable' ? colors.textSubtle
+    : colors.warning;
+
+  // Ref range display
+  const refRangeText =
+    (refLow || refHigh)
+      ? `${refLow || '—'} – ${refHigh || '—'} ${unit}`
+      : null;
 
   return (
     <View style={[s.compareCard, { borderColor: colors.border }]}>
@@ -367,6 +446,7 @@ function CompareCard({
         </View>
       </View>
 
+      {/* Context toggle */}
       {context && (
         <>
           <Pressable
@@ -386,31 +466,51 @@ function CompareCard({
 
           {expanded && (
             <View style={[s.contextBlock, { borderTopColor: colors.borderSubtle }]}>
+              {/* What is this marker */}
               <Text style={[s.contextWhat, { color: colors.textMuted }]}>{context.what}</Text>
+
+              {/* Trend context */}
               {noTrend ? (
                 <View style={s.contextRow}>
                   <Ionicons name="git-branch-outline" size={11} color={colors.textSubtle} />
                   <Text style={[s.contextBody, { color: colors.textSubtle }]}>
-                    No trend is shown because only one panel contains this marker. The available value can serve as baseline context for future comparisons.
+                    Trend context not available — only one panel contains this marker. The available value can serve as a baseline for future comparisons.
                   </Text>
                 </View>
               ) : (
                 <View style={s.contextRow}>
                   <Ionicons name={directionIcon as any} size={11} color={directionColor} />
                   <Text style={[s.contextBody, { color: colors.textSubtle }]}>
-                    The 2025 value is {directionLabel?.toLowerCase() ?? 'changed'} than 2023
+                    Trend context: 2025 value is {directionLabel?.toLowerCase() ?? 'changed'} than 2023
                     {delta !== null ? ` (${delta > 0 ? '+' : ''}${delta.toFixed(2)} ${unit})` : ''}.
-                    {' '}This is useful context for tracking over time.
+                    {' '}Useful to review alongside training load and recovery over time.
                   </Text>
                 </View>
               )}
+
+              {/* Current value context vs reference range */}
+              <View style={[s.refContextBlock, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+                <View style={s.refContextHeader}>
+                  <Text style={[s.refContextLabel, { color: refBadgeColor }]}>{refLabel}</Text>
+                  {refRangeText && (
+                    <Text style={[s.refRangeText, { color: colors.textSubtle }]}>Range: {refRangeText}</Text>
+                  )}
+                </View>
+                <Text style={[s.refContextSentence, { color: colors.textMuted }]}>{refSentence}</Text>
+              </View>
+
+              {/* Performance angle */}
               <View style={s.contextRow}>
                 <Ionicons name="pulse-outline" size={11} color={colors.textSubtle} />
                 <Text style={[s.contextBody, { color: colors.textSubtle }]}>{context.performanceAngle}</Text>
               </View>
+
+              {/* Support focus */}
               <View style={s.contextRow}>
                 <Ionicons name="leaf-outline" size={11} color={colors.textSubtle} />
-                <Text style={[s.contextBody, { color: colors.textSubtle }]}>{context.lifestyle}</Text>
+                <Text style={[s.contextBody, { color: colors.textSubtle }]}>
+                  Support focus: {context.lifestyle}
+                </Text>
               </View>
             </View>
           )}
@@ -503,8 +603,26 @@ const rowStyles = StyleSheet.create({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     safeArea:          { flex: 1, backgroundColor: colors.background },
-    header:            { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.md, paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderSubtle, gap: spacing.sm },
-    backBtn:           { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingBottom: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.borderSubtle,
+      gap: spacing.sm,
+    },
+    backBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingRight: spacing.xs,
+      minWidth: 80,
+    },
+    backLabel: {
+      fontSize: typography.bodySmall,
+      fontWeight: '600',
+    },
     headerCenter:      { flex: 1, gap: 1 },
     headerTitle:       { color: colors.text, fontSize: typography.subtitle, fontWeight: '800', letterSpacing: -0.2 },
     headerSub:         { color: colors.textSubtle, fontSize: typography.micro, lineHeight: lineHeights.caption },
@@ -546,5 +664,11 @@ function createStyles(colors: ThemeColors) {
     contextWhat:       { fontSize: typography.caption, lineHeight: lineHeights.caption, fontStyle: 'italic' },
     contextRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.xs },
     contextBody:       { fontSize: typography.caption, lineHeight: lineHeights.caption, flex: 1 },
+    // Reference context block
+    refContextBlock:   { borderRadius: radius.sm, borderWidth: StyleSheet.hairlineWidth, padding: spacing.sm, gap: 4 },
+    refContextHeader:  { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+    refContextLabel:   { fontSize: typography.caption, fontWeight: '700' },
+    refRangeText:      { fontSize: typography.micro },
+    refContextSentence:{ fontSize: typography.caption, lineHeight: lineHeights.caption },
   });
 }
