@@ -2,7 +2,7 @@
 status: current
 canonical_for: project entry point
 owner: repo
-last_verified: 2026-04-24
+last_verified: 2026-04-26
 supersedes: []
 superseded_by: null
 scope: repo
@@ -14,9 +14,9 @@ One L1fe is a private-first personal health intelligence project focused on evid
 
 ## Current status
 
-The repo already contains a documented product boundary, a shared domain layer, the first authenticated Supabase edge-function seam for the minimum slice, a thin app-facing client wrapper around the shared function contract, a small HTTP transport adapter, a mobile form-to-panel adapter, a minimal mobile submission wrapper, a compact result-summary helper ready for integration, and a verified local replay plus authenticated smoke-test path.
+The repo can have more than one active workstream. Do not assume `main` is the correct implementation target for every task.
 
-Current execution status lives in [CHECKPOINT.md](./CHECKPOINT.md).
+Start with [WORKSTREAMS.md](./WORKSTREAMS.md) to route the task to the correct branch/workstream. Then read that branch's `CHECKPOINT.md`.
 
 ## Start here
 
@@ -24,10 +24,13 @@ This file is for broad human orientation only — not required for agent startup
 
 For **agentic repo work**, use this startup order:
 
-1. [CHECKPOINT.md](./CHECKPOINT.md) — current state, active seam, next steps, blockers
-2. [CONTEXT.md](./CONTEXT.md) — rolling summary of the last 2–3 sessions
-3. [MEMORY.md](./MEMORY.md) — only if you need durable boundaries or architecture rules
-4. [docs/README.md](./docs/README.md) — only when you need deeper docs navigation
+1. [WORKSTREAMS.md](./WORKSTREAMS.md) — route the task to the correct active workstream / branch
+2. `CHECKPOINT.md` on the selected branch — current state, active seam, next steps, blockers
+3. `CONTEXT.md` on the selected branch — rolling summary of the last 2–3 sessions
+4. `MEMORY.md` only if you need durable boundaries or architecture rules
+5. `docs/README.md` only when you need deeper docs navigation
+
+If no workstream matches the user task, continue on `main` and read [CHECKPOINT.md](./CHECKPOINT.md).
 
 Full session and memory rules: [docs/ops/memory-system-v2.md](./docs/ops/memory-system-v2.md)  
 Agent working rules: [AGENTS.md](./AGENTS.md)
@@ -55,6 +58,7 @@ One-L1fe/
 │   └── archive/               # Superseded docs kept for context
 ├── memory/                    # Session scratch — daily notes only, never startup context
 ├── .github/                   # Repo hygiene, templates, CODEOWNERS, CI
+├── WORKSTREAMS.md             # Active workstream / branch routing registry
 ├── MEMORY.md
 ├── CONTEXT.md
 ├── AGENTS.md
@@ -66,9 +70,10 @@ One-L1fe/
 Use each file layer for one job:
 
 - [README.md](./README.md) = broad project entry point and orientation (human, not agent startup)
-- [CHECKPOINT.md](./CHECKPOINT.md) = current state and next step for active work
-- [CONTEXT.md](./CONTEXT.md) = rolling 2–3 session summary for fast agent startup
-- [MEMORY.md](./MEMORY.md) = durable assumptions and long-lived decisions (on demand)
+- [WORKSTREAMS.md](./WORKSTREAMS.md) = active workstream and branch routing registry
+- `CHECKPOINT.md` = current state and next step for the selected branch/workstream
+- `CONTEXT.md` = rolling 2–3 session summary for the selected branch/workstream
+- `MEMORY.md` = durable assumptions and long-lived decisions (on demand)
 - [`memory/`](./memory/) = session scratch — daily notes only, archived at closeout
 - [`docs/ops/memory-system-v2.md`](./docs/ops/memory-system-v2.md) = canonical session and memory rules
 - [`docs/ops/`](./docs/ops/) = operating guidance (session workflow, OpenClaw)
@@ -104,8 +109,9 @@ SUPABASE_ACCESS_TOKEN=... SUPABASE_PROJECT_REF=... scripts/check-supabase-hosted
 
 This repo uses a lightweight solo-founder workflow:
 
-- keep `main` stable
+- keep `main` stable and use it as the routing/control surface
 - prefer short-lived branches for focused changes
+- register active branches in `WORKSTREAMS.md`
 - let CI validate typecheck and domain tests
 - update the real source-of-truth file when behavior or rules change
 
@@ -115,6 +121,7 @@ Contributing guidelines: [CONTRIBUTING.md](./CONTRIBUTING.md)
 ## Core project docs
 
 ### Orientation
+- [WORKSTREAMS.md](./WORKSTREAMS.md)
 - [CHECKPOINT.md](./CHECKPOINT.md)
 - [CONTEXT.md](./CONTEXT.md)
 - [MEMORY.md](./MEMORY.md)
