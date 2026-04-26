@@ -21,7 +21,6 @@ const withHealthConnectManifest = (config) => (0, config_plugins_1.withAndroidMa
     const mainApplication = manifest.manifest.application?.[0];
     if (!mainApplication)
         return mod;
-    // 1. Add <queries> block for HC availability detection
     if (!manifest.manifest.queries) {
         manifest.manifest.queries = [];
     }
@@ -31,7 +30,6 @@ const withHealthConnectManifest = (config) => (0, config_plugins_1.withAndroidMa
             queries.package = [];
         queries.package.push({ $: { 'android:name': 'com.google.android.apps.healthdata' } });
     }
-    // 2. Add HC read permissions
     if (!manifest.manifest['uses-permission']) {
         manifest.manifest['uses-permission'] = [];
     }
@@ -41,9 +39,6 @@ const withHealthConnectManifest = (config) => (0, config_plugins_1.withAndroidMa
             manifest.manifest['uses-permission'].push({ $: { 'android:name': perm } });
         }
     }
-    // 3. Add activity-alias for HC rationale intent filter
-    // Cast to any: activity-alias is valid in AndroidManifest XML but not in
-    // Expo's ManifestApplication type definition.
     const app = mainApplication;
     if (!app['activity-alias']) {
         app['activity-alias'] = [];
@@ -70,24 +65,20 @@ const withHealthConnectManifest = (config) => (0, config_plugins_1.withAndroidMa
 /**
  * Adds HealthConnectPermissionDelegate.setPermissionDelegate(this) to MainActivity.
  * Required by react-native-health-connect >=3.x so that requestPermission() works.
- * Guard: skips if the delegate call is already present.
  */
 const withHealthConnectMainActivity = (config) => (0, config_plugins_1.withMainActivity)(config, (mod) => {
     let contents = mod.modResults.contents;
     if (contents.includes('HealthConnectPermissionDelegate')) {
-        return mod; // already patched
+        return mod;
     }
-    // Add import
-    const importLine = 'import com.healthconnect.reactnative.permission.HealthConnectPermissionDelegate';
+    const importLine = 'import dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate';
     if (!contents.includes(importLine)) {
         contents = contents.replace('import com.facebook.react.ReactActivity', `import com.facebook.react.ReactActivity\n${importLine}`);
     }
-    // Inject inside the existing onCreate method, right after super.onCreate
     if (contents.includes('super.onCreate')) {
         contents = contents.replace(/super\.onCreate\((.*?)\)/, 'super.onCreate($1)\n    HealthConnectPermissionDelegate.setPermissionDelegate(this)');
     }
     else {
-        // Fallback if no onCreate exists (unlikely in Expo)
         const onCreate = `
   override fun onCreate(savedInstanceState: android.os.Bundle?) {
     super.onCreate(savedInstanceState)
