@@ -4,7 +4,7 @@ import android.os.Build
 import android.os.Bundle
 
 import com.facebook.react.ReactActivity
-import com.healthconnect.reactnative.permission.HealthConnectPermissionDelegate
+import dev.matinzd.healthconnect.permissions.HealthConnectPermissionDelegate
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
