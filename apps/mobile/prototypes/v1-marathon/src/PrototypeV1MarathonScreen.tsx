@@ -17,6 +17,7 @@ import { BloodPanelsCard } from './components/BloodPanelsCard';
 import { CoachingCard } from './components/CoachingCard';
 import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
+import { BloodResultsScreen } from './screens/BloodResultsScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { SignalGroup } from './components/SignalCard';
 import { coachingSteps, trainingSignals } from './data/demoData';
@@ -32,14 +33,13 @@ export function PrototypeV1MarathonScreen() {
   );
 }
 
-type ActiveView = 'home' | 'profile';
+type ActiveView = 'home' | 'profile' | 'blood';
 
 function PrototypeShell() {
   const { colors } = useTheme();
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
 
-  // Prevent white flash on web when dark mode is active
   useWebBackground(colors.background);
 
   function openProfile() {
@@ -54,18 +54,22 @@ function PrototypeShell() {
         backgroundColor={colors.background}
       />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {activeView === 'profile' ? (
-          <ProfileScreen onClose={() => setActiveView('home')} />
+        {activeView === 'blood' ? (
+          <BloodResultsScreen onClose={() => setActiveView('home')} />
+        ) : activeView === 'profile' ? (
+          <ProfileScreen
+            onClose={() => setActiveView('home')}
+            onViewBlood={() => setActiveView('blood')}
+          />
         ) : (
           <HomeView
             onProfilePress={() => setActiveView('profile')}
             onDemoInfoPress={() => setDemoInfoVisible(true)}
-            onViewBloodPanels={() => setActiveView('profile')}
+            onViewBloodPanels={() => setActiveView('blood')}
           />
         )}
       </SafeAreaView>
 
-      {/* Demo info modal */}
       <Modal
         visible={demoInfoVisible}
         transparent
@@ -242,10 +246,7 @@ const demoOverlay = StyleSheet.create({
     lineHeight: lineHeights.bodySmall,
     textAlign: 'center',
   },
-  divider: {
-    height: 1,
-    marginVertical: spacing.xs,
-  },
+  divider: { height: 1, marginVertical: spacing.xs },
   helperText: {
     fontSize: typography.caption,
     lineHeight: lineHeights.caption,
@@ -273,10 +274,7 @@ const demoOverlay = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginTop: spacing.xs,
   },
-  dismissText: {
-    fontSize: typography.caption,
-    fontWeight: '500',
-  },
+  dismissText: { fontSize: typography.caption, fontWeight: '500' },
 });
 
 export default PrototypeV1MarathonScreen;
