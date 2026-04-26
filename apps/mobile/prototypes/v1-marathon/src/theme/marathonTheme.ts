@@ -1,7 +1,5 @@
 // One L1fe — V1 Marathon — Design tokens
 // Single source of truth for both Android and Web.
-// Platform-specific rendering fixes live in useWebBackground and
-// component-level elevation only — not in token forks.
 
 export const spacing = {
   xs:   4,
@@ -65,6 +63,7 @@ export type ThemeColors = {
   // Semantic
   positive:          string;
   warning:           string;
+  warningSoft:       string;
   danger:            string;
   // Ring
   ringTrack:         string;
@@ -83,19 +82,20 @@ export type ThemeColors = {
 
 // Light — warm cream, white cards, terracotta accent
 export const lightColors: ThemeColors = {
-  background:       '#F9F7F4',   // warm cream — slightly deeper than pure white
-  surface:          '#F3F0EB',   // one step below bg
-  surfaceElevated:  '#FFFFFF',   // card surface
-  border:           'rgba(60,40,20,0.10)',   // warm, very faint
-  borderSubtle:     'rgba(60,40,20,0.055)',  // nearly invisible
-  text:             '#1C1917',   // warm near-black
-  textMuted:        '#5A5249',   // warm medium-dark
-  textSubtle:       '#9A928A',   // quiet labels
-  accent:           '#C4612C',   // apricot / terracotta — Android primary
+  background:       '#F9F7F4',
+  surface:          '#F3F0EB',
+  surfaceElevated:  '#FFFFFF',
+  border:           'rgba(60,40,20,0.10)',
+  borderSubtle:     'rgba(60,40,20,0.055)',
+  text:             '#1C1917',
+  textMuted:        '#5A5249',
+  textSubtle:       '#9A928A',
+  accent:           '#C4612C',
   accentBorder:     'rgba(196,97,44,0.25)',
   accentSoft:       'rgba(196,97,44,0.06)',
   positive:         '#3A7A58',
   warning:          '#A86E28',
+  warningSoft:      'rgba(168,110,40,0.08)',
   danger:           '#993636',
   ringTrack:        '#EDE8E2',
   ringProgress:     '#C4612C',
@@ -109,19 +109,20 @@ export const lightColors: ThemeColors = {
 
 // Dark — warm near-black, cards barely lifted, restrained accent
 export const darkColors: ThemeColors = {
-  background:       '#111009',   // deep warm black
-  surface:          '#181611',   // one step up
-  surfaceElevated:  '#1E1C16',   // card surface — close to bg, not loud
-  border:           'rgba(255,240,200,0.08)',   // warm white, very faint
+  background:       '#111009',
+  surface:          '#181611',
+  surfaceElevated:  '#1E1C16',
+  border:           'rgba(255,240,200,0.08)',
   borderSubtle:     'rgba(255,240,200,0.04)',
-  text:             '#EDE8E0',   // warm off-white
-  textMuted:        '#A89F95',   // warm mid-grey
-  textSubtle:       '#6A6158',   // quiet labels
-  accent:           '#D0683A',   // apricot lifted for dark contrast
+  text:             '#EDE8E0',
+  textMuted:        '#A89F95',
+  textSubtle:       '#6A6158',
+  accent:           '#D0683A',
   accentBorder:     'rgba(208,104,58,0.28)',
   accentSoft:       'rgba(208,104,58,0.09)',
   positive:         '#4A9468',
   warning:          '#BE8838',
+  warningSoft:      'rgba(190,136,56,0.10)',
   danger:           '#B84848',
   ringTrack:        '#26231C',
   ringProgress:     '#D0683A',

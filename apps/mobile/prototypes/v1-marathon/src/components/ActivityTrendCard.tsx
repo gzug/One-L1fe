@@ -1,10 +1,12 @@
 /**
  * ActivityTrendCard
  *
- * Lightweight 7-day activity bar chart.
- * Uses only React Native primitives — no chart library.
- *
+ * 7-day activity bar chart — pure RN primitives, no chart lib.
  * Demo data only. No live sync claim.
+ *
+ * Android fix: bars use explicit numeric width derived from a shared
+ * constant rather than width:'100%', which collapses inside flex rows
+ * on some Android layouts.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -13,8 +15,9 @@ import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 
-const BAR_MAX_HEIGHT = 44;
-const BAR_MIN_HEIGHT = 4;
+const BAR_MAX_HEIGHT = 48;
+const BAR_MIN_HEIGHT = 6;
+const BAR_WIDTH      = 28; // explicit px — avoids Android flex collapse
 
 function thresholdColor(value: number, colors: ThemeColors): string {
   if (value >= 75) return colors.positive;
@@ -40,15 +43,12 @@ export function ActivityTrendCard() {
             Math.round((day.value / 100) * BAR_MAX_HEIGHT),
           );
           const color = thresholdColor(day.value, colors);
+
           return (
             <View key={day.day} style={s.barCol}>
+              {/* Fixed-height container, bar grows from bottom */}
               <View style={s.barArea}>
-                <View
-                  style={[
-                    s.bar,
-                    { height: barH, backgroundColor: color },
-                  ]}
-                />
+                <View style={[s.bar, { height: barH, backgroundColor: color }]} />
               </View>
               <Text style={s.dayLabel}>{day.day}</Text>
             </View>
@@ -85,21 +85,23 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
-      gap: spacing.xs,
+      // no gap — space-between handles spacing across fixed-width columns
     },
     barCol: {
-      flex: 1,
+      width: BAR_WIDTH,
       alignItems: 'center',
       gap: spacing.xs,
     },
     barArea: {
+      width: BAR_WIDTH,
       height: BAR_MAX_HEIGHT,
       justifyContent: 'flex-end',
+      alignItems: 'center',
     },
     bar: {
-      width: '100%',
-      borderRadius: 3,
-      minHeight: BAR_MIN_HEIGHT,
+      width: BAR_WIDTH - 4, // 2px breathing room each side
+      borderRadius: 4,
+      // height set inline
     },
     dayLabel: {
       color: colors.textSubtle,

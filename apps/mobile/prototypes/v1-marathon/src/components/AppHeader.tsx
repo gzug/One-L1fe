@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, spacing, typography } from '../theme/marathonTheme';
@@ -9,18 +9,28 @@ type AppHeaderProps = {
   onDemoInfoPress: () => void;
 };
 
+// Android: compensate for status bar height so header is not clipped.
+const ANDROID_TOP_INSET =
+  Platform.OS === 'android' ? (StatusBar.currentHeight ?? 24) : 0;
+
 export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
   const { colors, isDark, toggle } = useTheme();
 
   return (
-    <View style={[styles.root, { borderBottomColor: colors.borderSubtle }]}>
+    <View
+      style={[
+        styles.root,
+        {
+          borderBottomColor: colors.borderSubtle,
+          paddingTop: ANDROID_TOP_INSET + spacing.md,
+        },
+      ]}
+    >
       <View style={styles.inner}>
         {/* Brand lockup */}
         <View style={styles.brand}>
           <Text style={[styles.brandName, { color: colors.text }]}>One L1fe</Text>
-          <Text style={[styles.brandSub, { color: colors.accent }]}>
-            V1 — Marathon
-          </Text>
+          <Text style={[styles.brandSub, { color: colors.accent }]}>V1 — Marathon</Text>
         </View>
 
         {/* Controls */}
@@ -39,7 +49,11 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
             accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
             hitSlop={10}
           >
-            <Ionicons name={isDark ? 'sunny-outline' : 'moon-outline'} size={19} color={colors.textSubtle} />
+            <Ionicons
+              name={isDark ? 'sunny-outline' : 'moon-outline'}
+              size={19}
+              color={colors.textSubtle}
+            />
           </Pressable>
           <Pressable
             onPress={onProfilePress}
@@ -59,7 +73,6 @@ const styles = StyleSheet.create({
   root: {
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.md,
     paddingBottom: spacing.md,
   },
   inner: {
@@ -70,9 +83,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brand: {
-    gap: 1,
-  },
+  brand: { gap: 1 },
   brandName: {
     fontSize: typography.heroName,
     fontWeight: '700',
@@ -91,8 +102,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   iconBtn: {
-    width: 32,
-    height: 32,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
