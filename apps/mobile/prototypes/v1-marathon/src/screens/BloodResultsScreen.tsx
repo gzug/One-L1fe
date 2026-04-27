@@ -349,66 +349,74 @@ function CompareSummary({
   const noRangeList = entries.filter((e) => e.refSt === 'unavailable');
   const totalWithRange = withinList.length + aboveList.length + belowList.length;
 
-  // Markers that improved between panels (direction = lower for upper-bound-only
-  // markers is usually better, but we keep language neutral — just say "changed")
-  const improvedLabels = entries
-    .filter((e) => e.direction === 'lower' && e.refSt === 'within')
+  // Trend lists — neutral language, never "improved" / "got better"
+  const movedLowerLabels = entries
+    .filter((e) => e.direction === 'lower')
+    .map((e) => e.label)
+    .slice(0, 3);
+  const movedHigherLabels = entries
+    .filter((e) => e.direction === 'higher')
     .map((e) => e.label)
     .slice(0, 3);
 
   const flaggedLabels = [...aboveList, ...belowList].map((e) => e.label).slice(0, 4);
 
-  // Build summary lines — neutral, no diagnosis
+  // Build prioritized summary lines.
+  // Pills above already cover the raw counts; lines focus on what's worth
+  // looking at: current panel context → trend → missing range → follow-up.
   const lines: { icon: React.ComponentProps<typeof Ionicons>['name']; color: string; text: string }[] = [];
 
-  if (totalWithRange > 0) {
-    const pct = Math.round((withinList.length / totalWithRange) * 100);
-    lines.push({
-      icon:  'checkmark-circle-outline',
-      color: colors.positive,
-      text:  `${withinList.length} of ${totalWithRange} assessed markers are within their available reference context (${pct}%).`,
-    });
-  }
-
+  // 1. Current panel context — only flagged markers (no count repeat)
   if (flaggedLabels.length > 0) {
     lines.push({
       icon:  'alert-circle-outline',
       color: colors.warning,
-      text:  `${flaggedLabels.join(', ')} ${
-        flaggedLabels.length === 1 ? 'sits' : 'sit'
-      } outside the available reference context — useful to review alongside recent lifestyle factors and to raise in a clinician discussion.`,
+      text:  `Outside available reference context: ${flaggedLabels.join(', ')}. Useful to review alongside recent lifestyle factors and to raise in a clinician discussion.`,
     });
   } else if (totalWithRange > 0) {
     lines.push({
       icon:  'shield-checkmark-outline',
       color: colors.positive,
-      text:  'No markers sit outside their available reference context in the current panel.',
+      text:  'No markers sit outside available reference context in the current panel.',
     });
   }
 
-  if (improvedLabels.length > 0) {
+  // 2. Trend context — neutral language about which direction values moved
+  if (movedLowerLabels.length > 0 || movedHigherLabels.length > 0) {
+    const parts: string[] = [];
+    if (movedLowerLabels.length > 0)  parts.push(`${movedLowerLabels.join(', ')} moved lower`);
+    if (movedHigherLabels.length > 0) parts.push(`${movedHigherLabels.join(', ')} moved higher`);
     lines.push({
       icon:  'trending-down-outline',
       color: colors.textMuted,
-      text:  `${improvedLabels.join(', ')} moved lower between 2023 and 2025 — trend context useful for future follow-up tracking.`,
+      text:  `Trend context: ${parts.join('; ')} between 2023 and 2025. Useful for future follow-up tracking.`,
     });
   }
 
+  // 3. Missing / no-range context
   if (noRangeList.length > 0) {
+    const labels = noRangeList.map((e) => e.label).slice(0, 3).join(', ');
     lines.push({
       icon:  'help-circle-outline',
       color: colors.textSubtle,
-      text:  `${noRangeList.length} marker${noRangeList.length > 1 ? 's' : ''} ${
-        noRangeList.length > 1 ? 'have' : 'has'
-      } no reference range on file — can still serve as a baseline for future comparisons.`,
+      text:  `No reference range available for ${labels}${noRangeList.length > 3 ? ` (+${noRangeList.length - 3} more)` : ''}. Can still serve as a baseline for future comparisons.`,
     });
   }
 
-  lines.push({
-    icon:  'information-circle-outline',
-    color: colors.textSubtle,
-    text:  'This overview is context only. It does not represent a clinical assessment. Can support discussion with a clinician about lifestyle, training, and follow-up testing.',
-  });
+  // 4. Follow-up focus — clinician-discussion oriented, no diagnosis
+  if (flaggedLabels.length > 0) {
+    lines.push({
+      icon:  'person-outline',
+      color: colors.textSubtle,
+      text:  'Follow-up focus: bring outside-context markers to a clinician discussion alongside recent training, sleep, and nutrition context.',
+    });
+  } else {
+    lines.push({
+      icon:  'information-circle-outline',
+      color: colors.textSubtle,
+      text:  'Context only — not a clinical assessment. Useful to support a clinician discussion about lifestyle, training, and follow-up testing.',
+    });
+  }
 
   return (
     <View style={[s.summaryCard, { borderColor: colors.accentBorder, backgroundColor: colors.surface }]}>
@@ -704,6 +712,20 @@ function MarkerRow({
   colors: ThemeColors;
 }) {
   const disabled = !marker.enabled;
+  const missingValue = marker.enabled && marker.value.trim() === '';
+
+  // Toggle colour semantics:
+  //   enabled + value present → positive (active, included)
+  //   enabled + missing value → warning (needs a value)
+  //   disabled                 → muted   (excluded)
+  // Reference-range status (above/below/within) is handled in analysis,
+  // never on the toggle itself.
+  const thumbColor =
+    disabled        ? colors.textSubtle
+    : missingValue  ? colors.warning
+    :                 colors.positive;
+  const trackTrueColor = missingValue ? colors.warningSoft : colors.scoreStrongSoft;
+
   return (
     <View style={[
       rowStyles.row,
@@ -732,8 +754,8 @@ function MarkerRow({
           />
         ) : (
           <Pressable onPress={onStartEdit} hitSlop={8}>
-            <Text style={[rowStyles.value, { color: marker.value.trim() === '' ? colors.textSubtle : colors.text }]}>
-              {marker.value.trim() === '' ? 'Add value' : marker.value}
+            <Text style={[rowStyles.value, { color: missingValue ? colors.warning : colors.text }]}>
+              {missingValue ? 'Add value' : marker.value}
             </Text>
           </Pressable>
         )}
@@ -741,8 +763,8 @@ function MarkerRow({
       <Switch
         value={marker.enabled}
         onValueChange={onToggle}
-        trackColor={{ false: colors.progressTrack, true: colors.accentSoft }}
-        thumbColor={marker.enabled ? colors.accent : colors.textSubtle}
+        trackColor={{ false: colors.progressTrack, true: trackTrueColor }}
+        thumbColor={thumbColor}
         accessibilityLabel={`${marker.enabled ? 'Disable' : 'Enable'} ${marker.label}`}
         style={rowStyles.toggle}
       />

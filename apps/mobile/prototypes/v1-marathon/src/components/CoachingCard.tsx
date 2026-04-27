@@ -1,29 +1,28 @@
 /**
- * CoachingCard — Recommendation card (F11)
+ * CoachingCard — Recommendation card
  *
- * Icon fix: Ionicons inside cards are unreliable on some Android builds.
- * Using primitive SVG shapes as icon fallback — guaranteed visible,
- * no dynamic string risk, works in both light and dark mode.
+ * Implements the V1 Recommendation Contract in compact form:
+ *   title   → direct recommendation
+ *   source  → evidence source chip
+ *   reason  → one-line evidence summary
+ *   action  → bounded next step
+ *   scope   → explicit scope label
  *
- * Layout:
- *   [icon badge]  Title
- *                 [source chip]
- *                 1-line reason
- *                 [impact chip]
+ * Icons are primitive SVG shapes (no font dependency, guaranteed visible
+ * on Android in both light and dark mode).
  *
- * Language: no medical advice, no "must", no fake live-sync claim.
+ * Wording rules: no medical claim, no "must", no "guaranteed improvement",
+ * no fake live-sync claim.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
+import Svg, { Circle, Path, Polygon } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 import type { NextAction } from '../data/demoData';
 
-// Primitive SVG icons — no dynamic string, guaranteed render on Android
 function IconMoon({ color }: { color: string }) {
-  // crescent moon from two circles
   return (
     <Svg width={22} height={22} viewBox="0 0 22 22">
       <Path
@@ -37,7 +36,6 @@ function IconMoon({ color }: { color: string }) {
 function IconSpeedometer({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 22 22">
-      {/* gauge arc */}
       <Path
         d="M4 13 C4 8.58 7.58 5 12 5 C16.42 5 20 8.58 20 13"
         stroke={color}
@@ -45,7 +43,6 @@ function IconSpeedometer({ color }: { color: string }) {
         fill="none"
         strokeLinecap="round"
       />
-      {/* needle */}
       <Path
         d="M12 13 L8 9"
         stroke={color}
@@ -60,7 +57,6 @@ function IconSpeedometer({ color }: { color: string }) {
 function IconFlask({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 22 22">
-      {/* flask body */}
       <Path
         d="M8 3 L8 10 L4.5 16 C4 17 4.5 18 6 18 L16 18 C17.5 18 18 17 17.5 16 L14 10 L14 3"
         stroke={color}
@@ -70,7 +66,6 @@ function IconFlask({ color }: { color: string }) {
         strokeLinejoin="round"
       />
       <Path d="M7 3 L15 3" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-      {/* liquid */}
       <Path
         d="M5.5 15 L16.5 15"
         stroke={color}
@@ -133,26 +128,31 @@ export function CoachingCard({ action }: Props) {
 
   return (
     <View style={s.card}>
-      {/* Icon badge — SVG primitive, guaranteed visible on Android */}
       <View style={s.iconWrap}>
         <IconComponent color={colors.accent} />
       </View>
 
-      {/* Text block */}
       <View style={s.content}>
         <Text style={s.title} numberOfLines={2}>{action.title}</Text>
 
-        {/* Source chip */}
         <View style={s.sourceChipWrap}>
           <View style={[s.sourceDot, { backgroundColor: colors.textSubtle }]} />
           <Text style={s.sourceChip}>{action.sourceChip}</Text>
         </View>
 
-        <Text style={s.reason} numberOfLines={2}>{action.reason}</Text>
+        <Text style={s.reason} numberOfLines={2}>
+          <Text style={s.reasonLead}>Why · </Text>{action.reason}
+        </Text>
 
-        {/* Impact chip */}
-        <View style={[s.tag, { backgroundColor: tag.bg }]}>
-          <Text style={[s.tagText, { color: tag.text }]}>{action.impact}</Text>
+        <Text style={s.actionText} numberOfLines={2}>
+          <Text style={s.actionLead}>Try · </Text>{action.action}
+        </Text>
+
+        <View style={s.chipRow}>
+          <View style={[s.tag, { backgroundColor: tag.bg }]}>
+            <Text style={[s.tagText, { color: tag.text }]}>{action.impact}</Text>
+          </View>
+          <Text style={s.scopeText} numberOfLines={1}>{action.scope}</Text>
         </View>
       </View>
     </View>
@@ -213,18 +213,48 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
     },
+    reasonLead: {
+      color: colors.textSubtle,
+      fontWeight: '700',
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      fontSize: typography.micro,
+    },
+    actionText: {
+      color: colors.text,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+    },
+    actionLead: {
+      color: colors.accent,
+      fontWeight: '700',
+      letterSpacing: 0.4,
+      textTransform: 'uppercase',
+      fontSize: typography.micro,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: 2,
+      flexWrap: 'wrap',
+    },
     tag: {
-      alignSelf: 'flex-start',
       borderRadius: radius.pill,
       paddingHorizontal: spacing.sm,
       paddingVertical: 2,
-      marginTop: 1,
     },
     tagText: {
       fontSize: typography.micro,
       fontWeight: '700',
       letterSpacing: 0.3,
       textTransform: 'uppercase',
+    },
+    scopeText: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      flexShrink: 1,
+      fontStyle: 'italic',
     },
   });
 }

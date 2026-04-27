@@ -1,24 +1,71 @@
 /**
- * TodaySignalsRow — F11
+ * TodaySignalsRow
  *
- * Compact chip row: Recovery · Training Load · Biomarkers · Data coverage.
- * Color-coded by status threshold.
- * No new deps — pure RN primitives.
+ * Compact chip row: Recovery · Training Load · Biomarkers · Coverage.
+ *
+ * Chip colour comes from the shared scoreColor() helper for "scoreable"
+ * signals (Recovery, Biomarkers) so chips stay in sync with the ring and
+ * Score Trend.
+ *
+ * Training Load colour stays contextual (warm gold / muted), never green —
+ * higher load is not "good", only informational.
+ *
+ * Coverage colour stays muted (interpretability dimension, separate from
+ * health severity per data-freshness-and-coverage-policy-v1).
+ *
+ * Each chip shows two-line content: a small label, then the value with a
+ * very short state qualifier (e.g. "68 · softer", "61 · latest panel",
+ * "72 · partial") so the meaning is readable without an explanation.
  */
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { todaySignals } from '../data/demoData';
-import type { TodaySignal } from '../data/demoData';
 import { useTheme } from '../theme/ThemeContext';
 import { radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
+import { scoreBandLabel, scoreColor, scoreSoftBg } from '../theme/scoreColor';
 
-function chipColors(status: TodaySignal['status'], colors: ThemeColors) {
-  switch (status) {
-    case 'ok':   return { bg: colors.accentSoft,  text: colors.accent };
-    case 'warn': return { bg: colors.warningSoft, text: colors.warning };
-    case 'muted':
-    default:     return { bg: colors.surface,     text: colors.textMuted };
+type ChipKind = 'score' | 'load' | 'panel' | 'coverage';
+
+type Chip = {
+  kind: ChipKind;
+  label: string;
+  value: number;
+  qualifier: string;
+};
+
+const CHIPS: Chip[] = [
+  { kind: 'score',    label: 'Recovery',      value: 68, qualifier: 'softer' },
+  { kind: 'load',     label: 'Training Load', value: 74, qualifier: 'ahead' },
+  { kind: 'panel',    label: 'Biomarkers',    value: 61, qualifier: 'latest panel' },
+  { kind: 'coverage', label: 'Coverage',      value: 72, qualifier: 'partial' },
+];
+
+function chipColors(chip: Chip, colors: ThemeColors) {
+  switch (chip.kind) {
+    case 'score':
+      return {
+        bg:        scoreSoftBg(chip.value, colors),
+        text:      scoreColor(chip.value, colors),
+        qualifier: scoreBandLabel(chip.value),
+      };
+    case 'load':
+      return {
+        bg:        colors.warningSoft,
+        text:      colors.warning,
+        qualifier: chip.qualifier,
+      };
+    case 'panel':
+      return {
+        bg:        scoreSoftBg(chip.value, colors),
+        text:      scoreColor(chip.value, colors),
+        qualifier: chip.qualifier,
+      };
+    case 'coverage':
+      return {
+        bg:        colors.surface,
+        text:      colors.textMuted,
+        qualifier: chip.qualifier,
+      };
   }
 }
 
@@ -31,21 +78,21 @@ export function TodaySignalsRow() {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >
-      {todaySignals.map((sig) => {
-        const c = chipColors(sig.status, colors);
+      {CHIPS.map((chip) => {
+        const c = chipColors(chip, colors);
         return (
           <View
-            key={sig.label}
+            key={chip.label}
             style={[
               styles.chip,
-              {
-                backgroundColor: c.bg,
-                borderColor: colors.borderSubtle,
-              },
+              { backgroundColor: c.bg, borderColor: colors.borderSubtle },
             ]}
           >
-            <Text style={[styles.label, { color: colors.textSubtle }]}>{sig.label}</Text>
-            <Text style={[styles.value, { color: c.text }]}>{sig.value}</Text>
+            <Text style={[styles.label, { color: colors.textSubtle }]}>{chip.label}</Text>
+            <View style={styles.valueRow}>
+              <Text style={[styles.value, { color: c.text }]}>{chip.value}</Text>
+              <Text style={[styles.qualifier, { color: c.text }]}>· {c.qualifier}</Text>
+            </View>
           </View>
         );
       })}
@@ -64,18 +111,28 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
-    alignItems: 'center',
-    minWidth: 80,
+    alignItems: 'flex-start',
+    minWidth: 96,
   },
   label: {
     fontSize: typography.micro,
     fontWeight: '500',
-    letterSpacing: 0.1,
-    marginBottom: 1,
+    letterSpacing: 0.2,
+    marginBottom: 2,
+  },
+  valueRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 3,
   },
   value: {
     fontSize: typography.caption,
     fontWeight: '800',
     letterSpacing: -0.2,
+  },
+  qualifier: {
+    fontSize: typography.micro,
+    fontWeight: '600',
+    opacity: 0.85,
   },
 });

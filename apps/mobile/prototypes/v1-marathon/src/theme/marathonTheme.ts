@@ -65,6 +65,15 @@ export type ThemeColors = {
   warning:           string;
   warningSoft:       string;
   danger:            string;
+  // Score bands (shared score colour system — see theme/scoreColor.ts)
+  scoreStrong:       string;
+  scoreStrongSoft:   string;
+  scoreSteady:       string;
+  scoreSteadySoft:   string;
+  scoreSoft:         string;
+  scoreSoftSoft:     string;
+  scoreLow:          string;
+  scoreLowSoft:      string;
   // Ring
   ringTrack:         string;
   ringProgress:      string;
@@ -97,6 +106,15 @@ export const lightColors: ThemeColors = {
   warning:          '#A86E28',
   warningSoft:      'rgba(168,110,40,0.08)',
   danger:           '#993636',
+  // Score bands — warm, never traffic-light
+  scoreStrong:      '#3A7A58',
+  scoreStrongSoft:  'rgba(58,122,88,0.10)',
+  scoreSteady:      '#B07B1E',
+  scoreSteadySoft:  'rgba(176,123,30,0.10)',
+  scoreSoft:        '#A86E28',
+  scoreSoftSoft:    'rgba(168,110,40,0.10)',
+  scoreLow:         '#993636',
+  scoreLowSoft:     'rgba(153,54,54,0.08)',
   ringTrack:        '#EDE8E2',
   ringProgress:     '#C4612C',
   progressTrack:    '#EDE8E2',
@@ -107,29 +125,40 @@ export const lightColors: ThemeColors = {
   statusBar:        'dark',
 };
 
-// Dark — warm near-black, cards barely lifted, restrained accent
+// Dark — LUMA-style premium black.
+// Background sits near pure black; cards lift very subtly; borders are
+// hairline white-alpha, never brown blocks. Apricot accent kept warm.
 export const darkColors: ThemeColors = {
-  background:       '#111009',
-  surface:          '#181611',
-  surfaceElevated:  '#1E1C16',
-  border:           'rgba(255,240,200,0.08)',
-  borderSubtle:     'rgba(255,240,200,0.04)',
-  text:             '#EDE8E0',
-  textMuted:        '#A89F95',
-  textSubtle:       '#6A6158',
-  accent:           '#D0683A',
-  accentBorder:     'rgba(208,104,58,0.28)',
-  accentSoft:       'rgba(208,104,58,0.09)',
-  positive:         '#4A9468',
-  warning:          '#BE8838',
-  warningSoft:      'rgba(190,136,56,0.10)',
-  danger:           '#B84848',
-  ringTrack:        '#26231C',
-  ringProgress:     '#D0683A',
-  progressTrack:    '#26231C',
-  profileSectionBg: '#1E1C16',
-  profileRowBorder: 'rgba(255,240,200,0.05)',
-  demoBanner:       '#1A1710',
-  demoBannerBorder: 'rgba(208,104,58,0.20)',
+  background:       '#0A0A0B',
+  surface:          '#111113',
+  surfaceElevated:  '#141416',
+  border:           'rgba(255,255,255,0.07)',
+  borderSubtle:     'rgba(255,255,255,0.035)',
+  text:             '#F2EFEA',
+  textMuted:        '#A8A29A',
+  textSubtle:       '#6E6862',
+  accent:           '#E07A45',
+  accentBorder:     'rgba(224,122,69,0.32)',
+  accentSoft:       'rgba(224,122,69,0.10)',
+  positive:         '#5BAE7C',
+  warning:          '#D69846',
+  warningSoft:      'rgba(214,152,70,0.12)',
+  danger:           '#C25A5A',
+  // Score bands — slightly lifted vs light for legibility on near-black
+  scoreStrong:      '#5BAE7C',
+  scoreStrongSoft:  'rgba(91,174,124,0.12)',
+  scoreSteady:      '#D69846',
+  scoreSteadySoft:  'rgba(214,152,70,0.12)',
+  scoreSoft:        '#D87A45',
+  scoreSoftSoft:    'rgba(216,122,69,0.10)',
+  scoreLow:         '#C25A5A',
+  scoreLowSoft:     'rgba(194,90,90,0.10)',
+  ringTrack:        '#1F1F22',
+  ringProgress:     '#E07A45',
+  progressTrack:    '#1F1F22',
+  profileSectionBg: '#141416',
+  profileRowBorder: 'rgba(255,255,255,0.05)',
+  demoBanner:       '#161616',
+  demoBannerBorder: 'rgba(224,122,69,0.22)',
   statusBar:        'light',
 };

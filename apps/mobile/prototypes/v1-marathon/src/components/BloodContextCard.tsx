@@ -1,82 +1,129 @@
 /**
  * BloodContextCard
- * Replaces shallow BloodPanelsCard on Home.
  *
- * Shows:
- * - Top markers from most recent panel (2025), prioritized by out-of-ref
- * - Per-marker SVG range bar (react-native-svg, no Skia, no Victory)
- * - Per-marker support focus — lifestyle-supportive, clinician-first for
- *   persistent out-of-reference values
- * - CTA to open full Blood Results screen
+ * Home card for the latest blood panel. Shows up to 6 prioritized markers
+ * (out-of-reference first), each with a small SVG range bar and a clearly
+ * labelled latest value vs reference context.
  *
- * Rules:
- * - No diagnosis, no treatment, no supplement/drug prescriptions
- * - No guaranteed timeline
- * - Clinician-first wording for out-of-ref values
- * - Uses refLow/refHigh from bloodStorage only (units match storage)
- * - Does NOT cross-map units to biomarkers.ts domain (units differ)
+ * Copy rules:
+ * - "value" = latest panel value, "range" = reference context
+ * - Green = within available reference context
+ * - Amber = outside available reference context
+ * - Grey  = no reference range available
+ * - Never imply the green number is an "average" or that all values are "good"
+ * - Per-marker support focus comes from data/markerSupportFocus.ts
+ *
+ * Reference data comes from bloodStorage only (units match storage). We do
+ * NOT cross-map to packages/domain/biomarkers.ts thresholds because the
+ * canonical thresholds use different units and would mislead.
+ *
+ * Icons are primitive SVG (no font dependency) so they render reliably on
+ * Android in both Light and Dark mode.
  */
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 import { loadPanels } from '../data/bloodStorage';
 import type { BloodMarker } from '../data/bloodStorage';
+import { getSupportFocus } from '../data/markerSupportFocus';
 
-// ---------------------------------------------------------------------------
-// Static icon map — no dynamic strings (Android safety)
-// ---------------------------------------------------------------------------
-const STATUS_ICON_MAP = {
-  within:      'checkmark-circle-outline',
-  above:       'alert-circle-outline',
-  below:       'alert-circle-outline',
-  unavailable: 'help-circle-outline',
-} as const satisfies Record<string, import('@expo/vector-icons/build/createIconSet').ComponentProps<typeof import('@expo/vector-icons').Ionicons>['name'] extends string ? string : never>;
+// ---- Primitive SVG icons (no font dependency) -----------------------------
 
-// Simpler typed approach without the complex generic:
-type StatusKey = 'within' | 'above' | 'below' | 'unavailable';
-const ICON_BY_STATUS: Record<StatusKey, React.ComponentProps<typeof Ionicons>['name']> = {
-  within:      'checkmark-circle-outline',
-  above:       'alert-circle-outline',
-  below:       'alert-circle-outline',
-  unavailable: 'help-circle-outline',
-};
+function IconCheck({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14">
+      <Circle cx={7} cy={7} r={6} stroke={color} strokeWidth={1.4} fill="none" />
+      <Path d="M4.4 7.2 L6.2 9 L9.6 5.4" stroke={color} strokeWidth={1.6}
+            strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </Svg>
+  );
+}
 
-// ---------------------------------------------------------------------------
-// Per-marker support focus (lifestyle-supportive, clinician-first for outside-ref)
-// ---------------------------------------------------------------------------
-type SupportFocus = {
-  lifestyle: string;
-  clinicianNote?: string; // shown only when out-of-ref
-};
+function IconAlert({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14">
+      <Circle cx={7} cy={7} r={6} stroke={color} strokeWidth={1.4} fill="none" />
+      <Path d="M7 3.7 L7 7.6" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+      <Circle cx={7} cy={9.7} r={0.9} fill={color} />
+    </Svg>
+  );
+}
 
-const SUPPORT_FOCUS: Record<string, SupportFocus> = {
-  glucose:       { lifestyle: 'Often reviewed alongside carbohydrate intake, sleep, and training volume.', clinicianNote: 'Persistent out-of-reference values are worth reviewing with a clinician alongside recent nutrition and lifestyle context.' },
-  hba1c:         { lifestyle: 'Often tracked alongside nutrition pattern, training volume, and recovery context.', clinicianNote: 'A 3-month trend outside the reference context can be useful to bring to a clinician discussion.' },
-  chol_total:    { lifestyle: 'Often reviewed alongside LDL, HDL, ApoB, dietary fat pattern, and training load.' },
-  ldl:           { lifestyle: 'Often reviewed alongside ApoB, dietary pattern, and training volume.', clinicianNote: 'Useful to review alongside ApoB and total lipid context with a clinician.' },
-  hdl:           { lifestyle: 'Regular aerobic training is commonly associated with HDL levels. Often reviewed alongside training frequency and body composition.' },
-  triglycerides: { lifestyle: 'Often reviewed alongside carbohydrate intake, alcohol, sleep quality, and activity level.', clinicianNote: 'Persistent elevation can support a clinician discussion about metabolic context.' },
-  apob:          { lifestyle: 'Often reviewed alongside LDL, total cholesterol, dietary pattern, and training context.', clinicianNote: 'ApoB is a direct lipid-particle marker — useful to raise in a clinician discussion if consistently above reference.' },
-  hscrp:         { lifestyle: 'Often reviewed alongside training load, sleep quality, and recovery. Transient elevation after hard training is common.', clinicianNote: 'Persistent elevation outside reference range can support a clinician discussion about inflammation context.' },
-  ferritin:      { lifestyle: 'Often reviewed alongside dietary iron intake and training volume. Endurance athletes may have higher baseline needs.', clinicianNote: 'Low ferritin can be worth discussing with a clinician, particularly in context of fatigue or training adaptation.' },
-  vitd:          { lifestyle: 'Often reviewed alongside sun exposure, seasonal variation, and supplementation history.' },
-  vitb12:        { lifestyle: 'Often reviewed alongside dietary pattern — particularly relevant for those following plant-based diets.', clinicianNote: 'Persistent low B12 can support a clinician discussion, particularly around absorption and dietary context.' },
-  tsh:           { lifestyle: 'Often reviewed alongside energy, body composition, sleep, and stress context.', clinicianNote: 'TSH outside reference context is worth reviewing with a clinician as part of a broader thyroid panel.' },
-  alt:           { lifestyle: 'Can be transiently elevated after intense training. Often reviewed alongside training load and recovery time.', clinicianNote: 'Persistent elevation outside reference range is worth raising with a clinician.' },
-  creatinine:    { lifestyle: 'Often reviewed alongside hydration, protein intake, and training volume.', clinicianNote: 'Persistent out-of-range values can support a clinician discussion about kidney filtration context.' },
-  homocysteine:  { lifestyle: 'Often reviewed alongside dietary B-vitamin intake (folate, B6, B12) and nutrition pattern.', clinicianNote: 'Elevated homocysteine can support a clinician discussion about B-vitamin status and dietary context.' },
-  uric_acid:     { lifestyle: 'Often reviewed alongside hydration, protein intake, and training load.', clinicianNote: 'Persistent elevation can be worth discussing with a clinician alongside dietary and hydration context.' },
-  testosterone:  { lifestyle: 'Often reviewed alongside sleep quality, training load, stress, and body composition.', clinicianNote: 'Persistent out-of-reference values are worth reviewing with a clinician in context of symptoms and lifestyle.' },
-  shbg:          { lifestyle: 'Often reviewed alongside testosterone and body composition context.' },
-};
+function IconHelp({ color }: { color: string }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 14 14">
+      <Circle cx={7} cy={7} r={6} stroke={color} strokeWidth={1.4} fill="none" />
+      <Path d="M5.3 5.4 C5.3 4.3 6.1 3.6 7 3.6 C7.9 3.6 8.7 4.2 8.7 5.1 C8.7 6.1 7 6.5 7 7.6"
+            stroke={color} strokeWidth={1.4} strokeLinecap="round" fill="none" />
+      <Circle cx={7} cy={9.7} r={0.8} fill={color} />
+    </Svg>
+  );
+}
 
-// ---------------------------------------------------------------------------
-// Ref status helpers
-// ---------------------------------------------------------------------------
+function IconChevron({ color, up }: { color: string; up: boolean }) {
+  return (
+    <Svg width={12} height={12} viewBox="0 0 12 12">
+      <Path
+        d={up ? 'M3 7.5 L6 4.5 L9 7.5' : 'M3 4.5 L6 7.5 L9 4.5'}
+        stroke={color}
+        strokeWidth={1.4}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+function IconLeaf({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 11 11">
+      <Path d="M2 9 C2 5 5 2 9 2 C9 6 6 9 2 9 Z"
+            stroke={color} strokeWidth={1.1} strokeLinejoin="round" fill="none" />
+      <Path d="M2 9 L6 5" stroke={color} strokeWidth={1.1} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function IconClinician({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 11 11">
+      <Circle cx={5.5} cy={4} r={1.6} stroke={color} strokeWidth={1.1} fill="none" />
+      <Path d="M2.5 9.6 C3 7.8 4.1 7 5.5 7 C6.9 7 8 7.8 8.5 9.6"
+            stroke={color} strokeWidth={1.1} strokeLinecap="round" fill="none" />
+    </Svg>
+  );
+}
+
+function IconFlask({ color }: { color: string }) {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 15 15">
+      <Path
+        d="M5.4 2 L5.4 6.5 L3 11 C2.6 11.7 3 12.5 3.9 12.5 L11.1 12.5 C12 12.5 12.4 11.7 12 11 L9.6 6.5 L9.6 2"
+        stroke={color}
+        strokeWidth={1.2}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M4.6 2 L10.4 2" stroke={color} strokeWidth={1.2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+function IconChevronRight({ color }: { color: string }) {
+  return (
+    <Svg width={11} height={11} viewBox="0 0 11 11">
+      <Path d="M4 2.5 L7.5 5.5 L4 8.5" stroke={color} strokeWidth={1.5}
+            strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    </Svg>
+  );
+}
+
+// ---- Ref status -----------------------------------------------------------
 type RefStatus = 'within' | 'above' | 'below' | 'unavailable';
 
 function getRefStatus(val: string, refLow: string, refHigh: string): RefStatus {
@@ -90,16 +137,19 @@ function getRefStatus(val: string, refLow: string, refHigh: string): RefStatus {
   return 'within';
 }
 
-// Priority order: above/below first, then within, then unavailable
 function statusPriority(s: RefStatus): number {
   if (s === 'above' || s === 'below') return 0;
   if (s === 'within') return 1;
   return 2;
 }
 
-// ---------------------------------------------------------------------------
-// SVG Range Bar
-// ---------------------------------------------------------------------------
+function StatusIcon({ status, color }: { status: RefStatus; color: string }) {
+  if (status === 'within')      return <IconCheck color={color} />;
+  if (status === 'unavailable') return <IconHelp  color={color} />;
+  return <IconAlert color={color} />;
+}
+
+// ---- Range bar ------------------------------------------------------------
 function RangeBar({
   value, refLow, refHigh, colors,
 }: { value: string; refLow: string; refHigh: string; colors: ThemeColors }) {
@@ -115,19 +165,16 @@ function RangeBar({
     );
   }
 
-  // Compute display range: span from min(0.5*low, n) to max(1.5*high, n)
   const lo  = !isNaN(low)  ? low  : n * 0.5;
   const hi  = !isNaN(high) ? high : n * 1.5;
   const rangeMin = Math.min(lo * 0.8, n * 0.8);
   const rangeMax = Math.max(hi * 1.2, n * 1.2);
   const span     = rangeMax - rangeMin || 1;
 
-  // Ref zone in pixels
   const refStart = !isNaN(low)  ? ((lo - rangeMin) / span) * BAR_W : 0;
   const refEnd   = !isNaN(high) ? ((hi - rangeMin) / span) * BAR_W : BAR_W;
   const refWidth = Math.max(refEnd - refStart, 2);
 
-  // Value dot position
   const dotX = Math.min(Math.max(((n - rangeMin) / span) * BAR_W, 3), BAR_W - 3);
 
   const status = getRefStatus(value, refLow, refHigh);
@@ -138,19 +185,15 @@ function RangeBar({
 
   return (
     <Svg width={BAR_W} height={14}>
-      {/* Track */}
       <Rect x={0} y={4} width={BAR_W} height={BAR_H} rx={3} fill={colors.progressTrack} />
-      {/* Reference zone */}
-      <Rect x={refStart} y={4} width={refWidth} height={BAR_H} rx={2} fill={colors.accentSoft} opacity={0.9} />
-      {/* Value marker */}
+      <Rect x={refStart} y={4} width={refWidth} height={BAR_H} rx={2}
+            fill={colors.positive} opacity={0.18} />
       <Rect x={dotX - 1.5} y={2} width={3} height={10} rx={1.5} fill={dotColor} />
     </Svg>
   );
 }
 
-// ---------------------------------------------------------------------------
-// MarkerRow
-// ---------------------------------------------------------------------------
+// ---- Marker row -----------------------------------------------------------
 function MarkerContextRow({
   marker, colors, isLast,
 }: { marker: BloodMarker; colors: ThemeColors; isLast: boolean }) {
@@ -160,32 +203,34 @@ function MarkerContextRow({
   const refLow  = (marker.refLow  ?? '').trim();
   const refHigh = (marker.refHigh ?? '').trim();
   const status  = getRefStatus(marker.value, refLow, refHigh);
-  const support = SUPPORT_FOCUS[marker.id];
+  const support = getSupportFocus(marker.id);
 
   const statusColor =
     status === 'within'      ? colors.positive
     : status === 'unavailable' ? colors.textSubtle
     : colors.warning;
 
-  const iconName = ICON_BY_STATUS[status];
-
   return (
     <View style={[s.markerRow, !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.borderSubtle }]}>
-      {/* Top row */}
       <View style={s.markerTop}>
-        <Ionicons name={iconName} size={14} color={statusColor} style={{ marginTop: 1, flexShrink: 0 }} />
+        <View style={{ marginTop: 1, flexShrink: 0 }}>
+          <StatusIcon status={status} color={statusColor} />
+        </View>
         <View style={s.markerMeta}>
           <Text style={[s.markerLabel, { color: colors.text }]}>{marker.label}</Text>
           <Text style={[s.markerValue, { color: status !== 'unavailable' ? statusColor : colors.textMuted }]}>
-            {marker.value} <Text style={{ color: colors.textSubtle, fontWeight: '400' }}>{marker.unit}</Text>
+            {marker.value}
+            <Text style={{ color: colors.textSubtle, fontWeight: '400' }}>{' '}{marker.unit}</Text>
           </Text>
         </View>
         <View style={s.markerRight}>
           <RangeBar value={marker.value} refLow={refLow} refHigh={refHigh} colors={colors} />
-          {(refLow || refHigh) && (
+          {(refLow || refHigh) ? (
             <Text style={[s.refRange, { color: colors.textSubtle }]}>
-              {refLow || '—'} – {refHigh || '—'}
+              range {refLow || '—'}–{refHigh || '—'}
             </Text>
+          ) : (
+            <Text style={[s.refRange, { color: colors.textSubtle }]}>no range</Text>
           )}
         </View>
         {support && (
@@ -193,26 +238,22 @@ function MarkerContextRow({
             onPress={() => setExpanded((e) => !e)}
             hitSlop={10}
             accessibilityLabel={expanded ? 'Hide support context' : 'Show support context'}
+            style={s.expandBtn}
           >
-            <Ionicons
-              name={expanded ? 'chevron-up-outline' : 'chevron-down-outline'}
-              size={13}
-              color={colors.textSubtle}
-            />
+            <IconChevron color={colors.textSubtle} up={expanded} />
           </Pressable>
         )}
       </View>
 
-      {/* Expanded context */}
       {expanded && support && (
         <View style={[s.contextBlock, { borderTopColor: colors.borderSubtle }]}>
           <View style={s.contextRow}>
-            <Ionicons name="leaf-outline" size={11} color={colors.textSubtle} />
+            <View style={{ marginTop: 2 }}><IconLeaf color={colors.textSubtle} /></View>
             <Text style={[s.contextText, { color: colors.textMuted }]}>{support.lifestyle}</Text>
           </View>
           {(status === 'above' || status === 'below') && support.clinicianNote && (
             <View style={[s.clinicianNote, { backgroundColor: colors.warningSoft, borderColor: colors.border }]}>
-              <Ionicons name="person-outline" size={11} color={colors.warning} />
+              <View style={{ marginTop: 2 }}><IconClinician color={colors.warning} /></View>
               <Text style={[s.clinicianNoteText, { color: colors.warning }]}>{support.clinicianNote}</Text>
             </View>
           )}
@@ -222,9 +263,7 @@ function MarkerContextRow({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Main card
-// ---------------------------------------------------------------------------
+// ---- Main card ------------------------------------------------------------
 type Props = { onViewPress: () => void };
 
 export function BloodContextCard({ onViewPress }: Props) {
@@ -236,7 +275,6 @@ export function BloodContextCard({ onViewPress }: Props) {
     loadPanels().then((panels) => {
       const latest = panels[panels.length - 1];
       if (!latest) return;
-      // Enabled markers only, sorted by ref priority
       const sorted = latest.markers
         .filter((m) => m.enabled && m.value.trim() !== '')
         .sort((a, b) => {
@@ -244,7 +282,7 @@ export function BloodContextCard({ onViewPress }: Props) {
           const stB = getRefStatus(b.value, b.refLow ?? '', b.refHigh ?? '');
           return statusPriority(stA) - statusPriority(stB);
         })
-        .slice(0, 6); // show top 6 on home
+        .slice(0, 6);
       setMarkers(sorted);
     });
   }, []);
@@ -256,12 +294,13 @@ export function BloodContextCard({ onViewPress }: Props) {
 
   return (
     <View style={s.card}>
-      {/* Header */}
       <View style={s.headerRow}>
         <View style={s.headerLeft}>
-          <Ionicons name="flask-outline" size={15} color={colors.accent} />
-          <Text style={s.headerTitle}>Blood Context</Text>
-          <Text style={s.headerSub}>2025 · latest panel</Text>
+          <View style={{ marginTop: 1 }}><IconFlask color={colors.accent} /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.headerTitle}>Blood Context</Text>
+            <Text style={s.headerSub}>Latest 2025 panel · {markers.length} key markers shown</Text>
+          </View>
         </View>
         <Pressable
           onPress={onViewPress}
@@ -269,32 +308,41 @@ export function BloodContextCard({ onViewPress }: Props) {
           accessibilityLabel="Open full blood results"
         >
           <Text style={[s.ctaText, { color: colors.accent }]}>Full view</Text>
-          <Ionicons name="chevron-forward" size={11} color={colors.accent} />
+          <IconChevronRight color={colors.accent} />
         </Pressable>
       </View>
 
-      {/* Status summary bar */}
+      <View style={s.legendBlock}>
+        <Text style={[s.fullViewHint, { color: colors.textSubtle }]}>
+          Full view compares 2023 and 2025 panels.
+        </Text>
+        <View style={s.legendRow}>
+          <LegendSwatch color={colors.positive}   label="Within context" colors={colors} />
+          <LegendSwatch color={colors.warning}    label="Outside context" colors={colors} />
+          <LegendSwatch color={colors.textSubtle} label="No range" colors={colors} />
+        </View>
+      </View>
+
       {markers.length > 0 && (
         <View style={s.statusBar}>
           {outsideCount > 0 ? (
             <>
-              <Ionicons name="alert-circle-outline" size={12} color={colors.warning} />
+              <IconAlert color={colors.warning} />
               <Text style={[s.statusText, { color: colors.warning }]}>
                 {outsideCount} marker{outsideCount > 1 ? 's' : ''} outside available reference context · context only
               </Text>
             </>
           ) : (
             <>
-              <Ionicons name="checkmark-circle-outline" size={12} color={colors.positive} />
+              <IconCheck color={colors.positive} />
               <Text style={[s.statusText, { color: colors.positive }]}>
-                All {markers.length} shown markers within available reference context
+                {markers.length} shown markers within available reference context
               </Text>
             </>
           )}
         </View>
       )}
 
-      {/* Marker rows */}
       <View style={[s.markerList, { borderColor: colors.border }]}>
         {markers.map((m, i) => (
           <MarkerContextRow
@@ -310,11 +358,26 @@ export function BloodContextCard({ onViewPress }: Props) {
       </View>
 
       <Text style={s.disclaimer}>
-        Context only · not a diagnosis · tap markers for support focus
+        Context only · not a diagnosis · tap a marker for support focus
       </Text>
     </View>
   );
 }
+
+function LegendSwatch({ color, label, colors }: { color: string; label: string; colors: ThemeColors }) {
+  return (
+    <View style={legendSwatchStyles.row}>
+      <View style={[legendSwatchStyles.dot, { backgroundColor: color }]} />
+      <Text style={[legendSwatchStyles.label, { color: colors.textSubtle }]}>{label}</Text>
+    </View>
+  );
+}
+
+const legendSwatchStyles = StyleSheet.create({
+  row:   { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  dot:   { width: 7, height: 7, borderRadius: 4 },
+  label: { fontSize: typography.micro, fontWeight: '500' },
+});
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
@@ -332,10 +395,25 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: spacing.lg,
+      gap: spacing.sm,
     },
     headerLeft:  { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 },
     headerTitle: { color: colors.text, fontSize: typography.bodySmall, fontWeight: '700', letterSpacing: -0.1 },
-    headerSub:   { color: colors.textSubtle, fontSize: typography.micro },
+    headerSub:   { color: colors.textSubtle, fontSize: typography.micro, marginTop: 1 },
+    legendBlock: {
+      paddingHorizontal: spacing.lg,
+      gap: spacing.xs,
+    },
+    fullViewHint: {
+      fontSize: typography.micro,
+      lineHeight: lineHeights.caption,
+    },
+    legendRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.md,
+      alignItems: 'center',
+    },
     cta: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -364,6 +442,7 @@ function createStyles(colors: ThemeColors) {
     markerValue:{ fontSize: typography.caption, fontWeight: '700' },
     markerRight:{ alignItems: 'flex-end', gap: 2 },
     refRange:   { fontSize: typography.micro },
+    expandBtn:  { paddingHorizontal: 4, paddingVertical: 4 },
     contextBlock:{
       paddingTop: spacing.sm,
       borderTopWidth: StyleSheet.hairlineWidth,

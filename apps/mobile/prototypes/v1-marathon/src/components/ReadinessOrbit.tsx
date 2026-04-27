@@ -1,13 +1,19 @@
 /**
- * ReadinessOrbit — F12 patch
+ * ReadinessOrbit
  *
- * Training Load delta uses loadDeltaColor:
- *   higher load → amber (colors.warning)  — not "good"
- *   lower load  → muted (colors.textSubtle) — not "bad"
- *   zero        → muted
- * Label suffix: "load" appended (reads "+4 load", not "+4")
+ * One L1fe Score card — period selector + ring + segment rows + deltas.
  *
- * Recovery and Score deltas retain positive/danger semantics.
+ * Score colours come from the shared scoreColor() helper so the ring,
+ * the score number, and the segment fills/values stay consistent with
+ * Today's Signals chips and the Score Trend endpoint marker.
+ *
+ * Training Load deltas remain contextual:
+ *   higher load → amber (warning) — informational, not "good"
+ *   lower/zero  → muted             — not "bad"
+ * Recovery / Score / Biomarkers / Coverage deltas use positive/danger.
+ *
+ * RN 0.79 fix: pointerEvents="none" is moved into style (the prop form is
+ * deprecated and produces a warning overlay on Android).
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -22,6 +28,7 @@ import { prototypeCopy } from '../data/copy';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
+import { scoreColor } from '../theme/scoreColor';
 
 const PERIODS: Period[] = ['7D', '30D', '90D', 'Max'];
 
@@ -35,38 +42,20 @@ function clamp(v: number) {
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
-function thresholdColor(value: number, colors: ThemeColors): string {
-  if (value >= 75) return colors.positive;
-  if (value >= 50) return colors.warning;
-  return colors.danger;
-}
-
-/** Delta display string with sign. */
 function formatDelta(d: number): string {
   if (d === 0) return '±0';
   return d > 0 ? `+${d}` : `${d}`;
 }
 
-/**
- * Recovery / Score / Biomarkers / Data coverage delta color.
- * Higher = positive (green), lower = danger (red), zero = muted.
- */
 function deltaColor(d: number, colors: ThemeColors): string {
   if (d > 0) return colors.positive;
   if (d < 0) return colors.danger;
   return colors.textSubtle;
 }
 
-/**
- * Training Load delta color.
- * Load is not a good/bad signal — it's contextual.
- * Higher load = amber (informational, not alarming).
- * Lower load = muted.
- * Zero = muted.
- */
 function loadDeltaColor(d: number, colors: ThemeColors): string {
-  if (d > 0) return colors.warning;    // amber — load went up
-  return colors.textSubtle;            // muted — lower or unchanged
+  if (d > 0) return colors.warning;
+  return colors.textSubtle;
 }
 
 function SvgRing({
@@ -111,13 +100,12 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
   const average = clamp(
     readinessSegments.reduce((sum, seg) => sum + seg.value, 0) / readinessSegments.length,
   );
-  const ringColor  = thresholdColor(average, colors);
+  const ringColor  = scoreColor(average, colors);
   const deltas     = scoreDeltas[period];
   const scoreDelta = deltas.score;
 
   return (
     <View style={s.card}>
-      {/* Title row + period selector */}
       <View style={s.titleRow}>
         <View style={s.titleLeft}>
           <Text style={s.interpretation}>{prototypeCopy.readinessInterpretation}</Text>
@@ -145,16 +133,14 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
         </View>
       </View>
 
-      {/* Ring + segment rows */}
       <View style={s.bodyRow}>
-        {/* Ring: score + score delta */}
         <View style={s.ringWrapper}>
           <SvgRing
             progress={average}
             trackColor={colors.ringTrack}
             progressColor={ringColor}
           />
-          <View style={[StyleSheet.absoluteFillObject, s.ringCenter]} pointerEvents="none">
+          <View style={[StyleSheet.absoluteFillObject, s.ringCenter]}>
             <Text style={[s.score, { color: ringColor }]}>{average}%</Text>
             {scoreDelta !== null && (
               <Text style={[s.scoreDelta, { color: deltaColor(scoreDelta, colors) }]}>
@@ -165,25 +151,22 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
           </View>
         </View>
 
-        {/* Segment rows */}
         <View style={s.segmentList}>
           {readinessSegments.map((seg) => {
             const isLoadRow = seg.label === 'Training load';
-            const color     = thresholdColor(seg.value, colors);
+            const segColor  = scoreColor(seg.value, colors);
 
             let rawDelta: number | null = null;
             if (seg.label === 'Recovery')      rawDelta = deltas.recovery;
             if (seg.label === 'Training load') rawDelta = deltas.trainingLoad;
             if (seg.label === 'Biomarkers')    rawDelta = deltas.biomarkers;
 
-            // Training Load uses neutral color logic; others use positive/danger
             const dc = rawDelta !== null
               ? (isLoadRow
                   ? loadDeltaColor(rawDelta, colors)
                   : deltaColor(rawDelta, colors))
               : colors.textSubtle;
 
-            // Training Load delta label: "+4 load" not "+4"
             const deltaStr = rawDelta !== null
               ? (isLoadRow
                   ? `${formatDelta(rawDelta)} load`
@@ -195,7 +178,7 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
                 <View style={s.segmentLabelRow}>
                   <Text style={s.segmentLabel}>{seg.label}</Text>
                   <View style={s.segmentRight}>
-                    <Text style={[s.segmentVal, { color }]}>{seg.value}%</Text>
+                    <Text style={[s.segmentVal, { color: segColor }]}>{seg.value}%</Text>
                     {deltaStr !== null && (
                       <Text style={[s.segmentDelta, { color: dc }]}>
                         {deltaStr}
@@ -207,7 +190,7 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
                   <View
                     style={[
                       s.barFill,
-                      { width: `${clamp(seg.value)}%` as `${number}%`, backgroundColor: color },
+                      { width: `${clamp(seg.value)}%` as `${number}%`, backgroundColor: segColor },
                     ]}
                   />
                 </View>
@@ -215,7 +198,6 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
             );
           })}
 
-          {/* Data coverage row */}
           <View style={s.coverageRow}>
             <Text style={s.coverageLabel}>{prototypeCopy.dataCoverageLabel}</Text>
             <View style={s.segmentRight}>
@@ -233,7 +215,6 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
         </View>
       </View>
 
-      {/* Period context note */}
       <Text style={s.periodNote}>vs previous period · demo data</Text>
     </View>
   );
@@ -291,7 +272,12 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.lg,
     },
     ringWrapper: { width: RING_SIZE, height: RING_SIZE, flexShrink: 0 },
-    ringCenter: { alignItems: 'center', justifyContent: 'center', gap: 0 },
+    ringCenter: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 0,
+      pointerEvents: 'none',
+    },
     score: {
       fontSize: 22,
       fontWeight: '800',
@@ -300,7 +286,7 @@ function createStyles(colors: ThemeColors) {
     },
     scoreDelta: {
       fontSize: 10,
-      fontWeight: '700',
+      fontWeight: '600',
       textAlign: 'center',
       lineHeight: 13,
     },
@@ -337,7 +323,7 @@ function createStyles(colors: ThemeColors) {
     },
     segmentDelta: {
       fontSize: 9,
-      fontWeight: '700',
+      fontWeight: '600',
       lineHeight: 12,
     },
     barTrack: {

@@ -20,7 +20,7 @@ export const prototypeCopy = {
   // Score card
   readinessInterpretation: 'One L1fe Score',
   readinessInterpretationSub:
-    'Recovery signals are softer than recent load. Useful context for planning — not a medical assessment.',
+    'Recovery is softer than recent load. Use as planning context, not medical advice.',
   readinessScoreLabel: 'Score',
   dataCoverageLabel: 'Data coverage',
 

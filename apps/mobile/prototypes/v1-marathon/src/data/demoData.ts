@@ -34,10 +34,12 @@ export type ReadinessSegment = {
 export type NextAction = {
   id: string;
   iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';
-  title: string;
-  sourceChip: string;
-  reason: string;
-  impact: string;
+  title: string;        // direct recommendation
+  sourceChip: string;   // evidence source
+  reason: string;       // evidence summary (one sentence)
+  action: string;       // bounded next step
+  scope: string;        // explicit scope — e.g. "Weekly planning context"
+  impact: string;       // chip label (Recovery / Training load / Biomarkers)
   impactKey: 'recovery' | 'training' | 'data';
 };
 
@@ -160,6 +162,12 @@ export const readinessSegments: ReadinessSegment[] = [
 export const dataCoveragePercent = 72;
 
 // --- Recommendations ----------------------------------------------------
+// Each card maps to the V1 Recommendation Contract:
+//   title  → direct recommendation
+//   source → evidence source
+//   reason → evidence summary (one sentence, no diagnosis)
+//   action → bounded next step (no medical claim, no must)
+//   scope  → explicit scope statement
 export const nextActions: NextAction[] = [
   {
     id: 'recovery',
@@ -167,6 +175,8 @@ export const nextActions: NextAction[] = [
     title: 'Prioritize recovery tonight',
     sourceChip: 'Garmin · HRV · demo',
     reason: 'HRV is below baseline.',
+    action: 'Earlier sleep window or lower-intensity session.',
+    scope: 'Weekly planning context',
     impact: 'Recovery',
     impactKey: 'recovery',
   },
@@ -175,7 +185,9 @@ export const nextActions: NextAction[] = [
     iconKey: 'speedometer',
     title: 'Keep today controlled',
     sourceChip: 'Garmin · Training · demo',
-    reason: 'Load is higher than recovery context.',
+    reason: 'Load is ahead of recovery context.',
+    action: 'Choose easy Zone 2 or mobility instead of intensity.',
+    scope: 'Training adjustment context',
     impact: 'Training load',
     impactKey: 'training',
   },
@@ -184,7 +196,9 @@ export const nextActions: NextAction[] = [
     iconKey: 'flask',
     title: 'Review blood context',
     sourceChip: 'Blood Panels',
-    reason: '2023 and 2025 panels available for comparison.',
+    reason: '2023 and 2025 panels are available.',
+    action: 'Use Full View to compare markers and follow-up questions.',
+    scope: 'Clinician discussion support',
     impact: 'Biomarkers',
     impactKey: 'data',
   },
