@@ -1,13 +1,13 @@
 /**
- * ReadinessOrbit — F12
+ * ReadinessOrbit — F12 patch
  *
- * Added:
- * - Period selector (7D / 30D / 90D / Max) — controlled via props,
- *   shared state lives in HomeView.
- * - Delta indicators per segment and for overall score.
- *   Values are point differences vs previous comparable period.
- *   No medical improvement language. Copy: "vs previous period".
- * - Biomarkers delta shown only when non-null (panel comparison available).
+ * Training Load delta uses loadDeltaColor:
+ *   higher load → amber (colors.warning)  — not "good"
+ *   lower load  → muted (colors.textSubtle) — not "bad"
+ *   zero        → muted
+ * Label suffix: "load" appended (reads "+4 load", not "+4")
+ *
+ * Recovery and Score deltas retain positive/danger semantics.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -25,10 +25,10 @@ import type { ThemeColors } from '../theme/marathonTheme';
 
 const PERIODS: Period[] = ['7D', '30D', '90D', 'Max'];
 
-const RING_SIZE    = 96;
-const STROKE_W     = 8;
-const HALF         = RING_SIZE / 2;
-const R            = HALF - STROKE_W / 2;
+const RING_SIZE     = 96;
+const STROKE_W      = 8;
+const HALF          = RING_SIZE / 2;
+const R             = HALF - STROKE_W / 2;
 const CIRCUMFERENCE = 2 * Math.PI * R;
 
 function clamp(v: number) {
@@ -41,17 +41,32 @@ function thresholdColor(value: number, colors: ThemeColors): string {
   return colors.danger;
 }
 
-/** Format a delta number as display string with sign. */
+/** Delta display string with sign. */
 function formatDelta(d: number): string {
   if (d === 0) return '±0';
   return d > 0 ? `+${d}` : `${d}`;
 }
 
-/** Color for delta value. */
+/**
+ * Recovery / Score / Biomarkers / Data coverage delta color.
+ * Higher = positive (green), lower = danger (red), zero = muted.
+ */
 function deltaColor(d: number, colors: ThemeColors): string {
   if (d > 0) return colors.positive;
   if (d < 0) return colors.danger;
   return colors.textSubtle;
+}
+
+/**
+ * Training Load delta color.
+ * Load is not a good/bad signal — it's contextual.
+ * Higher load = amber (informational, not alarming).
+ * Lower load = muted.
+ * Zero = muted.
+ */
+function loadDeltaColor(d: number, colors: ThemeColors): string {
+  if (d > 0) return colors.warning;    // amber — load went up
+  return colors.textSubtle;            // muted — lower or unchanged
 }
 
 function SvgRing({
@@ -130,9 +145,9 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
         </View>
       </View>
 
-      {/* Ring + segment bars */}
+      {/* Ring + segment rows */}
       <View style={s.bodyRow}>
-        {/* Ring with score + delta */}
+        {/* Ring: score + score delta */}
         <View style={s.ringWrapper}>
           <SvgRing
             progress={average}
@@ -153,13 +168,27 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
         {/* Segment rows */}
         <View style={s.segmentList}>
           {readinessSegments.map((seg) => {
-            const color = thresholdColor(seg.value, colors);
+            const isLoadRow = seg.label === 'Training load';
+            const color     = thresholdColor(seg.value, colors);
 
-            // Map segment label to delta key
             let rawDelta: number | null = null;
             if (seg.label === 'Recovery')      rawDelta = deltas.recovery;
             if (seg.label === 'Training load') rawDelta = deltas.trainingLoad;
             if (seg.label === 'Biomarkers')    rawDelta = deltas.biomarkers;
+
+            // Training Load uses neutral color logic; others use positive/danger
+            const dc = rawDelta !== null
+              ? (isLoadRow
+                  ? loadDeltaColor(rawDelta, colors)
+                  : deltaColor(rawDelta, colors))
+              : colors.textSubtle;
+
+            // Training Load delta label: "+4 load" not "+4"
+            const deltaStr = rawDelta !== null
+              ? (isLoadRow
+                  ? `${formatDelta(rawDelta)} load`
+                  : formatDelta(rawDelta))
+              : null;
 
             return (
               <View key={seg.label} style={s.segmentRow}>
@@ -167,12 +196,9 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
                   <Text style={s.segmentLabel}>{seg.label}</Text>
                   <View style={s.segmentRight}>
                     <Text style={[s.segmentVal, { color }]}>{seg.value}%</Text>
-                    {rawDelta !== null && (
-                      <Text style={[
-                        s.segmentDelta,
-                        { color: deltaColor(rawDelta, colors) },
-                      ]}>
-                        {formatDelta(rawDelta)}
+                    {deltaStr !== null && (
+                      <Text style={[s.segmentDelta, { color: dc }]}>
+                        {deltaStr}
                       </Text>
                     )}
                   </View>
@@ -191,9 +217,7 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
 
           {/* Data coverage row */}
           <View style={s.coverageRow}>
-            <Text style={s.coverageLabel}>
-              {prototypeCopy.dataCoverageLabel}
-            </Text>
+            <Text style={s.coverageLabel}>{prototypeCopy.dataCoverageLabel}</Text>
             <View style={s.segmentRight}>
               <Text style={s.coverageVal}>{dataCoveragePercent}%</Text>
               {deltas.dataCoverage !== null && (
@@ -225,7 +249,6 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.lg,
       gap: spacing.md,
     },
-    // Title + period selector
     titleRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',
@@ -262,7 +285,6 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '700',
       letterSpacing: 0.2,
     },
-    // Ring
     bodyRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -290,7 +312,6 @@ function createStyles(colors: ThemeColors) {
       letterSpacing: 0.4,
       textAlign: 'center',
     },
-    // Segments
     segmentList: { flex: 1, gap: spacing.sm },
     segmentRow:  { gap: 3 },
     segmentLabelRow: {
@@ -326,7 +347,6 @@ function createStyles(colors: ThemeColors) {
       overflow: 'hidden',
     },
     barFill: { height: 4, borderRadius: 2 },
-    // Data coverage
     coverageRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -344,7 +364,6 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.micro,
       fontWeight: '700',
     },
-    // Footer note
     periodNote: {
       color: colors.textSubtle,
       fontSize: typography.micro,
