@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -22,6 +22,9 @@ import { BloodResultsScreen } from './screens/BloodResultsScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { ScoreTrendCard } from './components/ScoreTrendCard';
 import { TodaySignalsRow } from './components/TodaySignalsRow';
+import { WearableSourcesCard } from './components/WearableSourcesCard';
+import { checkHealthConnect } from './data/healthConnect';
+import type { HealthConnectStatus } from './data/healthConnect';
 import { nextActions } from './data/demoData';
 import type { Period } from './data/demoData';
 import { prototypeCopy } from './data/copy';
@@ -70,6 +73,7 @@ function PrototypeShell() {
             onProfilePress={() => setActiveView('profile')}
             onDemoInfoPress={() => setDemoInfoVisible(true)}
             onViewBloodPanels={() => setActiveView('blood')}
+            onManageSources={() => setActiveView('profile')}
           />
         )}
       </SafeAreaView>
@@ -139,16 +143,27 @@ function HomeView({
   onProfilePress,
   onDemoInfoPress,
   onViewBloodPanels,
+  onManageSources,
 }: {
   onProfilePress: () => void;
   onDemoInfoPress: () => void;
   onViewBloodPanels: () => void;
+  onManageSources: () => void;
 }) {
   const { colors } = useTheme();
   const s = createHomeStyles(colors);
 
   // Shared period state — drives both ReadinessOrbit and ScoreTrendCard
-  const [period, setPeriod] = useState<Period>('7D');
+  const [period, setPeriod]     = useState<Period>('7D');
+  const [hcStatus, setHcStatus] = useState<HealthConnectStatus>('error');
+
+  useEffect(() => {
+    let cancelled = false;
+    checkHealthConnect().then((s) => {
+      if (!cancelled) setHcStatus(s.status);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <>
@@ -173,6 +188,9 @@ function HomeView({
             <SectionLabel text={prototypeCopy.sectionTodaySignals} />
             <TodaySignalsRow />
           </View>
+
+          {/* 4b. Wearable Data Overview */}
+          <WearableSourcesCard hcStatus={hcStatus} onManageSources={onManageSources} />
 
           {/* 5. Recommendations */}
           <View style={s.section}>

@@ -128,7 +128,7 @@ export function CoachingCard({ action }: Props) {
 
   return (
     <View style={s.card}>
-      <View style={s.iconWrap}>
+      <View style={s.iconBare}>
         <IconComponent color={colors.accent} />
       </View>
 
@@ -172,17 +172,13 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.md,
       gap: spacing.md,
     },
-    iconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: radius.md,
-      backgroundColor: colors.accentSoft,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.accentBorder,
+    iconBare: {
+      width: 24,
+      height: 24,
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,
-      marginTop: 1,
+      marginTop: 2,
     },
     content: { flex: 1, gap: 5 },
     title: {

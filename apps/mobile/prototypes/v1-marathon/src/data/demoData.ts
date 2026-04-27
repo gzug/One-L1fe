@@ -282,20 +282,28 @@ export const coachingSteps: CoachingStep[] = [
 
 export const connectedSources: ConnectedSource[] = [
   {
-    id: 'garmin',
-    label: 'Garmin',
-    status: 'not_connected',
-    statusLabel: 'Not connected',
-    actionLabel: 'Connect',
-    note: 'Live sync not available in prototype',
-  },
-  {
     id: 'health_connect',
     label: 'Health Connect',
     status: 'not_connected',
     statusLabel: 'Not connected',
-    actionLabel: 'Open setup',
-    note: 'Live sync not available in prototype',
+    actionLabel: 'Connect',
+    note: 'Android-only. Sleep, HR, HRV, steps, workouts.',
+  },
+  {
+    id: 'garmin',
+    label: 'Garmin',
+    status: 'not_connected',
+    statusLabel: 'Via Health Connect',
+    actionLabel: 'Open Garmin',
+    note: 'No direct API. Connect through Health Connect if your Garmin app shares data there.',
+  },
+  {
+    id: 'strava',
+    label: 'Strava',
+    status: 'not_connected',
+    statusLabel: 'Planned',
+    actionLabel: 'Planned',
+    note: 'Direct Strava integration is not in V1.',
   },
   {
     id: 'blood_panels',
