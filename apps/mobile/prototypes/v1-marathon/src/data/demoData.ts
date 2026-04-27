@@ -1,4 +1,18 @@
 // All values are demo data. isDemo: true = not real user data.
+//
+// Daily-update status:
+//   This module is static. There is no daily refresh, no Health Connect read,
+//   no recommendation regeneration. Score, trend, deltas, todaySignals,
+//   readinessSegments, nextActions are constants. Restarting the app shows
+//   the same values. Notes and Blood Panels persist via AsyncStorage in
+//   their own modules — they are independent of this file.
+//
+//   When wearable ingestion is wired, the wearable-derived display values
+//   (recovery / training load / today's signals) may be replaced by computed
+//   values; blood markers must remain in bloodStorage.ts and never be
+//   overwritten from Health Connect.
+//
+//   TODO(v1-engine): deriveRecommendationsFromSignals() — planned, not active.
 
 export type TrainingSignal = {
   label: string;

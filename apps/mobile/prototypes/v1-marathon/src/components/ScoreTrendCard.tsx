@@ -4,17 +4,24 @@
  * Visual rules:
  * - Score line       = solid, accent stroke (always strongest)
  * - Recovery         = thin solid green
- * - Training Load    = thin dashed amber
+ * - Training Load    = thin dashed amber (contextual, not good/bad)
  * - Biomarkers       = chip only (latest panel snapshot)
  *
- * Y-domain is dynamic: zoomed to visible-data extent + small headroom, so
- * 60–80 movement is readable instead of being squashed against 0–100.
+ * Y-domain is dynamic — zoomed to visible-data extent + small headroom,
+ * so 60–80 movement reads instead of being squashed against 0–100.
  *
- * Legend dots are tappable: tapping toggles a line. Score (the primary
- * meaning) cannot be turned off — at least one line is always visible.
+ * Interactive inspection:
+ * - Tap on the chart sets a selection at the nearest data index.
+ * - Horizontal drag updates the selection live.
+ * - Vertical guideline + intersection dots + a compact tooltip chip
+ *   show the date and the values for currently visible lines.
+ * - Selection persists after release until the user taps again.
+ *
+ * No new dependencies. Pure react-native-svg + responder events.
  */
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { GestureResponderEvent, LayoutChangeEvent } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 import {
   scoreTrend7D,
@@ -37,11 +44,12 @@ const DATA: Record<Period, ScoreTrendDay[]> = {
   'Max': scoreTrendMax,
 };
 
-const CHART_W   = 320;
-const CHART_H   = 96;
-const CHART_PAD = 10;
-const DOT_R     = 3;
+const CHART_W    = 320;
+const CHART_H    = 96;
+const CHART_PAD  = 10;
+const DOT_R      = 3;
 const Y_HEADROOM = 6;
+const TOOLTIP_W  = 156;
 
 type Series = 'score' | 'recovery' | 'load';
 
@@ -94,31 +102,52 @@ export function ScoreTrendCard({ period, onPeriodChange }: Props) {
   const data = DATA[period];
 
   const [visible, setVisible] = useState({ score: true, recovery: true, load: true });
+  const [layoutW, setLayoutW] = useState(CHART_W);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const layoutWRef = useRef(CHART_W);
 
   function toggle(key: Series) {
     setVisible((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      // never end up with all hidden
       if (!next.score && !next.recovery && !next.load) return prev;
       return next;
     });
   }
 
-  const { min, max } = domainOf(data, visible);
+  const { min, max } = useMemo(() => domainOf(data, visible), [data, visible]);
   const lastScore = data.length ? data[data.length - 1].score : null;
+
+  function indexFromTouch(locationX: number): number {
+    const w = layoutWRef.current || CHART_W;
+    if (data.length <= 1 || w <= 0) return 0;
+    const t = Math.max(0, Math.min(1, locationX / w));
+    return Math.round(t * (data.length - 1));
+  }
+
+  function onChartLayout(e: LayoutChangeEvent) {
+    const w = e.nativeEvent.layout.width;
+    setLayoutW(w);
+    layoutWRef.current = w;
+  }
+
+  function onTouch(e: GestureResponderEvent) {
+    setSelectedIdx(indexFromTouch(e.nativeEvent.locationX));
+  }
+
+  const sel = selectedIdx !== null && selectedIdx < data.length ? data[selectedIdx] : null;
 
   return (
     <View style={s.card}>
       <View style={s.headerRow}>
         <View style={s.headerLeft}>
           <Text style={s.title}>One L1fe Score Trend</Text>
-          <Text style={s.sub}>Demo trend · local prototype</Text>
+          <Text style={s.sub}>Demo trend · local prototype · tap to inspect</Text>
         </View>
         <View style={s.periodRow}>
           {PERIODS.map((p) => (
             <Pressable
               key={p}
-              onPress={() => onPeriodChange(p)}
+              onPress={() => { onPeriodChange(p); setSelectedIdx(null); }}
               style={[s.periodBtn, period === p && { backgroundColor: colors.accent }]}
               accessibilityLabel={`Show ${p} trend`}
             >
@@ -133,16 +162,40 @@ export function ScoreTrendCard({ period, onPeriodChange }: Props) {
         </View>
       </View>
 
-      <View style={s.chartWrapper}>
-        <View style={{ height: CHART_H }}>
+      <View
+        style={s.chartWrapper}
+        onLayout={onChartLayout}
+      >
+        <View
+          style={{ height: CHART_H }}
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onResponderTerminationRequest={() => false}
+          onResponderGrant={onTouch}
+          onResponderMove={onTouch}
+        >
           <ChartLines
             data={data}
             colors={colors}
             visible={visible}
             min={min}
             max={max}
+            selectedIdx={selectedIdx}
           />
         </View>
+
+        {sel !== null && (
+          <Tooltip
+            data={data}
+            sel={sel}
+            selectedIdx={selectedIdx as number}
+            visible={visible}
+            colors={colors}
+            layoutW={layoutW}
+            onClear={() => setSelectedIdx(null)}
+          />
+        )}
+
         <View style={s.axisRow}>
           <Text style={s.axisLabel}>{min}</Text>
           <Text style={[s.axisLabel, { textAlign: 'right' }]}>{max}</Text>
@@ -158,6 +211,7 @@ export function ScoreTrendCard({ period, onPeriodChange }: Props) {
                   : i === data.length - 1
                   ? { textAlign: 'right' }
                   : { textAlign: 'center' },
+                selectedIdx === i && { color: colors.text, fontWeight: '700' },
               ]}
             >
               {d.label}
@@ -192,7 +246,7 @@ export function ScoreTrendCard({ period, onPeriodChange }: Props) {
             Biomarkers 61% · latest panel
           </Text>
         </View>
-        {lastScore !== null && visible.score && (
+        {lastScore !== null && visible.score && selectedIdx === null && (
           <View style={[s.endTag, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}>
             <Text style={[s.endTagLabel, { color: colors.textSubtle }]}>End</Text>
             <Text style={[s.endTagValue, { color: scoreColor(lastScore, colors) }]}>
@@ -206,30 +260,34 @@ export function ScoreTrendCard({ period, onPeriodChange }: Props) {
 }
 
 function ChartLines({
-  data, colors, visible, min, max,
+  data, colors, visible, min, max, selectedIdx,
 }: {
   data: ScoreTrendDay[];
   colors: ThemeColors;
   visible: { score: boolean; recovery: boolean; load: boolean };
   min: number;
   max: number;
+  selectedIdx: number | null;
 }) {
   const W = CHART_W;
   const scorePts    = pointsFor(data, 'score',        min, max);
   const recoveryPts = pointsFor(data, 'recovery',     min, max);
   const loadPts     = pointsFor(data, 'trainingLoad', min, max);
 
-  // 3 gridlines spaced across visible range
   const gridYs = [0.25, 0.5, 0.75].map(
     (t) => CHART_H - CHART_PAD - t * (CHART_H - CHART_PAD * 2),
   );
 
   const lastIdx = data.length - 1;
   const step = W / Math.max(lastIdx, 1);
+
+  const showEndpoint = selectedIdx === null;
   const scoreEnd    = data.length ? { x: lastIdx * step, y: yFor(data[lastIdx].score,        min, max) } : null;
   const recoveryEnd = data.length ? { x: lastIdx * step, y: yFor(data[lastIdx].recovery,     min, max) } : null;
   const loadEnd     = data.length ? { x: lastIdx * step, y: yFor(data[lastIdx].trainingLoad, min, max) } : null;
   const endColor    = data.length ? scoreColor(data[lastIdx].score, colors) : colors.accent;
+
+  const selX = selectedIdx !== null ? selectedIdx * step : null;
 
   return (
     <Svg width="100%" height={CHART_H} viewBox={`0 0 ${W} ${CHART_H}`} preserveAspectRatio="none">
@@ -271,19 +329,145 @@ function ChartLines({
         />
       )}
 
-      {visible.recovery && recoveryEnd && (
+      {showEndpoint && visible.recovery && recoveryEnd && (
         <Circle cx={recoveryEnd.x} cy={recoveryEnd.y} r={2.4} fill={colors.positive} />
       )}
-      {visible.load && loadEnd && (
+      {showEndpoint && visible.load && loadEnd && (
         <Circle cx={loadEnd.x} cy={loadEnd.y} r={2.4} fill={colors.warning} />
       )}
-      {visible.score && scoreEnd && (
+      {showEndpoint && visible.score && scoreEnd && (
         <>
           <Circle cx={scoreEnd.x} cy={scoreEnd.y} r={DOT_R + 1.6} fill={colors.surfaceElevated} />
           <Circle cx={scoreEnd.x} cy={scoreEnd.y} r={DOT_R} fill={endColor} />
         </>
       )}
+
+      {selX !== null && data.length > 0 && (
+        <>
+          <Line
+            x1={selX}
+            x2={selX}
+            y1={CHART_PAD - 4}
+            y2={CHART_H - CHART_PAD + 2}
+            stroke={colors.textSubtle}
+            strokeOpacity={0.65}
+            strokeWidth={1}
+            strokeDasharray="2 2"
+          />
+          {visible.recovery && (
+            <Circle
+              cx={selX}
+              cy={yFor(data[selectedIdx as number].recovery, min, max)}
+              r={3}
+              fill={colors.positive}
+              stroke={colors.surfaceElevated}
+              strokeWidth={1}
+            />
+          )}
+          {visible.load && (
+            <Circle
+              cx={selX}
+              cy={yFor(data[selectedIdx as number].trainingLoad, min, max)}
+              r={3}
+              fill={colors.warning}
+              stroke={colors.surfaceElevated}
+              strokeWidth={1}
+            />
+          )}
+          {visible.score && (
+            <>
+              <Circle
+                cx={selX}
+                cy={yFor(data[selectedIdx as number].score, min, max)}
+                r={DOT_R + 1.6}
+                fill={colors.surfaceElevated}
+              />
+              <Circle
+                cx={selX}
+                cy={yFor(data[selectedIdx as number].score, min, max)}
+                r={DOT_R}
+                fill={scoreColor(data[selectedIdx as number].score, colors)}
+              />
+            </>
+          )}
+        </>
+      )}
     </Svg>
+  );
+}
+
+function Tooltip({
+  data, sel, selectedIdx, visible, colors, layoutW, onClear,
+}: {
+  data: ScoreTrendDay[];
+  sel: ScoreTrendDay;
+  selectedIdx: number;
+  visible: { score: boolean; recovery: boolean; load: boolean };
+  colors: ThemeColors;
+  layoutW: number;
+  onClear: () => void;
+}) {
+  // x in real (laid-out) px, clamped so the tooltip stays on-screen
+  const lastIdx = Math.max(data.length - 1, 1);
+  const xPx     = (selectedIdx / lastIdx) * layoutW;
+  const left    = Math.max(0, Math.min(layoutW - TOOLTIP_W, xPx - TOOLTIP_W / 2));
+
+  return (
+    <View
+      pointerEvents="box-none"
+      style={[
+        styles.tooltipWrap,
+        { left, width: TOOLTIP_W, borderColor: colors.borderSubtle, backgroundColor: colors.surfaceElevated },
+      ]}
+    >
+      <View style={styles.tooltipHeader}>
+        <Text style={[styles.tooltipDate, { color: colors.text }]}>{sel.label}</Text>
+        <Pressable onPress={onClear} hitSlop={6} accessibilityLabel="Clear selection">
+          <Text style={[styles.tooltipClose, { color: colors.textSubtle }]}>×</Text>
+        </Pressable>
+      </View>
+      {visible.score && (
+        <TooltipRow
+          color={scoreColor(sel.score, colors)}
+          label="Score"
+          value={`${sel.score}`}
+          textColor={colors.text}
+        />
+      )}
+      {visible.recovery && (
+        <TooltipRow
+          color={colors.positive}
+          label="Recovery"
+          value={`${sel.recovery}`}
+          textColor={colors.textMuted}
+        />
+      )}
+      {visible.load && (
+        <TooltipRow
+          color={colors.warning}
+          label="Training Load"
+          value={`${sel.trainingLoad}`}
+          textColor={colors.textMuted}
+        />
+      )}
+    </View>
+  );
+}
+
+function TooltipRow({
+  color, label, value, textColor,
+}: {
+  color: string;
+  label: string;
+  value: string;
+  textColor: string;
+}) {
+  return (
+    <View style={styles.tooltipRow}>
+      <View style={[styles.tooltipDot, { backgroundColor: color }]} />
+      <Text style={[styles.tooltipLabel, { color: textColor }]}>{label}</Text>
+      <Text style={[styles.tooltipValue, { color: textColor }]}>{value}</Text>
+    </View>
   );
 }
 
@@ -334,6 +518,49 @@ const legendStyles = StyleSheet.create({
   label:    { fontSize: 10, fontWeight: '600' },
 });
 
+const styles = StyleSheet.create({
+  tooltipWrap: {
+    position: 'absolute',
+    top: -4,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    gap: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  tooltipHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  tooltipDate: {
+    fontSize: typography.micro,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  tooltipClose: {
+    fontSize: 14,
+    lineHeight: 14,
+    fontWeight: '700',
+    paddingHorizontal: 4,
+  },
+  tooltipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  tooltipDot:  { width: 6, height: 6, borderRadius: 3 },
+  tooltipLabel:{ fontSize: typography.micro, fontWeight: '500', flex: 1 },
+  tooltipValue:{ fontSize: typography.micro, fontWeight: '700' },
+});
+
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
@@ -374,7 +601,7 @@ function createStyles(colors: ThemeColors) {
       fontWeight: '700',
       letterSpacing: 0.2,
     },
-    chartWrapper: { gap: 2 },
+    chartWrapper: { gap: 2, position: 'relative' },
     axisRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',

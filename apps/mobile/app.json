@@ -2,7 +2,7 @@
   "expo": {
     "name": "One L1fe",
     "slug": "one-l1fe-mobile",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "assetBundlePatterns": [
@@ -14,7 +14,7 @@
     "android": {
       "package": "com.onel1fe.mobile",
       "minSdkVersion": 26,
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro"

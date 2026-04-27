@@ -154,7 +154,8 @@ export function ReadinessOrbit({ period, onPeriodChange }: Props) {
         <View style={s.segmentList}>
           {readinessSegments.map((seg) => {
             const isLoadRow = seg.label === 'Training load';
-            const segColor  = scoreColor(seg.value, colors);
+            // Training Load is contextual, not good/bad — keep it amber.
+            const segColor  = isLoadRow ? colors.warning : scoreColor(seg.value, colors);
 
             let rawDelta: number | null = null;
             if (seg.label === 'Recovery')      rawDelta = deltas.recovery;

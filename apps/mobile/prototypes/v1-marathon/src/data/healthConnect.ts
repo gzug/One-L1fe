@@ -120,7 +120,7 @@ export function statusLabel(state: HealthConnectState): string {
     case 'unavailable':              return 'Health Connect not installed';
     case 'provider_update_required': return 'Provider update required';
     case 'available_no_permissions': return 'Available · no permissions';
-    case 'connected':                return `Connected · ${state.granted.length} permission${state.granted.length === 1 ? '' : 's'}`;
+    case 'connected':                return `Connected · ${state.granted.length} permission${state.granted.length === 1 ? '' : 's'} · import not active in prototype`;
     case 'error':                    return 'Check failed';
   }
 }
