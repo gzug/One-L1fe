@@ -21,9 +21,9 @@ import { IdeasNotesCard } from './components/IdeasNotesCard';
 import { ProfileScreen } from './components/ProfileScreen';
 import { BloodResultsScreen } from './screens/BloodResultsScreen';
 import { ReadinessOrbit } from './components/ReadinessOrbit';
-import { ActivityTrendCard } from './components/ActivityTrendCard';
-import { SignalGroup } from './components/SignalCard';
-import { nextActions, trainingSignals } from './data/demoData';
+import { ScoreTrendCard } from './components/ScoreTrendCard';
+import { TodaySignalsRow } from './components/TodaySignalsRow';
+import { nextActions } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
@@ -149,32 +149,40 @@ function HomeView({
 
   return (
     <>
+      {/* 1. Sticky Header */}
       <AppHeader onProfilePress={onProfilePress} onDemoInfoPress={onDemoInfoPress} />
+
       <ScrollView
         contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         <View style={s.container}>
+
+          {/* 2. One L1fe Score */}
           <ReadinessOrbit />
 
+          {/* 3. Score Trend (replaces Activity Trend) */}
+          <ScoreTrendCard />
+
+          {/* 4. Today's Signals */}
           <View style={s.section}>
-            <SectionLabel text={prototypeCopy.sectionSignals} />
-            <SignalGroup signals={trainingSignals} />
+            <SectionLabel text={prototypeCopy.sectionTodaySignals} />
+            <TodaySignalsRow />
           </View>
 
-          <ActivityTrendCard />
-
-          {/* BloodContextCard replaces shallow BloodPanelsCard */}
-          <BloodContextCard onViewPress={onViewBloodPanels} />
-
+          {/* 5. Recommendations */}
           <View style={s.section}>
-            <SectionLabel text="Recommendations" />
+            <SectionLabel text={prototypeCopy.sectionRecommendations} />
             {nextActions.map((action) => (
               <CoachingCard key={action.id} action={action} />
             ))}
           </View>
 
+          {/* 6. Blood Context */}
+          <BloodContextCard onViewPress={onViewBloodPanels} />
+
+          {/* 7. Ideas & Notes */}
           <IdeasNotesCard />
 
           <Text style={s.safetyNote}>{prototypeCopy.safetyNote}</Text>

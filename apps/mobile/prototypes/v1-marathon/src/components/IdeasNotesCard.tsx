@@ -1,8 +1,13 @@
 /**
- * IdeasNotesCard
+ * IdeasNotesCard — F11
+ *
  * Ideas & Notes — fully persistent via AsyncStorage.
  * Notes survive app reload. Inline edit supported.
  * No network calls. Device-local only.
+ *
+ * F11 improvements:
+ * - Empty state is a full tappable surface with + Add affordance.
+ * - Tap anywhere on empty card opens TextInput immediately.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -14,7 +19,6 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
@@ -41,20 +45,18 @@ async function persistNotes(notes: Note[]): Promise<void> {
 export function IdeasNotesCard() {
   const { colors } = useTheme();
   const s = createStyles(colors);
-  const [notes, setNotes]       = useState<Note[]>([]);
+  const [notes, setNotes]         = useState<Note[]>([]);
   const [inputOpen, setInputOpen] = useState(false);
   const [draft, setDraft]         = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState('');
-  const inputRef     = useRef<TextInput>(null);
-  const editRef      = useRef<TextInput>(null);
+  const inputRef = useRef<TextInput>(null);
+  const editRef  = useRef<TextInput>(null);
 
-  // Load on mount
   useEffect(() => {
     loadNotes().then(setNotes);
   }, []);
 
-  // Persist whenever notes change (after mount)
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }
@@ -112,28 +114,45 @@ export function IdeasNotesCard() {
     Keyboard.dismiss();
   }
 
+  const isEmpty = notes.length === 0 && !inputOpen;
+
   return (
     <View style={s.card}>
       {/* Header row */}
       <View style={s.headerRow}>
         <Text style={s.title}>{prototypeCopy.sectionNotes}</Text>
-        {!inputOpen && (
+        {notes.length > 0 && !inputOpen && (
           <Pressable onPress={openInput} style={s.addBtn} hitSlop={10} accessibilityLabel="Add note">
-            <Ionicons name="add" size={18} color={colors.textMuted} />
+            <View style={s.addBtnInner}>
+              {/* Plus icon — RN View primitive */}
+              <View style={[s.plusH, { backgroundColor: colors.textMuted }]} />
+              <View style={[s.plusV, { backgroundColor: colors.textMuted }]} />
+            </View>
           </Pressable>
         )}
       </View>
 
-      {/* Empty state */}
-      {notes.length === 0 && !inputOpen && (
-        <Text style={s.emptyHint}>Tap + to add an idea, observation, or question. Notes are saved on this device.</Text>
+      {/* Empty state — entire surface is tappable */}
+      {isEmpty && (
+        <Pressable
+          onPress={openInput}
+          style={s.emptyState}
+          accessibilityLabel="Add a note"
+          accessibilityRole="button"
+        >
+          <View style={[s.emptyAddBtn, { borderColor: colors.accentBorder, backgroundColor: colors.accentSoft }]}>
+            <View style={[s.plusHLg, { backgroundColor: colors.accent }]} />
+            <View style={[s.plusVLg, { backgroundColor: colors.accent }]} />
+          </View>
+          <Text style={[s.emptyAddLabel, { color: colors.accent }]}>{prototypeCopy.notesEmptyAddLabel}</Text>
+          <Text style={s.emptyHint}>{prototypeCopy.notesEmptyHint}</Text>
+        </Pressable>
       )}
 
       {/* Notes list */}
       {notes.map((note) => (
         <View key={note.id}>
           {editingId === note.id ? (
-            // Inline edit
             <View style={s.inputArea}>
               <TextInput
                 ref={editRef}
@@ -161,14 +180,17 @@ export function IdeasNotesCard() {
             </View>
           ) : (
             <Pressable onPress={() => startEdit(note)} accessibilityLabel="Edit note" style={s.noteRow}>
-              <Text style={s.noteBullet}>–</Text>
-              <Text style={s.noteText}>{note.text}</Text>
+              <Text style={[s.noteBullet, { color: colors.textSubtle }]}>–</Text>
+              <Text style={[s.noteText, { color: colors.textMuted }]}>{note.text}</Text>
               <Pressable
                 onPress={() => deleteNote(note.id)}
                 hitSlop={10}
                 accessibilityLabel="Delete note"
+                style={s.deleteBtn}
               >
-                <Ionicons name="close" size={14} color={colors.textSubtle} />
+                {/* X icon — RN View primitives */}
+                <View style={[s.xLine1, { backgroundColor: colors.textSubtle }]} />
+                <View style={[s.xLine2, { backgroundColor: colors.textSubtle }]} />
               </Pressable>
             </Pressable>
           )}
@@ -206,7 +228,7 @@ export function IdeasNotesCard() {
       )}
 
       {notes.length > 0 && !inputOpen && !editingId && (
-        <Text style={s.persistHint}>Saved on this device</Text>
+        <Text style={[s.persistHint, { color: colors.textSubtle }]}>Saved on this device</Text>
       )}
     </View>
   );
@@ -241,13 +263,39 @@ function createStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    addBtnInner: { width: 18, height: 18, position: 'relative', alignItems: 'center', justifyContent: 'center' },
+    plusH: { position: 'absolute', width: 14, height: 2, borderRadius: 1 },
+    plusV: { position: 'absolute', width: 2, height: 14, borderRadius: 1 },
+
+    // Empty state
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: spacing.lg,
+      gap: spacing.sm,
+    },
+    emptyAddBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: radius.pill,
+      borderWidth: 1.5,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    plusHLg: { position: 'absolute', width: 16, height: 2, borderRadius: 1 },
+    plusVLg: { position: 'absolute', width: 2, height: 16, borderRadius: 1 },
+    emptyAddLabel: {
+      fontSize: typography.bodySmall,
+      fontWeight: '700',
+      letterSpacing: -0.1,
+    },
     emptyHint: {
       color: colors.textSubtle,
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
+      textAlign: 'center',
     },
+
     persistHint: {
-      color: colors.textSubtle,
       fontSize: typography.micro,
       fontStyle: 'italic',
     },
@@ -257,16 +305,34 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
     },
     noteBullet: {
-      color: colors.textSubtle,
       fontSize: typography.bodySmall,
       lineHeight: lineHeights.bodySmall,
       width: 10,
     },
     noteText: {
       flex: 1,
-      color: colors.textMuted,
       fontSize: typography.bodySmall,
       lineHeight: lineHeights.bodySmall,
+    },
+    deleteBtn: {
+      width: 20,
+      height: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    xLine1: {
+      position: 'absolute',
+      width: 12,
+      height: 1.5,
+      borderRadius: 1,
+      transform: [{ rotate: '45deg' }],
+    },
+    xLine2: {
+      position: 'absolute',
+      width: 12,
+      height: 1.5,
+      borderRadius: 1,
+      transform: [{ rotate: '-45deg' }],
     },
     inputArea: { gap: spacing.sm },
     input: {

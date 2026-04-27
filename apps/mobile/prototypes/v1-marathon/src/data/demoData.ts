@@ -33,7 +33,7 @@ export type ReadinessSegment = {
 
 export type NextAction = {
   id: string;
-  iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';  // resolved to Ionicon in component
+  iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';  // resolved to icon in component
   title: string;
   sourceChip: string;   // data source label
   reason: string;       // 1 line, no medical advice
@@ -44,6 +44,14 @@ export type NextAction = {
 export type ActivityDay = {
   day: string;    // short label e.g. 'Mon'
   value: number;  // 0-100 normalised for bar height
+};
+
+/** One day of score trend — three parallel lines */
+export type ScoreTrendDay = {
+  label: string;   // x-axis label
+  score: number;   // One L1fe Score 0-100
+  recovery: number;
+  trainingLoad: number;
 };
 
 export type CoachingStep = {
@@ -74,6 +82,20 @@ export const trainingSignals: TrainingSignal[] = [
   { label: 'Resting heart rate', value: '51', unit: 'bpm', status: 'available', isDemo: true },
   { label: 'HRV trend', value: 'Lower than baseline', status: 'needs_attention', isDemo: true },
   { label: 'Sleep duration', value: '6h 42m', status: 'needs_attention', isDemo: true },
+];
+
+// --- Today's signals (compact chips on Home) ----------------------------
+export type TodaySignal = {
+  label: string;
+  value: string;
+  status: 'ok' | 'warn' | 'muted';
+};
+
+export const todaySignals: TodaySignal[] = [
+  { label: 'Recovery',       value: '68%', status: 'warn' },
+  { label: 'Training Load',  value: '74%', status: 'ok'   },
+  { label: 'Biomarkers',     value: '61%', status: 'warn' },
+  { label: 'Data coverage',  value: '72%', status: 'muted'},
 ];
 
 // --- Readiness segments (3 only) ----------------------------------------
@@ -116,7 +138,44 @@ export const nextActions: NextAction[] = [
   },
 ];
 
-// --- Activity trend (7-day demo, values 0-100 normalised) ---------------
+// --- Score trend demo data ----------------------------------------------
+// 7D
+export const scoreTrend7D: ScoreTrendDay[] = [
+  { label: 'Mon', score: 70, recovery: 72, trainingLoad: 68 },
+  { label: 'Tue', score: 66, recovery: 64, trainingLoad: 76 },
+  { label: 'Wed', score: 62, recovery: 60, trainingLoad: 80 },
+  { label: 'Thu', score: 68, recovery: 68, trainingLoad: 74 },
+  { label: 'Fri', score: 65, recovery: 63, trainingLoad: 77 },
+  { label: 'Sat', score: 72, recovery: 74, trainingLoad: 70 },
+  { label: 'Sun', score: 68, recovery: 68, trainingLoad: 74 },
+];
+
+// 30D (weekly buckets, 4 weeks)
+export const scoreTrend30D: ScoreTrendDay[] = [
+  { label: 'W1',  score: 74, recovery: 76, trainingLoad: 68 },
+  { label: 'W2',  score: 69, recovery: 67, trainingLoad: 74 },
+  { label: 'W3',  score: 63, recovery: 61, trainingLoad: 79 },
+  { label: 'W4',  score: 68, recovery: 68, trainingLoad: 74 },
+];
+
+// 90D (monthly buckets, 3 months)
+export const scoreTrend90D: ScoreTrendDay[] = [
+  { label: 'Feb', score: 72, recovery: 74, trainingLoad: 66 },
+  { label: 'Mar', score: 67, recovery: 65, trainingLoad: 75 },
+  { label: 'Apr', score: 68, recovery: 68, trainingLoad: 74 },
+];
+
+// Max (6 months)
+export const scoreTrendMax: ScoreTrendDay[] = [
+  { label: 'Nov', score: 65, recovery: 66, trainingLoad: 62 },
+  { label: 'Dec', score: 60, recovery: 58, trainingLoad: 68 },
+  { label: 'Jan', score: 70, recovery: 72, trainingLoad: 64 },
+  { label: 'Feb', score: 72, recovery: 74, trainingLoad: 66 },
+  { label: 'Mar', score: 67, recovery: 65, trainingLoad: 75 },
+  { label: 'Apr', score: 68, recovery: 68, trainingLoad: 74 },
+];
+
+// --- Activity trend (kept for reference, replaced on home) --------------
 export const activityTrend: ActivityDay[] = [
   { day: 'Mon', value: 62 },
   { day: 'Tue', value: 78 },

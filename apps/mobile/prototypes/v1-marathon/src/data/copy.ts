@@ -28,8 +28,10 @@ export const prototypeCopy = {
   sectionSignals: 'Training signals',
   sectionBlood: 'Blood panels',
   sectionCoaching: 'Next Actions',
-  sectionTrend: 'Activity trend',
+  sectionTrend: 'One L1fe Score Trend',
   sectionNotes: 'Ideas & Notes',
+  sectionTodaySignals: "Today's Signals",
+  sectionRecommendations: 'Recommendations',
 
   // Signal status glyphs
   signalGlyphs: {
@@ -49,6 +51,8 @@ export const prototypeCopy = {
   notesPlaceholder: 'Add a thought, observation, or question…',
   notesSaveLabel: 'Save',
   notesDiscardLabel: 'Discard',
+  notesEmptyHint: 'Tap to add an idea, observation, or question.',
+  notesEmptyAddLabel: '+ Add note',
 
   // Safety
   safetyNote:

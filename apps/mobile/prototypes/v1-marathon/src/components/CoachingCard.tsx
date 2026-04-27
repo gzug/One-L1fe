@@ -1,5 +1,9 @@
 /**
- * CoachingCard — Recommendation card (F9)
+ * CoachingCard — Recommendation card (F11)
+ *
+ * Icon fix: Ionicons inside cards are unreliable on some Android builds.
+ * Using primitive SVG shapes as icon fallback — guaranteed visible,
+ * no dynamic string risk, works in both light and dark mode.
  *
  * Layout:
  *   [icon badge]  Title
@@ -7,25 +11,105 @@
  *                 1-line reason
  *                 [impact chip]
  *
- * Icons are resolved from a typed key enum — avoids dynamic string
- * casting which was the root cause of blank icons on Android.
- *
  * Language: no medical advice, no "must", no fake live-sync claim.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Svg, { Circle, Path, Polygon, Rect } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 import type { NextAction } from '../data/demoData';
 
-// Hardcoded icon map — typed key only, no dynamic string from data
-const ICON_MAP: Record<NextAction['iconKey'], React.ComponentProps<typeof Ionicons>['name']> = {
-  moon:        'moon-outline',
-  speedometer: 'speedometer-outline',
-  sync:        'sync-outline',
-  flask:       'flask-outline',
+// Primitive SVG icons — no dynamic string, guaranteed render on Android
+function IconMoon({ color }: { color: string }) {
+  // crescent moon from two circles
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22">
+      <Path
+        d="M11 3 C7.13 3 4 6.13 4 10 C4 13.87 7.13 17 11 17 C12.62 17 14.1 16.42 15.25 15.45 C14.48 15.8 13.62 16 12.7 16 C9.28 16 6.5 13.22 6.5 9.8 C6.5 7.02 8.23 4.65 10.7 3.7 C10.47 3.7 10.24 3.7 11 3Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+function IconSpeedometer({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22">
+      {/* gauge arc */}
+      <Path
+        d="M4 13 C4 8.58 7.58 5 12 5 C16.42 5 20 8.58 20 13"
+        stroke={color}
+        strokeWidth={2}
+        fill="none"
+        strokeLinecap="round"
+      />
+      {/* needle */}
+      <Path
+        d="M12 13 L8 9"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+      <Circle cx={12} cy={13} r={1.5} fill={color} />
+    </Svg>
+  );
+}
+
+function IconFlask({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22">
+      {/* flask body */}
+      <Path
+        d="M8 3 L8 10 L4.5 16 C4 17 4.5 18 6 18 L16 18 C17.5 18 18 17 17.5 16 L14 10 L14 3"
+        stroke={color}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M7 3 L15 3" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      {/* liquid */}
+      <Path
+        d="M5.5 15 L16.5 15"
+        stroke={color}
+        strokeWidth={1.2}
+        strokeOpacity={0.5}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+function IconSync({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 22 22">
+      <Path
+        d="M4 11 C4 7.13 7.13 4 11 4 C13.76 4 16.15 5.56 17.36 7.88"
+        stroke={color}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Path
+        d="M18 11 C18 14.87 14.87 18 11 18 C8.24 18 5.85 16.44 4.64 14.12"
+        stroke={color}
+        strokeWidth={1.8}
+        fill="none"
+        strokeLinecap="round"
+      />
+      <Polygon points="15,5 18,8 18,5" fill={color} />
+      <Polygon points="7,17 4,14 4,17" fill={color} />
+    </Svg>
+  );
+}
+
+const ICON_COMPONENTS: Record<NextAction['iconKey'], React.FC<{ color: string }>> = {
+  moon:        IconMoon,
+  speedometer: IconSpeedometer,
+  flask:       IconFlask,
+  sync:        IconSync,
 };
 
 function impactTagColors(
@@ -45,13 +129,13 @@ export function CoachingCard({ action }: Props) {
   const { colors } = useTheme();
   const s   = createStyles(colors);
   const tag = impactTagColors(action.impactKey, colors);
-  const iconName = ICON_MAP[action.iconKey];
+  const IconComponent = ICON_COMPONENTS[action.iconKey];
 
   return (
     <View style={s.card}>
-      {/* Icon badge */}
+      {/* Icon badge — SVG primitive, guaranteed visible on Android */}
       <View style={s.iconWrap}>
-        <Ionicons name={iconName} size={22} color={colors.accent} />
+        <IconComponent color={colors.accent} />
       </View>
 
       {/* Text block */}
@@ -60,7 +144,7 @@ export function CoachingCard({ action }: Props) {
 
         {/* Source chip */}
         <View style={s.sourceChipWrap}>
-          <Ionicons name="radio-button-on-outline" size={9} color={colors.textSubtle} />
+          <View style={[s.sourceDot, { backgroundColor: colors.textSubtle }]} />
           <Text style={s.sourceChip}>{action.sourceChip}</Text>
         </View>
 
@@ -112,6 +196,11 @@ function createStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    sourceDot: {
+      width: 5,
+      height: 5,
+      borderRadius: 3,
     },
     sourceChip: {
       color: colors.textSubtle,
