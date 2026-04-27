@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Modal,
-  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -24,6 +23,7 @@ import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { ScoreTrendCard } from './components/ScoreTrendCard';
 import { TodaySignalsRow } from './components/TodaySignalsRow';
 import { nextActions } from './data/demoData';
+import type { Period } from './data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
@@ -147,6 +147,9 @@ function HomeView({
   const { colors } = useTheme();
   const s = createHomeStyles(colors);
 
+  // Shared period state — drives both ReadinessOrbit and ScoreTrendCard
+  const [period, setPeriod] = useState<Period>('7D');
+
   return (
     <>
       {/* 1. Sticky Header */}
@@ -159,11 +162,11 @@ function HomeView({
       >
         <View style={s.container}>
 
-          {/* 2. One L1fe Score */}
-          <ReadinessOrbit />
+          {/* 2. One L1fe Score — period selector + deltas */}
+          <ReadinessOrbit period={period} onPeriodChange={setPeriod} />
 
-          {/* 3. Score Trend (replaces Activity Trend) */}
-          <ScoreTrendCard />
+          {/* 3. Score Trend — synced period */}
+          <ScoreTrendCard period={period} onPeriodChange={setPeriod} />
 
           {/* 4. Today's Signals */}
           <View style={s.section}>

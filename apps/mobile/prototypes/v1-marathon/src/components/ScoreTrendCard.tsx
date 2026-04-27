@@ -1,14 +1,10 @@
 /**
- * ScoreTrendCard — F11
+ * ScoreTrendCard — F12
  *
- * One L1fe Score Trend with period selector (7D / 30D / 90D / Max).
- * Three lines: Score (primary), Recovery, Training Load.
- * Biomarkers NOT plotted as daily line — shown as stable chip only.
- *
- * Uses react-native-svg line chart.
- * No chart libs. No new deps.
+ * Period selector is now controlled (props), shared with ReadinessOrbit.
+ * Chart + legend remain unchanged.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 import {
@@ -17,12 +13,10 @@ import {
   scoreTrend90D,
   scoreTrendMax,
 } from '../data/demoData';
-import type { ScoreTrendDay } from '../data/demoData';
+import type { Period, ScoreTrendDay } from '../data/demoData';
 import { useTheme } from '../theme/ThemeContext';
 import { lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
-
-type Period = '7D' | '30D' | '90D' | 'Max';
 
 const PERIODS: Period[] = ['7D', '30D', '90D', 'Max'];
 
@@ -33,10 +27,9 @@ const DATA: Record<Period, ScoreTrendDay[]> = {
   'Max': scoreTrendMax,
 };
 
-const CHART_H    = 80;
-const CHART_PAD  = 8;  // vertical padding inside svg
-const LABEL_H    = 18; // space below chart for x labels
-const DOT_R      = 3;
+const CHART_H   = 80;
+const CHART_PAD = 8;
+const DOT_R     = 3;
 
 function toPoints(data: ScoreTrendDay[], key: 'score' | 'recovery' | 'trainingLoad', w: number): string {
   if (data.length < 2) return '';
@@ -59,10 +52,14 @@ function lastPoint(data: ScoreTrendDay[], key: 'score' | 'recovery' | 'trainingL
   return { x, y };
 }
 
-export function ScoreTrendCard() {
+type Props = {
+  period: Period;
+  onPeriodChange: (p: Period) => void;
+};
+
+export function ScoreTrendCard({ period, onPeriodChange }: Props) {
   const { colors } = useTheme();
   const s = createStyles(colors);
-  const [period, setPeriod] = useState<Period>('7D');
   const data = DATA[period];
 
   return (
@@ -73,24 +70,21 @@ export function ScoreTrendCard() {
           <Text style={s.title}>One L1fe Score Trend</Text>
           <Text style={s.sub}>Demo trend · local prototype</Text>
         </View>
-        {/* Period selector */}
         <View style={s.periodRow}>
           {PERIODS.map((p) => (
             <Pressable
               key={p}
-              onPress={() => setPeriod(p)}
+              onPress={() => onPeriodChange(p)}
               style={[
                 s.periodBtn,
                 period === p && { backgroundColor: colors.accent },
               ]}
               accessibilityLabel={`Show ${p} trend`}
             >
-              <Text
-                style={[
-                  s.periodLabel,
-                  { color: period === p ? '#FFFFFF' : colors.textSubtle },
-                ]}
-              >
+              <Text style={[
+                s.periodLabel,
+                { color: period === p ? '#FFFFFF' : colors.textSubtle },
+              ]}>
                 {p}
               </Text>
             </Pressable>
@@ -100,24 +94,15 @@ export function ScoreTrendCard() {
 
       {/* SVG chart */}
       <View style={s.chartWrapper}>
-        <View
-          style={{ height: CHART_H + LABEL_H }}
-          onLayout={({ nativeEvent }) => {
-            // width is measured via onLayout for precise SVG sizing
-            // stored via ref-free approach: we use 100% and let SVG fill
-          }}
-        >
+        <View style={{ height: CHART_H }}>
           <ChartLines data={data} colors={colors} />
         </View>
-
-        {/* x-axis labels */}
         <View style={s.xLabels}>
           {data.map((d, i) => (
             <Text
               key={i}
               style={[
                 s.xLabel,
-                // align first to left, last to right, rest center
                 i === 0
                   ? { textAlign: 'left' }
                   : i === data.length - 1
@@ -147,81 +132,35 @@ export function ScoreTrendCard() {
 }
 
 function ChartLines({ data, colors }: { data: ScoreTrendDay[]; colors: ThemeColors }) {
-  // Use a fixed logical width — SVG scales via viewBox
   const W = 320;
-
   const scorePoints    = toPoints(data, 'score', W);
   const recoveryPoints = toPoints(data, 'recovery', W);
   const trainPoints    = toPoints(data, 'trainingLoad', W);
   const lastScore      = lastPoint(data, 'score', W);
 
-  // horizontal gridlines at 25 / 50 / 75
   const gridYs = [25, 50, 75].map(
     (v) => CHART_H - CHART_PAD - (v / 100) * (CHART_H - CHART_PAD * 2),
   );
 
   return (
-    <Svg
-      width="100%"
-      height={CHART_H}
-      viewBox={`0 0 ${W} ${CHART_H}`}
-      preserveAspectRatio="none"
-    >
-      {/* Grid lines */}
+    <Svg width="100%" height={CHART_H} viewBox={`0 0 ${W} ${CHART_H}`} preserveAspectRatio="none">
       {gridYs.map((y, i) => (
-        <Line
-          key={i}
-          x1={0} y1={y}
-          x2={W} y2={y}
-          stroke={colors.borderSubtle}
-          strokeWidth={0.8}
-        />
+        <Line key={i} x1={0} y1={y} x2={W} y2={y} stroke={colors.borderSubtle} strokeWidth={0.8} />
       ))}
-
-      {/* Recovery — dashed, lighter */}
       {data.length >= 2 && (
-        <Polyline
-          points={recoveryPoints}
-          fill="none"
-          stroke={colors.positive}
-          strokeWidth={1.5}
-          strokeOpacity={0.55}
-          strokeDasharray="4 3"
-        />
+        <Polyline points={recoveryPoints} fill="none" stroke={colors.positive}
+          strokeWidth={1.5} strokeOpacity={0.55} strokeDasharray="4 3" />
       )}
-
-      {/* Training Load — dashed, lighter */}
       {data.length >= 2 && (
-        <Polyline
-          points={trainPoints}
-          fill="none"
-          stroke={colors.warning}
-          strokeWidth={1.5}
-          strokeOpacity={0.55}
-          strokeDasharray="4 3"
-        />
+        <Polyline points={trainPoints} fill="none" stroke={colors.warning}
+          strokeWidth={1.5} strokeOpacity={0.55} strokeDasharray="4 3" />
       )}
-
-      {/* Score — primary solid */}
       {data.length >= 2 && (
-        <Polyline
-          points={scorePoints}
-          fill="none"
-          stroke={colors.accent}
-          strokeWidth={2.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <Polyline points={scorePoints} fill="none" stroke={colors.accent}
+          strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
       )}
-
-      {/* Dot on latest score value */}
       {lastScore && (
-        <Circle
-          cx={lastScore.x}
-          cy={lastScore.y}
-          r={DOT_R}
-          fill={colors.accent}
-        />
+        <Circle cx={lastScore.x} cy={lastScore.y} r={DOT_R} fill={colors.accent} />
       )}
     </Svg>
   );
@@ -271,10 +210,7 @@ function createStyles(colors: ThemeColors) {
       fontSize: typography.micro,
       lineHeight: lineHeights.caption,
     },
-    periodRow: {
-      flexDirection: 'row',
-      gap: 4,
-    },
+    periodRow: { flexDirection: 'row', gap: 4 },
     periodBtn: {
       borderRadius: radius.pill,
       paddingHorizontal: 8,
@@ -287,10 +223,7 @@ function createStyles(colors: ThemeColors) {
       letterSpacing: 0.2,
     },
     chartWrapper: { gap: 2 },
-    xLabels: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-    },
+    xLabels: { flexDirection: 'row', justifyContent: 'space-between' },
     xLabel: {
       flex: 1,
       color: colors.textSubtle,

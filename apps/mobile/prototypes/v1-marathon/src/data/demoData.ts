@@ -33,25 +33,77 @@ export type ReadinessSegment = {
 
 export type NextAction = {
   id: string;
-  iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';  // resolved to icon in component
+  iconKey: 'moon' | 'speedometer' | 'sync' | 'flask';
   title: string;
-  sourceChip: string;   // data source label
-  reason: string;       // 1 line, no medical advice
-  impact: string;       // tag label
+  sourceChip: string;
+  reason: string;
+  impact: string;
   impactKey: 'recovery' | 'training' | 'data';
 };
 
 export type ActivityDay = {
-  day: string;    // short label e.g. 'Mon'
-  value: number;  // 0-100 normalised for bar height
+  day: string;
+  value: number;
 };
 
 /** One day of score trend — three parallel lines */
 export type ScoreTrendDay = {
-  label: string;   // x-axis label
-  score: number;   // One L1fe Score 0-100
+  label: string;
+  score: number;
   recovery: number;
   trainingLoad: number;
+};
+
+/**
+ * Period delta — point change vs previous comparable period.
+ * null = no comparable data available for that metric in this period.
+ * Biomarkers delta is only non-null when panel comparison is available.
+ */
+export type PeriodDelta = {
+  score: number | null;
+  recovery: number | null;
+  trainingLoad: number | null;
+  biomarkers: number | null;
+  dataCoverage: number | null;
+};
+
+export type Period = '7D' | '30D' | '90D' | 'Max';
+
+/**
+ * Demo deltas — illustrative only.
+ * Values are point differences (not percentages).
+ * Positive = higher than previous comparable period.
+ * Biomarkers null for Max (no prior panel context beyond available demo data).
+ */
+export const scoreDeltas: Record<Period, PeriodDelta> = {
+  '7D': {
+    score:        +3,
+    recovery:     +2,
+    trainingLoad: -1,
+    biomarkers:    0,
+    dataCoverage: +1,
+  },
+  '30D': {
+    score:        -2,
+    recovery:     -3,
+    trainingLoad: +4,
+    biomarkers:   null, // only one panel in this window
+    dataCoverage: +5,
+  },
+  '90D': {
+    score:        +5,
+    recovery:     +6,
+    trainingLoad: -2,
+    biomarkers:   +3, // 2023 vs 2025 comparison available
+    dataCoverage: +8,
+  },
+  'Max': {
+    score:        +8,
+    recovery:     +7,
+    trainingLoad: +3,
+    biomarkers:   null, // no prior baseline beyond demo
+    dataCoverage: null,
+  },
 };
 
 export type CoachingStep = {
@@ -92,17 +144,17 @@ export type TodaySignal = {
 };
 
 export const todaySignals: TodaySignal[] = [
-  { label: 'Recovery',       value: '68%', status: 'warn' },
-  { label: 'Training Load',  value: '74%', status: 'ok'   },
-  { label: 'Biomarkers',     value: '61%', status: 'warn' },
-  { label: 'Data coverage',  value: '72%', status: 'muted'},
+  { label: 'Recovery',      value: '68%', status: 'warn'  },
+  { label: 'Training Load', value: '74%', status: 'ok'    },
+  { label: 'Biomarkers',    value: '61%', status: 'warn'  },
+  { label: 'Data coverage', value: '72%', status: 'muted' },
 ];
 
 // --- Readiness segments (3 only) ----------------------------------------
 export const readinessSegments: ReadinessSegment[] = [
-  { label: 'Recovery', value: 68 },
+  { label: 'Recovery',      value: 68 },
   { label: 'Training load', value: 74 },
-  { label: 'Biomarkers', value: 61 },
+  { label: 'Biomarkers',    value: 61 },
 ];
 
 export const dataCoveragePercent = 72;
@@ -139,7 +191,6 @@ export const nextActions: NextAction[] = [
 ];
 
 // --- Score trend demo data ----------------------------------------------
-// 7D
 export const scoreTrend7D: ScoreTrendDay[] = [
   { label: 'Mon', score: 70, recovery: 72, trainingLoad: 68 },
   { label: 'Tue', score: 66, recovery: 64, trainingLoad: 76 },
@@ -150,22 +201,19 @@ export const scoreTrend7D: ScoreTrendDay[] = [
   { label: 'Sun', score: 68, recovery: 68, trainingLoad: 74 },
 ];
 
-// 30D (weekly buckets, 4 weeks)
 export const scoreTrend30D: ScoreTrendDay[] = [
-  { label: 'W1',  score: 74, recovery: 76, trainingLoad: 68 },
-  { label: 'W2',  score: 69, recovery: 67, trainingLoad: 74 },
-  { label: 'W3',  score: 63, recovery: 61, trainingLoad: 79 },
-  { label: 'W4',  score: 68, recovery: 68, trainingLoad: 74 },
+  { label: 'W1', score: 74, recovery: 76, trainingLoad: 68 },
+  { label: 'W2', score: 69, recovery: 67, trainingLoad: 74 },
+  { label: 'W3', score: 63, recovery: 61, trainingLoad: 79 },
+  { label: 'W4', score: 68, recovery: 68, trainingLoad: 74 },
 ];
 
-// 90D (monthly buckets, 3 months)
 export const scoreTrend90D: ScoreTrendDay[] = [
   { label: 'Feb', score: 72, recovery: 74, trainingLoad: 66 },
   { label: 'Mar', score: 67, recovery: 65, trainingLoad: 75 },
   { label: 'Apr', score: 68, recovery: 68, trainingLoad: 74 },
 ];
 
-// Max (6 months)
 export const scoreTrendMax: ScoreTrendDay[] = [
   { label: 'Nov', score: 65, recovery: 66, trainingLoad: 62 },
   { label: 'Dec', score: 60, recovery: 58, trainingLoad: 68 },
@@ -194,14 +242,12 @@ export const bloodPanels: BloodPanel[] = [
 
 export const bloodPanelCount = bloodPanels.length;
 
-// Legacy — kept for potential detail view use, not shown on home
 export const bloodMarkers: BloodMarker[] = [
   { label: 'ApoB',      value: '78',  unit: 'mg/dL', status: 'needs_attention', dateLabel: '2025', panelNote: 'Only 2025 data available', isDemo: true },
   { label: 'hsCRP',     value: '1.2', unit: 'mg/L',  status: 'available',       dateLabel: '2025', panelNote: 'Only 2025 data available', isDemo: true },
   { label: 'Vitamin D', value: '36',  unit: 'ng/mL', status: 'needs_attention', dateLabel: '2025', panelNote: 'Only 2025 data available', isDemo: true },
 ];
 
-// --- Coaching (kept for legacy reference, not rendered on Home) ---------
 export const coachingSteps: CoachingStep[] = [
   {
     title: 'Keep the next session controlled',
@@ -220,7 +266,6 @@ export const coachingSteps: CoachingStep[] = [
   },
 ];
 
-// --- Connected sources --------------------------------------------------
 export const connectedSources: ConnectedSource[] = [
   {
     id: 'garmin',
@@ -248,7 +293,6 @@ export const connectedSources: ConnectedSource[] = [
   },
 ];
 
-// --- Profile fields -----------------------------------------------------
 export const profileFields: ProfileField[] = [
   { key: 'name',       label: 'Name',           value: 'Markus Sommer',         source: 'manual', editable: true },
   { key: 'age',        label: 'Age',            value: '34',                    source: 'manual', editable: true },
