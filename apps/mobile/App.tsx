@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { OneL1feV2Screen } from './prototypes/v2/src/OneL1feV2Screen';
+import { V2AuthGate } from './prototypes/v2/src/auth/V2AuthGate';
 
 /**
  * Root app surface.
@@ -12,7 +12,7 @@ export default function App(): React.JSX.Element {
   return (
     <>
       <StatusBar style="auto" />
-      <OneL1feV2Screen />
+      <V2AuthGate />
     </>
   );
 }
