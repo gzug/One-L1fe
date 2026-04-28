@@ -20,7 +20,7 @@ export function V2AuthGate() {
 
   useEffect(() => {
     let mounted = true;
-    let client: SupabaseClient | null = null;
+    let client: SupabaseClient;
 
     try {
       client = getMobileSupabaseClient();
@@ -35,23 +35,24 @@ export function V2AuthGate() {
     }
 
     async function applySession(nextSession: Session | null) {
-      if (!mounted || !client) return;
+      if (!mounted) return;
 
       if (!nextSession) {
         setState({ kind: 'signed-out' });
         return;
       }
 
+      const activeClient = client;
       setState((current) => {
         if (current.kind === 'signed-in') {
           return { ...current, session: nextSession };
         }
-        return { kind: 'signed-in', client, session: nextSession, identity: null };
+        return { kind: 'signed-in', client: activeClient, session: nextSession, identity: null };
       });
 
-      const identity = await loadSignedInIdentity(client, nextSession);
+      const identity = await loadSignedInIdentity(activeClient, nextSession);
       if (mounted) {
-        setState({ kind: 'signed-in', client, session: nextSession, identity });
+        setState({ kind: 'signed-in', client: activeClient, session: nextSession, identity });
       }
     }
 
