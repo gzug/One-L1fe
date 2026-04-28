@@ -14,11 +14,11 @@ scope: repo
 
 - Stable branch: `main`.
 - Active mobile app: **One L1fe v2 prototype**.
-- UI identity: `One L1fe` with a small, low-emphasis `v2` label. Do not show Marathon in the product header.
-- Canonical app entry: `apps/mobile/App.tsx -> apps/mobile/prototypes/v1-marathon/src/PrototypeV1MarathonScreen.tsx`.
-- Note: the folder/component path still says `v1-marathon`; this is historical technical naming, not current UI/product framing.
+- Canonical app entry: `apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx`.
+- `apps/mobile/prototypes/v1-marathon/` remains as the previous Marathon-focused snapshot.
+- v2 has its own root, header, copy, and README.
+- v2 may temporarily import unchanged components from `v1-marathon`; fork a component into `v2/` before changing v2-specific behavior.
 - Previous authenticated minimum-slice/full-app shell: historical, not active root path.
-- No `.env.local` prototype gate is required.
 - App config source: `apps/mobile/app.json`.
 - Current Expo version: `0.2.2`; Android `versionCode: 4`; Android `minSdkVersion: 26`.
 - Native Android project exists and Health Connect is integrated. Keep using this native/prebuild path for Android-only native features.
@@ -35,17 +35,18 @@ npx expo start --clear
 
 ## Completed
 
-- Marathon-labelled prototype promoted into a broader One L1fe v2 prototype.
-- Header copy now removes Marathon and shows subtle `v2`.
-- `apps/mobile/README.md` updated to match active root path.
-- `.gitignore` now ignores local env files.
-- Demo modal copy states local edits may be stored on-device.
-- Release APK guidance remains: use release build and verify bundled JS.
+- v1 Marathon restored as prior snapshot identity.
+- v2 workspace created under `apps/mobile/prototypes/v2/`.
+- Root app now routes to `OneL1feV2Screen`.
+- v2 header shows `One L1fe` with subtle `v2`.
+- v2 README defines live-private-use buildout direction.
 
 ## Working rules
 
 - Keep `One L1fe` as canonical app name.
 - Keep `v2` visually secondary to the app name.
+- Keep v1 Marathon stable unless explicitly fixing that snapshot.
+- Fork v1 components into v2 before changing v2-specific behavior.
 - Keep demo data labelled.
 - Keep Health Connect claims display-only unless ingest is implemented.
 - Keep product framing bounded: no diagnosis, treatment, emergency triage, or clinical-risk-score claim.
@@ -54,9 +55,10 @@ npx expo start --clear
 
 ## Current blockers
 
+- Typecheck not run after v2 path creation.
+- Device QA not yet run for v2.
 - Full-app shell files have not yet been reference-audited for safe deletion.
 - Native Android version values drift from `app.json` unless regenerated/accepted intentionally.
-- Device QA not yet run for the v2 header/state.
 
 ## Next steps
 
@@ -65,4 +67,4 @@ npx expo start --clear
 3. Local APK fallback: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
 4. APK check: `unzip -l apps/mobile/android/app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
 5. Device QA on Android.
-6. Start Scanner research/spike only after v2 device QA.
+6. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.

@@ -1,25 +1,17 @@
 /**
- * AppHeader
+ * AppHeaderV2
  *
- * Header for the prototype Home view.
- *
- * Icon strategy (P0 fix):
- * Ionicons depend on the @expo/vector-icons font being loaded at runtime.
- * On some Android builds the glyphs render as invisible boxes (font not yet
- * loaded, or PNG icon-set fallback is missing).
- * Header icons are replaced with primitive SVG shapes via react-native-svg —
- * the same approach used in CoachingCard. Icons render reliably in both
- * Light and Dark mode and never depend on font loading.
- *
- * Hit targets stay 36x36 with hitSlop=10 → real ~56x56 tappable area.
+ * Dedicated v2 header. Keeps One L1fe as the primary mark and renders `v2`
+ * as a small, low-emphasis marker.
  */
 import React from 'react';
 import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, spacing, typography } from '../theme/marathonTheme';
+import { prototypeCopy } from '../data/copy';
 
-type AppHeaderProps = {
+type AppHeaderV2Props = {
   onProfilePress: () => void;
   onDemoInfoPress: () => void;
 };
@@ -82,7 +74,7 @@ function IconProfile({ color }: { color: string }) {
   );
 }
 
-export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
+export function AppHeaderV2({ onProfilePress, onDemoInfoPress }: AppHeaderV2Props) {
   const { colors, isDark, toggle } = useTheme();
   const iconColor = colors.text;
 
@@ -97,9 +89,9 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
       ]}
     >
       <View style={styles.inner}>
-        <View style={styles.brand}>
-          <Text style={[styles.brandName, { color: colors.text }]}>One L1fe</Text>
-          <Text style={[styles.brandSub, { color: colors.accent }]}>V1 — Marathon</Text>
+        <View style={styles.brandRow}>
+          <Text style={[styles.brandName, { color: colors.text }]}>{prototypeCopy.appName}</Text>
+          <Text style={[styles.brandSub, { color: colors.textSubtle }]}>{prototypeCopy.prototypeSub}</Text>
         </View>
 
         <View style={styles.controls}>
@@ -150,7 +142,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brand: { gap: 1 },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+  },
   brandName: {
     fontSize: typography.heroName,
     fontWeight: '700',
@@ -158,10 +154,12 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   brandSub: {
-    fontSize: typography.heroSub,
+    fontSize: typography.caption,
     fontWeight: '500',
-    letterSpacing: 0.3,
+    letterSpacing: 0.8,
     lineHeight: 16,
+    opacity: 0.42,
+    textTransform: 'lowercase',
   },
   controls: {
     flexDirection: 'row',

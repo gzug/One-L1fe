@@ -1,19 +1,18 @@
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import { PrototypeV1MarathonScreen } from './prototypes/v1-marathon/src/PrototypeV1MarathonScreen';
+import { OneL1feV2Screen } from './prototypes/v2/src/OneL1feV2Screen';
 
 /**
  * Root app surface.
  *
- * Prototype V1 - Marathon is now the canonical mobile app entry.
- * The previous authenticated minimum-slice shell is intentionally removed from
- * the active path so APK builds are predictable and login-free.
+ * One L1fe v2 is now the active mobile app entry for live private use.
+ * The previous `v1-marathon` prototype remains in the repo as a snapshot.
  */
 export default function App(): React.JSX.Element {
   return (
     <>
       <StatusBar style="auto" />
-      <PrototypeV1MarathonScreen />
+      <OneL1feV2Screen />
     </>
   );
 }

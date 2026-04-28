@@ -1,7 +1,7 @@
 export const prototypeCopy = {
   // Identity
   appName: 'One L1fe',
-  prototypeSub: 'V1 — Marathon',
+  prototypeSub: 'v2',
 
   // Demo info modal
   demoInfoTitle: 'Demo data',
@@ -9,7 +9,7 @@ export const prototypeCopy = {
     'Preset values are illustrative demo data. Local edits may be stored on this device. Real-source connections are active development work.',
   demoInfoDismiss: 'Got it',
   demoInfoConnectCta: 'Connect a source →',
-  demoInfoConnectHelper: 'Manage Garmin, Health Connect, and Blood Panels from Profile.',
+  demoInfoConnectHelper: 'Manage Health Connect, wearable data, and Blood Panels from Profile.',
 
   // Status labels
   available: 'Available',
@@ -20,7 +20,7 @@ export const prototypeCopy = {
   // Score card
   readinessInterpretation: 'One L1fe Score',
   readinessInterpretationSub:
-    'Recovery is softer than recent load. Use as planning context, not medical advice.',
+    'Use as planning context, not medical advice. Real-data scoring is not active yet.',
   readinessScoreLabel: 'Score',
   dataCoverageLabel: 'Data coverage',
 
@@ -45,7 +45,7 @@ export const prototypeCopy = {
   bloodPanelsViewCta: 'View blood panels',
   bloodPanelsUploadPdf: 'Upload PDF',
   bloodPanelsUploadPhoto: 'Upload photo',
-  bloodPanelsProtoNote: 'Upload not active in prototype',
+  bloodPanelsProtoNote: 'Upload not active yet',
 
   // Notes
   notesPlaceholder: 'Add a thought, observation, or question…',
@@ -56,5 +56,5 @@ export const prototypeCopy = {
 
   // Safety
   safetyNote:
-    'This prototype organises training and health context. It does not diagnose, treat, or replace professional care.',
+    'One L1fe organises training and health context. It does not diagnose, treat, or replace professional care.',
 } as const;
