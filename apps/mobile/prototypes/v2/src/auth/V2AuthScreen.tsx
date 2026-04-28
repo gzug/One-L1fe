@@ -191,13 +191,13 @@ export function V2AuthScreen({ configError = null }: V2AuthScreenProps) {
                 <Field label="First name" value={registerFields.firstName} onChangeText={(value) => updateRegisterField('firstName', value)} autoCapitalize="words" />
                 <Field label="Last name" value={registerFields.lastName} onChangeText={(value) => updateRegisterField('lastName', value)} autoCapitalize="words" />
                 <Field label="Email" value={registerFields.email} onChangeText={(value) => updateRegisterField('email', value)} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-                <Field label="Password" value={registerFields.password} onChangeText={(value) => updateRegisterField('password', value)} secureTextEntry autoCapitalize="none" autoComplete="password-new" />
-                <Field label="Repeat password" value={registerFields.repeatPassword} onChangeText={(value) => updateRegisterField('repeatPassword', value)} secureTextEntry autoCapitalize="none" autoComplete="password-new" />
+                <Field label="Password" value={registerFields.password} onChangeText={(value) => updateRegisterField('password', value)} secureTextEntry autoCapitalize="none" autoComplete="new-password" />
+                <Field label="Repeat password" value={registerFields.repeatPassword} onChangeText={(value) => updateRegisterField('repeatPassword', value)} secureTextEntry autoCapitalize="none" autoComplete="new-password" />
               </View>
             ) : (
               <View style={styles.form}>
                 <Field label="Email" value={loginEmail} onChangeText={setLoginEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
-                <Field label="Password" value={loginPassword} onChangeText={setLoginPassword} secureTextEntry autoCapitalize="none" autoComplete="password" />
+                <Field label="Password" value={loginPassword} onChangeText={setLoginPassword} secureTextEntry autoCapitalize="none" autoComplete="current-password" />
               </View>
             )}
 
