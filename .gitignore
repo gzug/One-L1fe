@@ -1,2 +1,10 @@
 node_modules/
 dist/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+apps/mobile/.env
+apps/mobile/.env.*
+!apps/mobile/.env.example
