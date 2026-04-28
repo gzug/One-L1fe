@@ -18,6 +18,7 @@ import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-na
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, spacing, typography } from '../theme/marathonTheme';
+import { prototypeCopy } from '../data/copy';
 
 type AppHeaderProps = {
   onProfilePress: () => void;
@@ -97,9 +98,9 @@ export function AppHeader({ onProfilePress, onDemoInfoPress }: AppHeaderProps) {
       ]}
     >
       <View style={styles.inner}>
-        <View style={styles.brand}>
-          <Text style={[styles.brandName, { color: colors.text }]}>One L1fe</Text>
-          <Text style={[styles.brandSub, { color: colors.accent }]}>V1 — Marathon</Text>
+        <View style={styles.brandRow}>
+          <Text style={[styles.brandName, { color: colors.text }]}>{prototypeCopy.appName}</Text>
+          <Text style={[styles.brandSub, { color: colors.textSubtle }]}>{prototypeCopy.prototypeSub}</Text>
         </View>
 
         <View style={styles.controls}>
@@ -150,7 +151,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  brand: { gap: 1 },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+  },
   brandName: {
     fontSize: typography.heroName,
     fontWeight: '700',
@@ -158,10 +163,12 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   brandSub: {
-    fontSize: typography.heroSub,
+    fontSize: typography.caption,
     fontWeight: '500',
-    letterSpacing: 0.3,
+    letterSpacing: 0.8,
     lineHeight: 16,
+    opacity: 0.48,
+    textTransform: 'lowercase',
   },
   controls: {
     flexDirection: 'row',
