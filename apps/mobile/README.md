@@ -7,10 +7,12 @@ Expo mobile app for One L1fe.
 The active root surface is **One L1fe v2 prototype**.
 
 ```text
-App.tsx -> prototypes/v1-marathon/src/PrototypeV1MarathonScreen.tsx
+App.tsx -> prototypes/v2/src/OneL1feV2Screen.tsx
 ```
 
-The `v1-marathon` folder name is historical technical naming. The active user-facing product label is `One L1fe` with a small, low-emphasis `v2` marker. Do not show Marathon in the app header.
+`apps/mobile/prototypes/v1-marathon/` remains as the previous Marathon-focused snapshot.
+
+v2 has its own root screen, header, copy, and README. Unchanged modules may temporarily import from `v1-marathon`; fork a module into `v2/` before changing v2-specific behavior.
 
 The previous authenticated minimum-slice shell is historical. Do not treat `LoginScreen.tsx`, `SessionBar.tsx`, or `MinimumSliceScreen.tsx` as the active root path unless a later PR explicitly restores that flow.
 
