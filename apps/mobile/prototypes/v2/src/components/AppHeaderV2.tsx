@@ -7,8 +7,8 @@
 import React from 'react';
 import { Platform, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { useTheme } from '../../../v1-marathon/src/theme/ThemeContext';
-import { layout, spacing, typography } from '../../../v1-marathon/src/theme/marathonTheme';
+import { useTheme } from '../theme/ThemeContext';
+import { layout, spacing, typography } from '../theme/marathonTheme';
 import { prototypeCopy } from '../data/copy';
 
 type AppHeaderV2Props = {
