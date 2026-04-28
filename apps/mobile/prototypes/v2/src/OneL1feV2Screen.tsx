@@ -27,21 +27,27 @@ import { checkHealthConnect } from '../../v1-marathon/src/data/healthConnect';
 import type { HealthConnectStatus } from '../../v1-marathon/src/data/healthConnect';
 import { nextActions } from '../../v1-marathon/src/data/demoData';
 import type { Period } from '../../v1-marathon/src/data/demoData';
+import type { V2SignedInIdentity } from './auth/types';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
 
-export function OneL1feV2Screen() {
+type OneL1feV2ScreenProps = {
+  identity?: V2SignedInIdentity | null;
+  onSignOut?: () => void;
+};
+
+export function OneL1feV2Screen({ identity = null, onSignOut }: OneL1feV2ScreenProps) {
   return (
     <ThemeProvider>
-      <V2Shell />
+      <V2Shell identity={identity} onSignOut={onSignOut} />
     </ThemeProvider>
   );
 }
 
 type ActiveView = 'home' | 'profile' | 'blood';
 
-function V2Shell() {
+function V2Shell({ identity, onSignOut }: OneL1feV2ScreenProps) {
   const { colors } = useTheme();
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
@@ -70,10 +76,12 @@ function V2Shell() {
           />
         ) : (
           <HomeView
+            identity={identity}
             onProfilePress={() => setActiveView('profile')}
             onDemoInfoPress={() => setDemoInfoVisible(true)}
             onViewBloodPanels={() => setActiveView('blood')}
             onManageSources={() => setActiveView('profile')}
+            onSignOut={onSignOut}
           />
         )}
       </SafeAreaView>
@@ -94,14 +102,14 @@ function V2Shell() {
                 ]}
               >
                 <Text style={[demoOverlay.infoGlyph, { color: colors.accent }]}>i</Text>
-                <Text style={[demoOverlay.title, { color: colors.text }]}>
+                <Text style={[demoOverlay.title, { color: colors.text }]}> 
                   {prototypeCopy.demoInfoTitle}
                 </Text>
-                <Text style={[demoOverlay.body, { color: colors.textMuted }]}>
+                <Text style={[demoOverlay.body, { color: colors.textMuted }]}> 
                   {prototypeCopy.demoInfoBody}
                 </Text>
                 <View style={[demoOverlay.divider, { backgroundColor: colors.borderSubtle }]} />
-                <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}>
+                <Text style={[demoOverlay.helperText, { color: colors.textSubtle }]}> 
                   {prototypeCopy.demoInfoConnectHelper}
                 </Text>
                 <Pressable
@@ -113,7 +121,7 @@ function V2Shell() {
                   accessibilityLabel="Connect a source"
                 >
                   <Text style={[demoOverlay.connectIcon, { color: colors.accent }]}>↗</Text>
-                  <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>
+                  <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}> 
                     {prototypeCopy.demoInfoConnectCta}
                   </Text>
                 </Pressable>
@@ -121,7 +129,7 @@ function V2Shell() {
                   onPress={() => setDemoInfoVisible(false)}
                   style={demoOverlay.dismissBtn}
                 >
-                  <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}>
+                  <Text style={[demoOverlay.dismissText, { color: colors.textSubtle }]}> 
                     {prototypeCopy.demoInfoDismiss}
                   </Text>
                 </Pressable>
@@ -135,15 +143,19 @@ function V2Shell() {
 }
 
 function HomeView({
+  identity,
   onProfilePress,
   onDemoInfoPress,
   onViewBloodPanels,
   onManageSources,
+  onSignOut,
 }: {
+  identity: V2SignedInIdentity | null | undefined;
   onProfilePress: () => void;
   onDemoInfoPress: () => void;
   onViewBloodPanels: () => void;
   onManageSources: () => void;
+  onSignOut?: () => void;
 }) {
   const { colors } = useTheme();
   const s = createHomeStyles(colors);
@@ -161,7 +173,12 @@ function HomeView({
 
   return (
     <>
-      <AppHeaderV2 onProfilePress={onProfilePress} onDemoInfoPress={onDemoInfoPress} />
+      <AppHeaderV2
+        identity={identity}
+        onProfilePress={onProfilePress}
+        onDemoInfoPress={onDemoInfoPress}
+        onSignOut={onSignOut}
+      />
 
       <ScrollView
         contentContainerStyle={s.scroll}
