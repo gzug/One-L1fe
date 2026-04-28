@@ -10,24 +10,23 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { useWebBackground } from './theme/useWebBackground';
 import { AppHeaderV2 } from './components/AppHeaderV2';
-import { BloodContextCard } from './components/BloodContextCard';
-import { CoachingCard } from './components/CoachingCard';
-import { IdeasNotesCard } from './components/IdeasNotesCard';
-import { ProfileScreen } from './components/ProfileScreen';
-import { BloodResultsScreen } from './screens/BloodResultsScreen';
-import { ReadinessOrbit } from './components/ReadinessOrbit';
-import { ScoreTrendCard } from './components/ScoreTrendCard';
-import { TodaySignalsRow } from './components/TodaySignalsRow';
-import { WearableSourcesCard } from './components/WearableSourcesCard';
-import { HealthConnectLiveCard } from './components/HealthConnectLiveCard';
-import { checkHealthConnect } from './data/healthConnect';
-import type { HealthConnectStatus } from './data/healthConnect';
-import { nextActions } from './data/demoData';
-import type { Period } from './data/demoData';
+import { BloodContextCard } from '../../v1-marathon/src/components/BloodContextCard';
+import { CoachingCard } from '../../v1-marathon/src/components/CoachingCard';
+import { IdeasNotesCard } from '../../v1-marathon/src/components/IdeasNotesCard';
+import { ProfileScreen } from '../../v1-marathon/src/components/ProfileScreen';
+import { BloodResultsScreen } from '../../v1-marathon/src/screens/BloodResultsScreen';
+import { ReadinessOrbit } from '../../v1-marathon/src/components/ReadinessOrbit';
+import { ScoreTrendCard } from '../../v1-marathon/src/components/ScoreTrendCard';
+import { TodaySignalsRow } from '../../v1-marathon/src/components/TodaySignalsRow';
+import { WearableSourcesCard } from '../../v1-marathon/src/components/WearableSourcesCard';
+import { HealthConnectLiveCard } from '../../v1-marathon/src/components/HealthConnectLiveCard';
+import { checkHealthConnect } from '../../v1-marathon/src/data/healthConnect';
+import type { HealthConnectStatus } from '../../v1-marathon/src/data/healthConnect';
+import { nextActions } from '../../v1-marathon/src/data/demoData';
+import type { Period } from '../../v1-marathon/src/data/demoData';
 import { prototypeCopy } from './data/copy';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 import type { ThemeColors } from './theme/marathonTheme';
@@ -94,12 +93,7 @@ function V2Shell() {
                   { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
                 ]}
               >
-                <Ionicons
-                  name="information-circle"
-                  size={24}
-                  color={colors.accent}
-                  style={{ alignSelf: 'center' }}
-                />
+                <Text style={[demoOverlay.infoGlyph, { color: colors.accent }]}>i</Text>
                 <Text style={[demoOverlay.title, { color: colors.text }]}>
                   {prototypeCopy.demoInfoTitle}
                 </Text>
@@ -118,7 +112,7 @@ function V2Shell() {
                   ]}
                   accessibilityLabel="Connect a source"
                 >
-                  <Ionicons name="link-outline" size={14} color={colors.accent} />
+                  <Text style={[demoOverlay.connectIcon, { color: colors.accent }]}>↗</Text>
                   <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>
                     {prototypeCopy.demoInfoConnectCta}
                   </Text>
@@ -155,7 +149,7 @@ function HomeView({
   const s = createHomeStyles(colors);
 
   const [period, setPeriod]     = useState<Period>('7D');
-  const [hcStatus, setHcStatus] = useState<HealthConnectStatus>('error');
+  const [hcStatus, setHcStatus] = useState<HealthConnectStatus>('unavailable');
 
   useEffect(() => {
     let cancelled = false;
@@ -265,6 +259,11 @@ const demoOverlay = StyleSheet.create({
     padding: spacing.xl,
     gap: spacing.sm,
   },
+  infoGlyph: {
+    alignSelf: 'center',
+    fontSize: typography.subtitle,
+    fontWeight: '800',
+  },
   title: {
     fontSize: typography.subtitle,
     fontWeight: '700',
@@ -292,6 +291,10 @@ const demoOverlay = StyleSheet.create({
     borderRadius: radius.pill,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
+  },
+  connectIcon: {
+    fontSize: typography.bodySmall,
+    fontWeight: '800',
   },
   connectBtnText: {
     fontSize: typography.bodySmall,
