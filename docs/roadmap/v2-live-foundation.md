@@ -17,7 +17,8 @@ This means authenticated, user-scoped storage for real app data. It does not mea
 - Registration requires first name, last name, email, password, and repeated password.
 - Passwords must match before calling Supabase. Never store the password locally.
 - On successful registration, first name, last name, and email must be written into the user profile.
-- No welcome email or email-confirmation dependency for v2 unless enabled later in Supabase.
+- Welcome email is allowed after successful registration, but it must not block signup, login, or app access.
+- No required email-confirmation link for v2 unless explicitly enabled later in Supabase.
 - Respect RLS. User-owned rows must stay scoped to `auth.uid()`.
 - RLS verification is a required gate before profile, notes, or blood persistence are considered live-ready.
 - Imported, uploaded, or scanned blood values must be reviewed by the user before storage or scoring.
@@ -42,6 +43,7 @@ This means authenticated, user-scoped storage for real app data. It does not mea
 | Health Connect | foreground display-only | Keep display-only; no Supabase ingest yet |
 | Upload/photo/scan | UI buttons only | Later: upload storage + extraction + review screen |
 | Auth | historical shell exists | Add v2 email/password login + registration gate |
+| Welcome email | not implemented | Optional post-signup email; no login dependency |
 
 ## Hard parts
 
@@ -69,7 +71,8 @@ This means authenticated, user-scoped storage for real app data. It does not mea
 - Validate required fields and matching passwords before Supabase signup.
 - On successful signup, create/update the authenticated profile with first name, last name, and email.
 - Reuse `getMobileSupabaseClient()` rather than creating a second Supabase client.
-- Do not add Magic Link, welcome email, or required email-confirmation logic in this slice.
+- Do not add Magic Link or required email-confirmation logic in this slice.
+- Welcome email may be added after signup, but must remain non-blocking and optional.
 
 ### Phase 2 — Supabase-backed profile and notes
 
@@ -109,6 +112,7 @@ This means authenticated, user-scoped storage for real app data. It does not mea
 - Profile persists in Supabase.
 - Notes persist in Supabase or documented user-scoped fallback.
 - Manual blood panel can be created, reviewed, saved, and reloaded.
+- Optional welcome email, if implemented, sends after registration and does not block app access.
 - No real-data score recomputation unless explicitly implemented and validated.
 - Typecheck passes.
 - Android device QA passes.
