@@ -25,15 +25,16 @@ Durable operating memory for **One L1fe (OL)**.
 
 ## Active mobile posture
 
-- Active mobile root: `apps/mobile/App.tsx -> apps/mobile/prototypes/v1-marathon/src/PrototypeV1MarathonScreen.tsx`.
+- Active mobile root: `apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx`.
 - Active app label: `One L1fe` with a small, low-emphasis `v2` marker.
-- Do not show Marathon in the product header or active user-facing label.
-- The `v1-marathon` folder/component naming is historical technical naming only.
+- `apps/mobile/prototypes/v1-marathon/` is the previous Marathon-focused snapshot.
+- v2 has its own root, header, copy, and README.
+- v2 may temporarily import unchanged components from `v1-marathon`; fork a component into `v2/` before changing v2-specific behavior.
 - Previous authenticated minimum-slice/full-app shell is historical, not active root path.
 - Historical auth/backend mobile files may be reused later: `LoginScreen.tsx`, `SessionBar.tsx`, `mobileSupabaseAuth.ts`, `minimumSliceScreenController.ts`, `minimumSliceScreenModel.ts`, `minimumSliceHostedConfig.ts`.
 - Do not delete historical mobile auth/backend files without import/reference audit.
 - No `.env.local` prototype gate is required.
-- Health Connect in the v2 prototype is foreground display-only: no background sync, no Supabase write, no score recomputation.
+- Health Connect in v2 is foreground display-only until ingest/scoring is explicitly implemented: no background sync, no Supabase write, no score recomputation.
 - Native Android project exists; keep using the current prebuild/native path for Android-only native features.
 
 ## Architecture posture
