@@ -2,22 +2,14 @@ import {
   ConfigPlugin,
   withAndroidManifest,
   withMainActivity,
-  AndroidConfig,
 } from '@expo/config-plugins';
 
 const HC_PERMISSIONS = [
   'android.permission.health.READ_STEPS',
-  'android.permission.health.READ_HEART_RATE',
   'android.permission.health.READ_SLEEP',
   'android.permission.health.READ_ACTIVE_CALORIES_BURNED',
-  'android.permission.health.READ_EXERCISE',
-  'android.permission.health.READ_WEIGHT',
   'android.permission.health.READ_RESTING_HEART_RATE',
   'android.permission.health.READ_HEART_RATE_VARIABILITY',
-  'android.permission.health.READ_VO2_MAX',
-  'android.permission.health.READ_BODY_FAT',
-  'android.permission.health.READ_OXYGEN_SATURATION',
-  'android.permission.health.READ_BLOOD_PRESSURE',
   'android.permission.health.READ_DISTANCE',
 ];
 
@@ -27,7 +19,6 @@ const withHealthConnectManifest: ConfigPlugin = (config) =>
     const mainApplication = manifest.manifest.application?.[0];
     if (!mainApplication) return mod;
 
-    // 1. Add <queries> block for HC availability detection
     if (!manifest.manifest.queries) {
       manifest.manifest.queries = [];
     }
@@ -37,7 +28,6 @@ const withHealthConnectManifest: ConfigPlugin = (config) =>
       queries.package.push({ $: { 'android:name': 'com.google.android.apps.healthdata' } });
     }
 
-    // 2. Add HC read permissions
     if (!manifest.manifest['uses-permission']) {
       manifest.manifest['uses-permission'] = [];
     }
@@ -50,9 +40,6 @@ const withHealthConnectManifest: ConfigPlugin = (config) =>
       }
     }
 
-    // 3. Add activity-alias for HC rationale intent filter
-    // Cast to any: activity-alias is valid in AndroidManifest XML but not in
-    // Expo's ManifestApplication type definition.
     const app = mainApplication as any;
     if (!app['activity-alias']) {
       app['activity-alias'] = [];
@@ -80,20 +67,14 @@ const withHealthConnectManifest: ConfigPlugin = (config) =>
     return mod;
   });
 
-/**
- * Adds HealthConnectPermissionDelegate.setPermissionDelegate(this) to MainActivity.
- * Required by react-native-health-connect >=3.x so that requestPermission() works.
- * Guard: skips if the delegate call is already present.
- */
 const withHealthConnectMainActivity: ConfigPlugin = (config) =>
   withMainActivity(config, (mod) => {
     let contents = mod.modResults.contents;
 
     if (contents.includes('HealthConnectPermissionDelegate')) {
-      return mod; // already patched
+      return mod;
     }
 
-    // Add import
     const importLine =
       'import com.healthconnect.reactnative.permission.HealthConnectPermissionDelegate';
     if (!contents.includes(importLine)) {
@@ -103,14 +84,12 @@ const withHealthConnectMainActivity: ConfigPlugin = (config) =>
       );
     }
 
-    // Inject inside the existing onCreate method, right after super.onCreate
     if (contents.includes('super.onCreate')) {
       contents = contents.replace(
         /super\.onCreate\((.*?)\)/,
         'super.onCreate($1)\n    HealthConnectPermissionDelegate.setPermissionDelegate(this)'
       );
     } else {
-      // Fallback if no onCreate exists (unlikely in Expo)
       const onCreate = `
   override fun onCreate(savedInstanceState: android.os.Bundle?) {
     super.onCreate(savedInstanceState)
