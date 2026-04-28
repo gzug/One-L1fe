@@ -23,6 +23,7 @@ import { ReadinessOrbit } from './components/ReadinessOrbit';
 import { ScoreTrendCard } from './components/ScoreTrendCard';
 import { TodaySignalsRow } from './components/TodaySignalsRow';
 import { WearableSourcesCard } from './components/WearableSourcesCard';
+import { HealthConnectLiveCard } from './components/HealthConnectLiveCard';
 import { checkHealthConnect } from './data/healthConnect';
 import type { HealthConnectStatus } from './data/healthConnect';
 import { nextActions } from './data/demoData';
@@ -191,6 +192,9 @@ function HomeView({
 
           {/* 4b. Wearable Data Overview */}
           <WearableSourcesCard hcStatus={hcStatus} onManageSources={onManageSources} />
+
+          {/* 4c. Live Health Connect display */}
+          <HealthConnectLiveCard />
 
           {/* 5. Recommendations */}
           <View style={s.section}>
