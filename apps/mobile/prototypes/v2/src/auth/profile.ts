@@ -43,6 +43,15 @@ export async function loadSignedInIdentity(
   session: Session,
 ): Promise<V2SignedInIdentity> {
   const authEmail = session.user.email ?? null;
+  const metadata = session.user.user_metadata as {
+    first_name?: string | null;
+    last_name?: string | null;
+    display_name?: string | null;
+  };
+  const metadataFirstName = metadata.first_name ?? null;
+  const metadataLastName = metadata.last_name ?? null;
+  const metadataDisplayName = metadata.display_name ?? makeDisplayName(metadataFirstName ?? '', metadataLastName ?? '') || null;
+
   const { data, error } = await client
     .from('profiles')
     .select('first_name,last_name,email,display_name')
@@ -53,9 +62,9 @@ export async function loadSignedInIdentity(
     return {
       userId: session.user.id,
       email: authEmail,
-      firstName: null,
-      lastName: null,
-      displayName: authEmail,
+      firstName: metadataFirstName,
+      lastName: metadataLastName,
+      displayName: metadataDisplayName ?? authEmail,
     };
   }
 
@@ -69,8 +78,8 @@ export async function loadSignedInIdentity(
   return {
     userId: session.user.id,
     email: profile?.email ?? authEmail,
-    firstName: profile?.first_name ?? null,
-    lastName: profile?.last_name ?? null,
-    displayName: profile?.display_name ?? authEmail,
+    firstName: profile?.first_name ?? metadataFirstName,
+    lastName: profile?.last_name ?? metadataLastName,
+    displayName: profile?.display_name ?? metadataDisplayName ?? authEmail,
   };
 }
