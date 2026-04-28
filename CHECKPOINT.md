@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-26
+last_verified: 2026-04-28
 supersedes: []
 superseded_by: null
 scope: repo
@@ -12,75 +12,74 @@ scope: repo
 
 ## Verdict
 
-Work continues directly on `main`.
+Work continues on `main` by default. For destructive cleanup, use a short-lived branch and merge only after validation.
 
-Active focus: **Prototype V1 - Marathon** — `apps/mobile/prototypes/v1-marathon/`
+Active mobile app: **Prototype V1 - Marathon**.
+
+Canonical app entry:
+
+```text
+apps/mobile/App.tsx -> apps/mobile/prototypes/v1-marathon/src/PrototypeV1MarathonScreen.tsx
+```
+
+The previous authenticated minimum-slice/full-app shell is no longer the active app path.
 
 ## How to run
 
 ```bash
 cd apps/mobile
-cp .env.prototype .env.local
 npx expo start --clear
 # or: npx expo run:android
 ```
 
-Remove `.env.local` to restore full app shell.
+No `.env.local` prototype gate is required for the active app path. `.env.prototype` is kept only as historical/build-context documentation until removed in a later cleanup pass.
 
 ## Current state
 
-- Branch: `main`
-- Prototype wired via `EXPO_PUBLIC_PROTOTYPE_V1_MARATHON` gate in `App.tsx`
-- Theme system: light (default) / dark, in-memory toggle
-- `@expo/vector-icons` (Ionicons) in use for all icons
-- Local typecheck not yet confirmed in CI — expected 0 errors
+- Branch: `main` is stable; cleanup work happens on `cleanup/promote-marathon-v1-main` until merged.
+- `App.tsx` renders `PrototypeV1MarathonScreen` directly.
+- Prototype files stay under `apps/mobile/prototypes/v1-marathon/`.
+- App version on `main`: `0.2.1`, Android `versionCode: 3`.
+- Health Connect layer in `main`: permission/status only; no live record import, no Supabase write, no score recomputation.
+- Latest known standalone APK fix: release APK must contain `assets/index.android.bundle`; debug APK without bundled JS caused remote red-screen failure.
 
 ## Completed
 
-### Batch A-lite — scaffold
-Source structure, component scaffold, demoData, copy, theme.
+### Prototype V1 - Marathon
 
-### Batch B — home UI polish
-ReadinessOrbit ring + segments, section headers, status color system.
+- Scaffold, demo data, copy, theme, home UI polish.
+- Light/dark theme system and profile surface.
+- Score trend card with tap/drag inspection.
+- Blood context and comparison surfaces with neutral, non-diagnostic language.
+- Connected sources card with Health Connect status handoff.
+- Health Connect native plugin: manifest permissions, Health Connect provider query, permission rationale alias, permission delegate hook.
+- Release/standalone APK path validated conceptually: use `app:assembleRelease`, not `assembleDebug`, for remote sideloading.
 
-### Batch C — wire
-`App.tsx` env-flag gate, `.env.prototype`, `AppShell` preserved.
+### Repo cleanup — in progress
 
-### Batch D — visual QA and premium mobile polish
-maxWidth container, interpretation-led ReadinessOrbit, global DemoModeBanner,
-2-col blood grid, status-tinted SignalCards, priority-tinted CoachingCards.
-
-### Batch F1 — brand header + theme system + profile
-ThemeProvider + useTheme(), light default, AppHeader with brand identity,
-ProfileScreen with 6 sections, all leaf components migrated to createStyles(colors).
-
-### Batch F2 — refine brand, theme, profile, home clarity
-- **Theme**: removed blue from all segment/data colors (warm taupe `#C4A882` replaces `#7FAFD4`); deepened dark bg to `#0E0D0B`; added `ringTrack`/`ringProgress` tokens; warm linen light palette unchanged
-- **demoData**: Markus Sommer profile; Brisbane Marathon Jun 07 2026; `connectedSources` with honest action states; `bloodPanelCount = 2`; `Data coverage` removed as bar — now inline text; `Mental load` replaces it in segments; `panelNote` per blood marker
-- **ReadinessOrbit**: real progress ring via rotation/clip technique (no SVG, no deps); data coverage as inline text note below segments
-- **AppHeader**: Ionicons `sunny-outline`/`moon-outline`/`person-circle-outline` replace Unicode glyphs
-- **ProfileScreen**: Gender (not Sex); Brisbane race; trimmed field set (13 useful fields); Edit mode toggle with `pencil-outline` per editable field; Connected sources with action buttons (`link-outline`, `settings-outline`, `cloud-upload-outline`); back chevron with `chevron-back`
-- **BloodMarkerCard**: `panelNote` shown below date; status label changed from `Needs attention` to `Review`
-- **PrototypeV1MarathonScreen**: greeting removed; panel count inline with Blood context section header; home feels like preview, not dashboard
+- Marathon prototype is being promoted to the root mobile app.
+- Full-app shell removal is intentionally staged, not broad-deleted.
+- Supabase, `packages/domain`, compliance docs, and architecture docs remain source-of-truth for the later real-data/scoring path.
 
 ## Working rules
 
-- Work on `main`.
-- Prototype files stay under `apps/mobile/prototypes/v1-marathon/`.
-- No Supabase changes for prototype UI batches.
-- Demo data stays visibly labelled.
-- Nutrition is context/planned only.
-- No medical advice, diagnosis, treatment, or risk-score framing.
-- `V1 — Marathon` and `One L1fe` are the canonical UI strings.
+- `V1 — Marathon` and `One L1fe` are canonical UI strings.
+- Demo data must stay visibly labelled where used.
+- Health Connect claims must stay honest: permission/status or display-only foreground reads unless real ingest is implemented.
+- No medical advice, diagnosis, treatment, emergency triage, or clinical-risk-score framing.
+- Do not put raw personal health data, secrets, or local build artifacts into the repo.
+- Do not commit generated `apps/mobile/android/*` changes unless intentionally accepting native project drift.
 
 ## Current blockers
 
-- Local typecheck not yet confirmed. Run: `npm --prefix apps/mobile run typecheck`
-- Progress ring rendering needs Android QA (rotation/clip may need tuning).
+- Typecheck/build not yet validated after root-app cleanup branch.
+- Full-app shell files have not yet been reference-audited for safe deletion.
+- Live Health Connect display work exists locally in the current chat flow but is not yet in this cleanup branch unless separately committed.
 
 ## Next steps
 
-1. **Local validation**: `npm --prefix apps/mobile run typecheck`
-2. **Android QA**: check progress ring, Ionicons render, light/dark toggle, Edit mode, source action buttons
-3. **Batch G — presentation prep**: prototype footer, final copy pass, screenshot/screen-record
-4. **Batch H — detail surfaces**: signal detail, blood marker history stub, coaching detail
+1. Validate cleanup branch locally: `npm --prefix apps/mobile run typecheck`.
+2. Run Android build path for standalone APK: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
+3. Check APK bundle: `unzip -l app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
+4. Audit old full-app files by import/reference before deletion.
+5. After merge, update `CONTEXT.md` with the cleanup result.
