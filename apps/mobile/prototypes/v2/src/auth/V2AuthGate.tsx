@@ -20,24 +20,22 @@ export function V2AuthGate() {
 
   useEffect(() => {
     let mounted = true;
-    let client: SupabaseClient;
+    let client: SupabaseClient | null = null;
 
     try {
       client = getMobileSupabaseClient();
     } catch (error) {
-      if (mounted) {
-        setState({
-          kind: 'config-error',
-          message: error instanceof Error ? error.message : 'Supabase client config invalid.',
-        });
-      }
+      setState({
+        kind: 'config-error',
+        message: error instanceof Error ? error.message : 'Supabase client config invalid.',
+      });
       return () => {
         mounted = false;
       };
     }
 
     async function applySession(nextSession: Session | null) {
-      if (!mounted) return;
+      if (!mounted || !client) return;
 
       if (!nextSession) {
         setState({ kind: 'signed-out' });
