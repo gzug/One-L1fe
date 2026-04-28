@@ -1,7 +1,7 @@
 export const prototypeCopy = {
   // Identity
   appName: 'One L1fe',
-  prototypeSub: 'V1 — Marathon',
+  prototypeSub: 'v2',
 
   // Demo info modal
   demoInfoTitle: 'Demo data',
