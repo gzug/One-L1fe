@@ -36,6 +36,7 @@ const V1_PERMISSIONS = [
   { accessType: 'read' as const, recordType: 'HeartRateVariabilityRmssd' as const },
   { accessType: 'read' as const, recordType: 'ExerciseSession' as const },
   { accessType: 'read' as const, recordType: 'ActiveCaloriesBurned' as const },
+  { accessType: 'read' as const, recordType: 'Distance' as const },
 ];
 
 async function loadModule() {
