@@ -6,7 +6,7 @@ export const prototypeCopy = {
   // Demo info modal
   demoInfoTitle: 'Demo data',
   demoInfoBody:
-    'All values shown are illustrative demo data. No real health data is stored or transmitted in this prototype. Connect real sources in the full product.',
+    'All values shown are illustrative demo data. No values are stored or transmitted in this prototype. Real-source connections are active development work.',
   demoInfoDismiss: 'Got it',
   demoInfoConnectCta: 'Connect a source →',
   demoInfoConnectHelper: 'Manage Garmin, Health Connect, and Blood Panels from Profile.',
