@@ -50,7 +50,8 @@ export async function loadSignedInIdentity(
   };
   const metadataFirstName = metadata.first_name ?? null;
   const metadataLastName = metadata.last_name ?? null;
-  const metadataDisplayName = metadata.display_name ?? makeDisplayName(metadataFirstName ?? '', metadataLastName ?? '') || null;
+  const derivedMetadataName = makeDisplayName(metadataFirstName ?? '', metadataLastName ?? '');
+  const metadataDisplayName = metadata.display_name ?? (derivedMetadataName || null);
 
   const { data, error } = await client
     .from('profiles')
