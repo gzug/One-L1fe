@@ -2,7 +2,7 @@
 status: current
 canonical_for: durable project assumptions
 owner: repo
-last_verified: 2026-04-28
+last_verified: 2026-05-01
 supersedes: []
 superseded_by: null
 scope: repo
@@ -94,11 +94,6 @@ Durable operating memory for **One L1fe (OL)**.
 - `docs/ops/memory-system-v2.md`: canonical memory-system rules.
 - Bigger Supabase work follows `docs/ops/supabase-agent-workflow.md`.
 - Realtime tasks must also load `docs/prompts/supabase-realtime-ai-assistant-guide.md`.
-
-## Startup rule
-
-Start with `CHECKPOINT.md`, then `CONTEXT.md`, then this file only for durable boundaries.
-Do not load `memory/` or `docs/archive/` unless directly relevant.
 
 ## Scope and distribution decisions
 
