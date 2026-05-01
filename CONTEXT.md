@@ -13,6 +13,14 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
+## 2026-05-01 — ChatGPT (agent efficiency docs cleanup)
+
+- `AGENTS.md` now carries task-type routing so agents can jump directly to the right repo path.
+- `README.md` was shortened into human/project orientation and no longer carries the deep docs index.
+- `docs/README.md` now provides compact task-to-doc routing for deeper context.
+- `CHECKPOINT.md` completed history was compacted into five recent items to avoid logbook drift.
+- Historical root audit moved to `docs/archive/audits/`; root stays focused on active truth files.
+
 ## 2026-05-01 — ChatGPT (PR hygiene, CI, and dependency closeout)
 
 - Verified active code no longer uses `MOCK_APP_INSTALL_ID` / `dev-install-001`; wearable provisioning uses real app install identity and old mock guard remains only as legacy protection.
@@ -28,11 +36,3 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - Removed stale competing truth sources, archived scratch memory, simplified closeout rules, and marked old audit material historical.
 - `MEMORY.md` startup-rule duplication was removed on `main` in follow-up commit `9eac3da`.
 - No app code changed in the truth-source cleanup.
-
-## 2026-04-28 — ChatGPT (v2 promoted as active mobile app)
-
-- `apps/mobile/App.tsx` now renders `OneL1feV2Screen` from `apps/mobile/prototypes/v2/`.
-- `CHECKPOINT.md`, `MEMORY.md`, `apps/mobile/README.md`, and `apps/mobile/prototypes/README.md` describe v2 as the active app path.
-- `apps/mobile/prototypes/v1-marathon/` remains as the previous Marathon-focused snapshot.
-- v2 has its own root, header, copy, theme helpers, and README.
-- Known blocker carried forward: Device QA still needs to run for active v2.
