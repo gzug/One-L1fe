@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
+        uses: supabase/setup-cli@v2
         with:
           version: latest
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: Lint linked Supabase project
         if: env.SUPABASE_ACCESS_TOKEN != '' && env.SUPABASE_PROJECT_REF != ''
-        run: supabase db lint --linked --fail-on error
+        run: supabase db lint --linked --schema public --fail-on error
 
       - name: Start local Supabase
         run: supabase start
