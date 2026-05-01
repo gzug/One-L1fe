@@ -35,16 +35,10 @@ npx expo start --clear
 # or: npx expo run:android
 ```
 
-## Completed
+## Recently completed
 
-- v1 Marathon restored as prior snapshot identity.
-- v2 workspace created under `apps/mobile/prototypes/v2/`.
-- Root app now routes to `OneL1feV2Screen`.
-- v2 header shows `One L1fe` with subtle `v2`.
-- v2 README defines live-private-use buildout direction.
 - Repo truth-source cleanup merged in PR #115.
 - `MEMORY.md` startup-rule duplication removed on `main`.
-- Verified wearable provisioning no longer uses the old hardcoded mock install identity in active code.
 - Root and mobile TypeScript checks passed locally on 2026-05-01.
 - Stale broad PRs #99, #101, #105, and #108 closed after preserving extraction work in issue #116.
 - PR #109 merged: `supabase/setup-cli@v2`, native Android resource hygiene exception, optional hygiene roots, and linked Supabase lint scoped to `public` schema.
