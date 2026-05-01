@@ -25,6 +25,7 @@ scope: repo
 - Generated native Android file still has historical version values; do not edit generated native files unless intentionally accepting native drift.
 - Health Connect: foreground display-only snapshot. No background sync, no Supabase write, no score recomputation.
 - Wearable provisioning now uses real app install identity via `apps/mobile/appInstallId.ts`; the old hardcoded mock identity is not active code.
+- CI is green on the latest dependency/workflow update after repo hygiene and Supabase validation fixes.
 
 ## Run
 
@@ -41,8 +42,12 @@ npx expo start --clear
 - Root app now routes to `OneL1feV2Screen`.
 - v2 header shows `One L1fe` with subtle `v2`.
 - v2 README defines live-private-use buildout direction.
-- Repo truth-source cleanup prepared in PR #115.
+- Repo truth-source cleanup merged in PR #115.
+- `MEMORY.md` startup-rule duplication removed on `main`.
 - Verified wearable provisioning no longer uses the old hardcoded mock install identity in active code.
+- Root and mobile TypeScript checks passed locally on 2026-05-01.
+- Stale broad PRs #99, #101, #105, and #108 closed after preserving extraction work in issue #116.
+- PR #109 merged: `supabase/setup-cli@v2`, native Android resource hygiene exception, optional hygiene roots, and linked Supabase lint scoped to `public` schema.
 
 ## Working rules
 
@@ -58,16 +63,15 @@ npx expo start --clear
 
 ## Current blockers
 
-- Typecheck not run after v2 path creation.
 - Device QA not yet run for v2.
 - Full-app shell files have not yet been reference-audited for safe deletion.
 - Native Android version values drift from `app.json` unless regenerated/accepted intentionally.
 
 ## Next steps
 
-1. Validate TypeScript: `npm --prefix apps/mobile run typecheck`.
+1. Device QA on Android for the active v2 prototype.
 2. Preferred preview path: EAS preview build.
 3. Local APK fallback: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
 4. APK check: `unzip -l apps/mobile/android/app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
-5. Device QA on Android.
+5. Extract pure Dot/Score domain work from issue #116 in a fresh code session; no UI/routing changes in that PR.
 6. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.
