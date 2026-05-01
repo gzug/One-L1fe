@@ -13,13 +13,21 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
-## 2026-05-01 — ChatGPT (repo truth alignment cleanup branch)
+## 2026-05-01 — ChatGPT (PR hygiene, CI, and dependency closeout)
 
-- Cleanup branch: `cleanup/repo-truth-alignment-v2`.
-- Active app truth aligned to v2: `apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx`.
+- Verified active code no longer uses `MOCK_APP_INSTALL_ID` / `dev-install-001`; wearable provisioning uses real app install identity and old mock guard remains only as legacy protection.
+- Local root and mobile TypeScript checks passed after dependency install.
+- Closed stale broad PRs #99, #101, #105, and #108; preserved useful extraction work in issue #116.
+- Merged PR #109 after green `CI` and `Supabase Validate`: `supabase/setup-cli@v2`, scoped Android resource hygiene exception, optional hygiene roots, and linked Supabase lint limited to `public` schema.
+- Next: do Device QA separately, then start #116 as a fresh domain-only code session.
+
+## 2026-05-01 — ChatGPT (repo truth alignment cleanup)
+
+- Merged PR #115: active app truth aligned to v2 across startup docs.
 - `v1-marathon` is the previous Marathon-focused snapshot; not the active runtime entry.
-- Cleanup target: remove stale competing truth sources, archive scratch memory, and simplify closeout rules.
-- No app code changes in this cleanup branch.
+- Removed stale competing truth sources, archived scratch memory, simplified closeout rules, and marked old audit material historical.
+- `MEMORY.md` startup-rule duplication was removed on `main` in follow-up commit `9eac3da`.
+- No app code changed in the truth-source cleanup.
 
 ## 2026-04-28 — ChatGPT (v2 promoted as active mobile app)
 
@@ -27,12 +35,4 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 - `CHECKPOINT.md`, `MEMORY.md`, `apps/mobile/README.md`, and `apps/mobile/prototypes/README.md` describe v2 as the active app path.
 - `apps/mobile/prototypes/v1-marathon/` remains as the previous Marathon-focused snapshot.
 - v2 has its own root, header, copy, theme helpers, and README.
-- Known blockers: typecheck/device QA still need to be run after the v2 path change.
-
-## 2026-04-27 — ChatGPT/Claude (APK and Health Connect status)
-
-- Debug APK caused remote red screen because `assets/index.android.bundle` was missing; release/standalone APK path must be used for sideloading.
-- Valid standalone artifact pattern: `app:assembleRelease` and verify `unzip -l ... | grep assets/index.android.bundle`.
-- Health Connect native manifest looks structurally correct: minSdk 26, targetSdk 35, health read permissions, provider query, permission rationale alias.
-- Current main Health Connect behavior is permission/status/display-only; no background sync, no Supabase write, no score recomputation.
-- Garmin/Google Fit data should route through Health Connect; direct Garmin/Fit integration is not active in v2.
+- Known blocker carried forward: Device QA still needs to run for active v2.
