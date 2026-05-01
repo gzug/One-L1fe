@@ -2,7 +2,7 @@
 status: current
 canonical_for: docs folder orientation
 owner: repo
-last_verified: 2026-04-22
+last_verified: 2026-05-01
 supersedes: []
 superseded_by: null
 scope: docs
@@ -10,26 +10,36 @@ scope: docs
 
 # Docs guide
 
-This folder is intentionally split by purpose so not every document competes for attention.
+Use this file only when a task needs deeper documentation after `CHECKPOINT.md` and `CONTEXT.md`.
 
-## Sections
+## Task routing
+
+| Task | Read |
+|---|---|
+| Agent/session workflow | `docs/ops/memory-system-v2.md` |
+| OpenClaw workflow | `docs/ops/openclaw.md` |
+| Larger Supabase work | `docs/ops/supabase-agent-workflow.md` and `supabase/README.md` |
+| Supabase Realtime | `docs/prompts/supabase-realtime-ai-assistant-guide.md` |
+| Active mobile v2 work | `apps/mobile/README.md` and `apps/mobile/prototypes/v2/README.md` |
+| Biomarker scoring | `docs/architecture/priority-score-v1.md` and `packages/domain/` |
+| Field state / missingness | `docs/architecture/field-value-state-and-missingness-v1.md` |
+| Wearable metrics | `docs/architecture/wearable-metric-keys-v1.md` |
+| Recommendation contract | `docs/architecture/recommendation-contract-v1.md` |
+| Intended use / claims | `docs/compliance/intended-use.md` |
+| Data handling / redaction | `docs/compliance/data-handling-and-redaction.md` |
+| Backlog / execution planning | `docs/planning/` |
+| Historical context | `docs/archive/` only when explicitly needed |
+
+## Folder roles
 
 - `architecture/` = technical decisions and system shape
-- `planning/` = backlog, next steps, and execution sequencing, including the first mobile minimum-slice implementation brief
-- `research/` = evidence gathering, open questions, and reconciliation work
+- `planning/` = active backlog and execution sequencing
+- `research/` = evidence gathering and open questions
 - `compliance/` = intended-use and boundary-sensitive material
-- `ops/` = OpenClaw and repo operations guidance, including human session workflow
+- `ops/` = repo operations and session workflow
 - `notion/` = Notion-specific design and migration notes
 - `roadmap/` = phased progress and checkpoints
-- `archive/` = superseded or retired docs when they should be kept for context
-
-## Reading order
-
-Start here only when you need orientation.
-
-1. `../README.md`
-2. `../CHECKPOINT.md`
-3. the most relevant section above
+- `archive/` = superseded or historical material; never startup context
 
 ## Source-of-truth rule
 
