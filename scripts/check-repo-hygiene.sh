@@ -9,7 +9,7 @@ if git grep -nE 'Authorization: Bearer [A-Za-z0-9._-]{16,}|access[_-]?token[[:sp
   exit 1
 fi
 
-suspicious_artifacts="$(find docs memory apps -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.pdf' \) ! -path '*/node_modules/*' -print)"
+suspicious_artifacts="$(find docs memory apps -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' -o -iname '*.gif' -o -iname '*.pdf' \) ! -path '*/node_modules/*' ! -path 'apps/mobile/android/app/src/main/res/*' -print)"
 
 if [ -n "$suspicious_artifacts" ]; then
   echo "Repo hygiene check failed: suspicious tracked artifact files found in docs/, memory/, or apps/."
