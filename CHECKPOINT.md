@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-04-28
+last_verified: 2026-05-01
 supersedes: []
 superseded_by: null
 scope: repo
@@ -40,6 +40,7 @@ npx expo start --clear
 - Root app now routes to `OneL1feV2Screen`.
 - v2 header shows `One L1fe` with subtle `v2`.
 - v2 README defines live-private-use buildout direction.
+- Repo truth-source cleanup prepared in PR #115.
 
 ## Working rules
 
@@ -59,6 +60,7 @@ npx expo start --clear
 - Device QA not yet run for v2.
 - Full-app shell files have not yet been reference-audited for safe deletion.
 - Native Android version values drift from `app.json` unless regenerated/accepted intentionally.
+- Historical follow-up still needs verification: remove any remaining `MOCK_APP_INSTALL_ID` / `dev-install-001` path from wearable provisioning if still present. Source archive: `docs/archive/memory/2026-04-20.md`.
 
 ## Next steps
 
@@ -67,4 +69,5 @@ npx expo start --clear
 3. Local APK fallback: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
 4. APK check: `unzip -l apps/mobile/android/app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
 5. Device QA on Android.
-6. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.
+6. Verify and remove any remaining mock app-install identity from wearable provisioning if still present.
+7. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.

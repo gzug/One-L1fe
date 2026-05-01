@@ -1,16 +1,24 @@
 # Prototype V1 - Marathon
 
-Status: active prototype workspace on `main`.
+Status: previous Marathon-focused snapshot. Not the active runtime entry.
 
-This folder is the canonical workspace for the reduced marathon-readiness prototype.
+This folder preserves the reduced marathon-readiness prototype as a reference snapshot.
+
+The active mobile app is now:
+
+```text
+apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx
+```
 
 ## Purpose
 
-Keep prototype-specific app code, docs, notes, and future variant work separated from the broader One L1fe app shell while working directly on `main`.
+Keep the previous Marathon-specific app code, docs, notes, and UI modules available while v2 continues product buildout.
+
+v2 may temporarily import unchanged modules from this folder. Before changing behavior for v2, copy the relevant file into `apps/mobile/prototypes/v2/` and update the v2 import.
 
 ## Current product framing
 
-- User-facing name: `Prototype V1 - Marathon`
+- User-facing snapshot name: `Prototype V1 - Marathon`
 - Platform focus: Android-first prototype
 - Presentation goal: incubator/demo version focused on marathon preparation
 - Product boundary: health/training data organization and coaching support, not diagnosis or treatment
@@ -62,26 +70,19 @@ apps/mobile/prototypes/v1-marathon/
 
 ## Folder rule
 
-Future prototype versions should use sibling folders:
+Future product work should not be added here unless explicitly fixing or preserving this snapshot.
+
+Current product work belongs in:
 
 ```text
-apps/mobile/prototypes/v1-marathon/
-apps/mobile/prototypes/v2-*/
-apps/mobile/prototypes/v3-*/
+apps/mobile/prototypes/v2/
 ```
 
 Keep version-specific prototype work inside its folder unless app-shell wiring is explicitly needed.
 
 ## Migration note
 
-The previous branch/path material is reference only. Future work should continue in this folder on `main` and stop relying on branch-routing as a normal workflow.
-
-## First implementation priorities
-
-1. Review and typecheck the scaffold.
-2. Improve the home hierarchy and visual polish in small commits.
-3. Wire `apps/mobile/App.tsx` to this prototype workspace only after the screen is present and typecheckable.
-4. Keep old/full-app surfaces out of the active prototype path while this prototype is being built.
+The previous branch/path material is reference only. Future work should continue in `v2/` on a focused branch or `main` as appropriate and stop relying on branch-routing as a normal workflow.
 
 ## Naming
 
