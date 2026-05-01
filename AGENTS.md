@@ -2,7 +2,7 @@
 status: current
 canonical_for: agent working rules
 owner: repo
-last_verified: 2026-04-24
+last_verified: 2026-05-01
 supersedes: []
 superseded_by: null
 scope: repo
@@ -12,16 +12,30 @@ scope: repo
 
 Agent operating rules for this repository.
 
-## Default startup (all agents)
+## Default startup
 
-1. Load and read `CHECKPOINT.md` — current state, active seam, next steps, blockers.
-2. Load and read `CONTEXT.md` — rolling summary of the last 2–3 sessions.
-3. Load `MEMORY.md` **only if needed** for durable boundaries, architecture invariants, or repo rules.
-4. Load a specific `docs/...` file **only if directly relevant** to the task.
-5. **Never load** `memory/` or `docs/archive/` at startup.
+1. Read `CHECKPOINT.md` — current state, active path, next steps, blockers.
+2. Read `CONTEXT.md` — rolling summary of the last 2–3 useful sessions.
+3. Read `MEMORY.md` only if the task needs durable boundaries, architecture invariants, or repo rules.
+4. Read one specific `docs/...` file only if directly relevant.
+5. Never load `memory/` or `docs/archive/` at startup.
 
-Full session rules (startup order, closeout checklist, promotion rules): `docs/ops/memory-system-v2.md`  
-OpenClaw-specific differences: `docs/ops/openclaw.md`
+`AGENTS.md` is the rule source. `CHECKPOINT.md` is the current execution truth.
+
+## Task routing
+
+Use the narrowest path that fits the task.
+
+| Task mentions | Start in | Optional context |
+|---|---|---|
+| v2 UI, screen, copy, design | `apps/mobile/prototypes/v2/` | `apps/mobile/prototypes/v2/README.md` |
+| mobile shell, Expo, native Android, Health Connect | `apps/mobile/` | `apps/mobile/README.md` |
+| biomarker, score, thresholds, field state | `packages/domain/` | relevant `docs/architecture/...` file |
+| Supabase DB, migrations, RLS, Edge Functions, Auth, Storage | `supabase/` | `supabase/README.md`, `docs/ops/supabase-agent-workflow.md` |
+| Realtime | `supabase/` | also load `docs/prompts/supabase-realtime-ai-assistant-guide.md` |
+| planning, repo process, memory, OpenClaw | `docs/ops/` | `docs/ops/memory-system-v2.md` |
+| compliance, product claims, intended use | `docs/compliance/` | `docs/compliance/intended-use.md` |
+| historical context | `docs/archive/` | only when explicitly needed |
 
 ## Working rules
 
@@ -36,12 +50,13 @@ OpenClaw-specific differences: `docs/ops/openclaw.md`
 
 ## Output standards
 
-- Commit messages: `type(scope): description` — conventional commits
-- Never commit: raw health data, secrets, local scratch files
-- After any meaningful session: run the end-of-session checklist in `docs/ops/memory-system-v2.md`. At minimum, update `CHECKPOINT.md` + `CONTEXT.md` before closing.
-- Issues/PRs: close duplicates immediately, do not let them accumulate
+- Commit messages: `type(scope): description`.
+- Never commit raw health data, secrets, or local scratch files.
+- After any meaningful session, run closeout from `docs/ops/memory-system-v2.md`.
+- Minimum closeout: update `CHECKPOINT.md` and `CONTEXT.md` when current state or handoff context changed.
+- Issues/PRs: close duplicates immediately; do not let stale broad PRs accumulate.
 
 ## Supabase work
 
-- For any larger Supabase task or change (schema, migrations, RLS, Realtime, Edge Functions, Auth, Storage, project settings), follow `docs/ops/supabase-agent-workflow.md`.
-- If the task touches Supabase Realtime, include `docs/prompts/supabase-realtime-ai-assistant-guide.md` in the working context before proposing or implementing changes.
+- For larger Supabase tasks, follow `docs/ops/supabase-agent-workflow.md`.
+- For Supabase Realtime, also load `docs/prompts/supabase-realtime-ai-assistant-guide.md` before proposing or implementing changes.
