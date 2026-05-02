@@ -2,7 +2,7 @@
 status: current
 canonical_for: rolling session context
 owner: repo
-last_verified: 2026-05-01
+last_verified: 2026-05-02
 scope: all-agents
 ---
 
@@ -13,26 +13,10 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
-## 2026-05-01 — ChatGPT (agent efficiency docs cleanup)
+## 2026-05-02 — Codex (v2 Home redesign closeout)
 
-- `AGENTS.md` now carries task-type routing so agents can jump directly to the right repo path.
-- `README.md` was shortened into human/project orientation and no longer carries the deep docs index.
-- `docs/README.md` now provides compact task-to-doc routing for deeper context.
-- `CHECKPOINT.md` completed history was compacted into five recent items to avoid logbook drift.
-- Historical root audit moved to `docs/archive/audits/`; root stays focused on active truth files.
-
-## 2026-05-01 — ChatGPT (PR hygiene, CI, and dependency closeout)
-
-- Verified active code no longer uses `MOCK_APP_INSTALL_ID` / `dev-install-001`; wearable provisioning uses real app install identity and old mock guard remains only as legacy protection.
-- Local root and mobile TypeScript checks passed after dependency install.
-- Closed stale broad PRs #99, #101, #105, and #108; preserved useful extraction work in issue #116.
-- Merged PR #109 after green `CI` and `Supabase Validate`: `supabase/setup-cli@v2`, scoped Android resource hygiene exception, optional hygiene roots, and linked Supabase lint limited to `public` schema.
-- Next: do Device QA separately, then start #116 as a fresh domain-only code session.
-
-## 2026-05-01 — ChatGPT (repo truth alignment cleanup)
-
-- Merged PR #115: active app truth aligned to v2 across startup docs.
-- `v1-marathon` is the previous Marathon-focused snapshot; not the active runtime entry.
-- Removed stale competing truth sources, archived scratch memory, simplified closeout rules, and marked old audit material historical.
-- `MEMORY.md` startup-rule duplication was removed on `main` in follow-up commit `9eac3da`.
-- No app code changed in the truth-source cleanup.
+- Active app path still runs through `apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx`; v2 Home ownership is now separate from the legacy v1 ThemeProvider boundary.
+- The active v2 Home was redesigned into a score-first structure with a persistent header, Demo/User Data mode, global time range plus local Custom range picker, multi-ring One L1fe Score, contributor legend, separate score trend, Recovery/Activity metric cards, Health Inputs, Nutrition Hub, Notes & Ideas, source status, safety note, and bottom nav with Home/Trends/Insights/Profile.
+- New v2-local files under `apps/mobile/prototypes/v2/src/data/` now provide a `HomeDisplayData` adapter boundary for mode, time range/custom range, contributor groups, score trend, metric chart data, Health Inputs, and Nutrition Hub so `HomeScreen` mostly renders display data instead of shaping it inline.
+- Legacy Blood Results and Profile stay on the existing v1 screens; Blood Markers CTA still opens Blood Results, Profile stays reachable from the bottom nav, and Trends/Insights remain lightweight placeholders.
+- No `package.json`, `apps/mobile/package.json`, `packages/domain/`, active entry, navigation library, detail screen, or runtime scoring changes were introduced; `npm run typecheck`, `npm run typecheck:mobile`, `npm run test:domain`, and Android dev run/QA on `Pixel_9_Pro` passed.
