@@ -1,5 +1,6 @@
 // One L1fe — V2 — Design tokens
 // Single source of truth for Android and Web in the v2 workspace.
+import { v2DarkTokens, v2LightTokens } from './v2Tokens';
 
 export const spacing = {
   xs:   4,
@@ -46,6 +47,7 @@ export type ThemeColors = {
   background:        string;
   surface:           string;
   surfaceElevated:   string;
+  surfaceSoft:       string;
   border:            string;
   borderSubtle:      string;
   text:              string;
@@ -74,72 +76,96 @@ export type ThemeColors = {
   demoBanner:        string;
   demoBannerBorder:  string;
   statusBar:         'dark' | 'light';
+  // v2 semantic tokens
+  brandGreen:        string;
+  brandGreenDark:    string;
+  brandGreenSoft:    string;
+  recovery:          string;
+  activity:          string;
+  testResults:       string;
+  disabled:          string;
 };
 
 export const lightColors: ThemeColors = {
-  background:       '#F9F7F4',
-  surface:          '#F3F0EB',
-  surfaceElevated:  '#FFFFFF',
-  border:           'rgba(60,40,20,0.10)',
-  borderSubtle:     'rgba(60,40,20,0.055)',
-  text:             '#1C1917',
-  textMuted:        '#5A5249',
-  textSubtle:       '#9A928A',
+  background:       v2LightTokens.background,
+  surface:          v2LightTokens.surface,
+  surfaceElevated:  v2LightTokens.surface,
+  surfaceSoft:      v2LightTokens.surfaceSoft,
+  border:           'rgba(17,24,32,0.09)',
+  borderSubtle:     v2LightTokens.borderSubtle,
+  text:             v2LightTokens.textPrimary,
+  textMuted:        '#485060',
+  textSubtle:       v2LightTokens.textSecondary,
   accent:           '#C4612C',
   accentBorder:     'rgba(196,97,44,0.25)',
   accentSoft:       'rgba(196,97,44,0.06)',
-  positive:         '#3A7A58',
+  positive:         '#1DAB68',
   warning:          '#A86E28',
   warningSoft:      'rgba(168,110,40,0.08)',
   danger:           '#993636',
-  scoreStrong:      '#4F9A66',
-  scoreStrongSoft:  'rgba(148,207,160,0.18)',
-  scoreSteady:      '#5F8F68',
-  scoreSteadySoft:  'rgba(178,213,184,0.18)',
-  scoreSoft:        '#78957D',
-  scoreSoftSoft:    'rgba(199,223,204,0.18)',
-  scoreLow:         '#8FA394',
-  scoreLowSoft:     'rgba(215,239,219,0.20)',
-  ringTrack:        '#EDE8E2',
-  ringProgress:     '#C4612C',
-  progressTrack:    '#EDE8E2',
-  profileSectionBg: '#FFFFFF',
-  profileRowBorder: 'rgba(60,40,20,0.06)',
+  scoreStrong:      v2LightTokens.brandGreen,
+  scoreStrongSoft:  v2LightTokens.brandGreenSoft,
+  scoreSteady:      '#2FAD6A',
+  scoreSteadySoft:  'rgba(47,173,106,0.12)',
+  scoreSoft:        '#5CC58D',
+  scoreSoftSoft:    'rgba(92,197,141,0.14)',
+  scoreLow:         '#8DCBA8',
+  scoreLowSoft:     'rgba(141,203,168,0.16)',
+  ringTrack:        v2LightTokens.borderSubtle,
+  ringProgress:     v2LightTokens.brandGreen,
+  progressTrack:    v2LightTokens.borderSubtle,
+  profileSectionBg: v2LightTokens.surface,
+  profileRowBorder: 'rgba(17,24,32,0.05)',
   demoBanner:       '#FEF7F2',
   demoBannerBorder: 'rgba(196,97,44,0.18)',
   statusBar:        'dark',
+  brandGreen:       v2LightTokens.brandGreen,
+  brandGreenDark:   v2LightTokens.brandGreenDark,
+  brandGreenSoft:   v2LightTokens.brandGreenSoft,
+  recovery:         v2LightTokens.recovery,
+  activity:         v2LightTokens.activity,
+  testResults:      v2LightTokens.testResults,
+  disabled:         v2LightTokens.disabled,
 };
 
 export const darkColors: ThemeColors = {
-  background:       '#0A0A0B',
-  surface:          '#111113',
-  surfaceElevated:  '#141416',
-  border:           'rgba(255,255,255,0.07)',
-  borderSubtle:     'rgba(255,255,255,0.035)',
-  text:             '#F2EFEA',
-  textMuted:        '#A8A29A',
-  textSubtle:       '#6E6862',
+  background:       v2DarkTokens.background,
+  surface:          v2DarkTokens.surface,
+  surfaceElevated:  v2DarkTokens.surfaceSoft,
+  surfaceSoft:      v2DarkTokens.surfaceSoft,
+  border:           'rgba(244,246,242,0.08)',
+  borderSubtle:     v2DarkTokens.borderSubtle,
+  text:             v2DarkTokens.textPrimary,
+  textMuted:        '#C0C8C2',
+  textSubtle:       v2DarkTokens.textSecondary,
   accent:           '#E07A45',
   accentBorder:     'rgba(224,122,69,0.32)',
   accentSoft:       'rgba(224,122,69,0.10)',
-  positive:         '#5BAE7C',
+  positive:         '#1DBC74',
   warning:          '#D69846',
   warningSoft:      'rgba(214,152,70,0.12)',
   danger:           '#C25A5A',
-  scoreStrong:      '#94CFA0',
-  scoreStrongSoft:  'rgba(148,207,160,0.16)',
-  scoreSteady:      '#B2D5B8',
-  scoreSteadySoft:  'rgba(178,213,184,0.14)',
-  scoreSoft:        '#C7DFCC',
-  scoreSoftSoft:    'rgba(199,223,204,0.12)',
-  scoreLow:         '#A8BAAC',
-  scoreLowSoft:     'rgba(215,239,219,0.10)',
-  ringTrack:        '#1F1F22',
-  ringProgress:     '#E07A45',
-  progressTrack:    '#1F1F22',
-  profileSectionBg: '#141416',
-  profileRowBorder: 'rgba(255,255,255,0.05)',
-  demoBanner:       '#161616',
+  scoreStrong:      v2DarkTokens.brandGreen,
+  scoreStrongSoft:  v2DarkTokens.brandGreenSoft,
+  scoreSteady:      '#2FAD6A',
+  scoreSteadySoft:  'rgba(47,173,106,0.14)',
+  scoreSoft:        '#5CC58D',
+  scoreSoftSoft:    'rgba(92,197,141,0.12)',
+  scoreLow:         '#8DCBA8',
+  scoreLowSoft:     'rgba(141,203,168,0.10)',
+  ringTrack:        v2DarkTokens.borderSubtle,
+  ringProgress:     v2DarkTokens.brandGreen,
+  progressTrack:    v2DarkTokens.borderSubtle,
+  profileSectionBg: v2DarkTokens.surfaceSoft,
+  profileRowBorder: 'rgba(244,246,242,0.05)',
+  demoBanner:       '#161B17',
   demoBannerBorder: 'rgba(224,122,69,0.22)',
   statusBar:        'light',
+  brandGreen:       v2DarkTokens.brandGreen,
+  brandGreenDark:   v2DarkTokens.brandGreenDark,
+  brandGreenSoft:   v2DarkTokens.brandGreenSoft,
+  recovery:         v2DarkTokens.recovery,
+  activity:         v2DarkTokens.activity,
+  testResults:      v2DarkTokens.testResults,
+  disabled:         v2DarkTokens.disabled,
 };

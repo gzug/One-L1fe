@@ -313,7 +313,7 @@ function ScoreTrendSection({ data }: { data: HomeDisplayData }) {
           {data.score.overall !== null ? `${data.score.overall}` : '—'}
         </Text>
       </View>
-      <LineChart data={scoreSeries.data} color={colors.scoreStrong} />
+      <LineChart data={scoreSeries.data} color={colors.brandGreen} />
       <View style={scoreTrendStyles.legend}>
         {trend.series.map((s) => (
           <Text key={s.label} style={[scoreTrendStyles.legendItem, { color: colors.textSubtle }]}>
@@ -348,8 +348,8 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
   const rec = data.recoveryMetrics;
   const act = data.activityMetrics;
 
-  const accentRecover = colors.scoreStrong;
-  const accentActivity = (colors as Record<string, string>).accent ?? colors.scoreStrong;
+  const accentRecover = colors.recovery;
+  const accentActivity = colors.activity;
 
   return (
     <ScrollView

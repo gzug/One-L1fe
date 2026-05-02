@@ -105,7 +105,7 @@ export function getHomeDisplayData({
       },
       bloodMarkers: {
         id: 'bloodMarkers',
-        label: 'Blood Markers',
+        label: 'Test Results',
         value: bloodMarkersScore,
         delta: null,
         colorKey: 'blood',
@@ -114,7 +114,6 @@ export function getHomeDisplayData({
         { label: 'DNA Insights' },
         { label: 'Stool Test' },
         { label: 'Urine Test' },
-        { label: 'Nutrition' },
       ],
     },
     scoreTrend: createScoreTrend(isDemo, trendData),

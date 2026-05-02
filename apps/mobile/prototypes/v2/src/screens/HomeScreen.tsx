@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { IdeasNotesCard } from '../components/IdeasNotesCard';
 import { prototypeCopy } from '../data/copy';
@@ -17,6 +17,7 @@ import type {
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
+import { SCORE_CARD_SPLIT_WIDTH } from '../theme/v2Tokens';
 import {
   type CustomRange,
   type TimeRange,
@@ -41,13 +42,6 @@ type HomeScreenProps = {
 const SCORE_RING_SIZE = 160;
 const OUTER_RING_STROKE = 12;
 const INNER_RING_STROKE = 8;
-const SCORE_RING_COLORS = ['#7EC8AA', '#5DB890', '#3DA876', '#2B9463'];
-const SCORE_TEXT_LIGHT = '#1A5C38';
-const SCORE_TEXT_DARK = '#94CFA0';
-const RECOVERY_COLOR = '#5BA0B0';
-const ACTIVITY_COLOR = '#D4903A';
-const BLOOD_COLOR = '#6F9F79';
-const FUTURE_COLOR = '#B8B2AA';
 const SOFT_NEGATIVE = '#C97872';
 const CALENDAR_DAYS = 35;
 
@@ -130,14 +124,13 @@ function createCalendarDays() {
 
 function scoreTone(score: number | null, colors: ThemeColors) {
   if (score === null) return colors.textSubtle;
-  if (score >= 85) return SCORE_RING_COLORS[3];
-  if (score >= 70) return SCORE_RING_COLORS[2];
-  if (score >= 50) return SCORE_RING_COLORS[1];
-  return SCORE_RING_COLORS[0];
+  if (score >= 70) return colors.brandGreen;
+  if (score >= 50) return colors.scoreSoft;
+  return colors.scoreLow;
 }
 
 function softMint(colors: ThemeColors) {
-  return colors.statusBar === 'dark' ? 'rgba(178,213,184,0.12)' : 'rgba(215,239,219,0.42)';
+  return colors.brandGreenSoft;
 }
 
 function colorForKey(key: HomeMetricColorKey, colors: ThemeColors, score: number | null = null) {
@@ -145,27 +138,29 @@ function colorForKey(key: HomeMetricColorKey, colors: ThemeColors, score: number
     case 'score':
       return scoreTone(score, colors);
     case 'recovery':
-      return RECOVERY_COLOR;
+      return colors.recovery;
     case 'activity':
-      return ACTIVITY_COLOR;
+      return colors.activity;
     case 'blood':
-      return BLOOD_COLOR;
+      return colors.testResults;
     case 'future':
-      return FUTURE_COLOR;
+      return colors.disabled;
+    // recovery sub-metrics: lighter shades of recovery green
     case 'sleep':
-      return '#7DBBC9';
+      return '#72D4A2';
     case 'hrv':
-      return '#4A8A98';
+      return '#36B078';
     case 'restingHr':
-      return '#3A7A88';
+      return '#1FA367';
+    // activity sub-metrics: lighter shades of activity amber
     case 'steps':
-      return '#E5A857';
+      return '#F5B85A';
     case 'training':
-      return '#C47A28';
+      return '#E8882A';
     case 'calories':
-      return '#B86A18';
+      return '#D46A18';
     default:
-      return colors.scoreStrong;
+      return colors.brandGreen;
   }
 }
 
@@ -369,19 +364,23 @@ function ScoreCard({
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
+  const { width } = useWindowDimensions();
+  const isWide = width >= SCORE_CARD_SPLIT_WIDTH;
   return (
     <View style={s.scoreCard}>
       <View style={s.scoreHeader}>
         <View style={{ flex: 1 }}>
           <Text style={s.cardEyebrow}>{score.contextLabel}</Text>
-          <Text style={s.scoreTitle}>One L1fe Score</Text>
+          <Text style={s.scoreTitle}>
+            One L<Text style={{ color: colors.brandGreen }}>1</Text>fe Score
+          </Text>
         </View>
-        <View style={s.coveragePill}>
+        <View style={[s.coveragePill, { borderColor: colors.borderSubtle }]}>
           <Text style={s.coverageText}>{score.coverageLabel}</Text>
         </View>
       </View>
 
-      <View style={s.scoreBodyRow}>
+      <View style={[s.scoreBodyRow, isWide && s.scoreBodyRowWide]}>
         <MultiRingScore
           score={score.overall}
           recoveryScore={score.recovery}
@@ -392,6 +391,7 @@ function ScoreCard({
         <ContributorLegend
           contributors={contributors}
           colors={colors}
+          flex={isWide}
         />
       </View>
     </View>
@@ -410,7 +410,7 @@ function MultiRingScore({
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
-  const centerColor = colors.statusBar === 'dark' ? SCORE_TEXT_DARK : SCORE_TEXT_LIGHT;
+  const centerColor = score === null ? colors.textSubtle : colors.brandGreen;
   return (
     <View style={s.scoreRingWrap}>
       <Svg width={SCORE_RING_SIZE} height={SCORE_RING_SIZE} viewBox={`0 0 ${SCORE_RING_SIZE} ${SCORE_RING_SIZE}`}>
@@ -425,19 +425,19 @@ function MultiRingScore({
           value={recoveryScore}
           radius={54}
           strokeWidth={INNER_RING_STROKE}
-          color={RECOVERY_COLOR}
+          color={colors.recovery}
           trackColor={colors.progressTrack}
         />
         <ProgressCircle
           value={activityScore}
           radius={40}
           strokeWidth={INNER_RING_STROKE}
-          color={ACTIVITY_COLOR}
+          color={colors.activity}
           trackColor={colors.progressTrack}
         />
       </Svg>
       <View style={[StyleSheet.absoluteFillObject, s.scoreRingCenter]}>
-        <Text style={[s.scoreValue, { color: score === null ? colors.textSubtle : centerColor }]}>
+        <Text style={[s.scoreValue, { color: centerColor }]}>
           {score === null ? '--' : `${clamp(score)}%`}
         </Text>
         <Text style={s.scoreLabel}>ONE L1FE SCORE</Text>
@@ -578,22 +578,25 @@ function MiniLineSeries({ data, color }: { data: HomeChartPoint[]; color: string
 function ContributorLegend({
   contributors,
   colors,
+  flex,
 }: {
   contributors: HomeDisplayData['contributors'];
   colors: ThemeColors;
+  flex?: boolean;
 }) {
   const s = createHomeStyles(colors);
   const [recoveryOpen, setRecoveryOpen] = React.useState(true);
   const [activityOpen, setActivityOpen] = React.useState(false);
   return (
-    <View style={s.legendCard}>
+    <View style={[s.legendCard, flex && s.legendCardFlex]}>
+      {/* Recovery — accordion */}
       <Pressable
         onPress={() => setRecoveryOpen((o) => !o)}
         style={s.accordionHeader}
         accessibilityRole="button"
         accessibilityState={{ expanded: recoveryOpen }}
       >
-        <View style={[s.contributorDot, { backgroundColor: RECOVERY_COLOR }]} />
+        <View style={[s.contributorDot, { backgroundColor: colors.recovery }]} />
         <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.recovery.label}</Text>
         <Text style={s.contributorValue}>
           {contributors.recovery.value === null ? '--' : `${clamp(contributors.recovery.value)}%`}
@@ -608,13 +611,14 @@ function ContributorLegend({
 
       <View style={s.legendDivider} />
 
+      {/* Activity — accordion */}
       <Pressable
         onPress={() => setActivityOpen((o) => !o)}
         style={s.accordionHeader}
         accessibilityRole="button"
         accessibilityState={{ expanded: activityOpen }}
       >
-        <View style={[s.contributorDot, { backgroundColor: ACTIVITY_COLOR }]} />
+        <View style={[s.contributorDot, { backgroundColor: colors.activity }]} />
         <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.activity.label}</Text>
         <Text style={s.contributorValue}>
           {contributors.activity.value === null ? '--' : `${clamp(contributors.activity.value)}%`}
@@ -629,15 +633,19 @@ function ContributorLegend({
 
       <View style={s.legendDivider} />
 
+      {/* Test Results — single static row, no chevron */}
       <ContributorRow item={contributors.bloodMarkers} colors={colors} />
 
-      {contributors.future.length > 0 && (
-        <View style={s.futureSection}>
-          {contributors.future.map((item) => (
-            <FutureContributor key={item.label} label={item.label} colors={colors} />
-          ))}
+      <View style={s.legendDivider} />
+
+      {/* Nutrition — disabled / coming soon */}
+      <View style={[s.contributorRow, { opacity: 0.5 }]}>
+        <View style={[s.contributorDot, { backgroundColor: colors.disabled }]} />
+        <Text style={[s.contributorLabel, { color: colors.textSubtle }]}>Nutrition</Text>
+        <View style={s.comingSoonPill}>
+          <Text style={s.comingSoonText}>Soon</Text>
         </View>
-      )}
+      </View>
     </View>
   );
 }
@@ -674,16 +682,6 @@ function ContributorRow({
   );
 }
 
-function FutureContributor({ label, colors }: { label: string; colors: ThemeColors }) {
-  const s = createHomeStyles(colors);
-  return (
-    <View style={s.contributorRow}>
-      <View style={[s.contributorDot, { backgroundColor: FUTURE_COLOR, opacity: 0.46 }]} />
-      <Text style={[s.contributorLabel, { color: colors.textSubtle }]}>{label}</Text>
-      <Text style={s.futureValue}>Coming soon</Text>
-    </View>
-  );
-}
 
 function TrendCard({
   title,
@@ -1126,9 +1124,9 @@ function createHomeStyles(colors: ThemeColors) {
     },
     scoreCard: {
       borderRadius: radius.xl,
-      backgroundColor: colors.surfaceElevated,
+      backgroundColor: colors.surface,
       borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
+      borderColor: colors.borderSubtle,
       padding: spacing.lg,
       alignItems: 'center',
       gap: spacing.md,
@@ -1174,6 +1172,11 @@ function createHomeStyles(colors: ThemeColors) {
       alignItems: 'center',
       gap: spacing.sm,
     },
+    scoreBodyRowWide: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.md,
+    },
     scoreRingWrap: {
       width: SCORE_RING_SIZE,
       height: SCORE_RING_SIZE,
@@ -1189,7 +1192,6 @@ function createHomeStyles(colors: ThemeColors) {
       lineHeight: 48,
       fontWeight: '900',
       letterSpacing: -1,
-      fontVariant: ['tabular-nums'],
     },
     scoreLabel: {
       color: colors.textSubtle,
@@ -1256,9 +1258,14 @@ function createHomeStyles(colors: ThemeColors) {
       borderRadius: radius.lg,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.surfaceSoft,
       padding: spacing.sm,
       gap: 2,
+    },
+    legendCardFlex: {
+      flex: 1,
+      minWidth: 0,
+      alignSelf: 'auto',
     },
     legendDivider: {
       height: StyleSheet.hairlineWidth,
@@ -1312,14 +1319,12 @@ function createHomeStyles(colors: ThemeColors) {
       fontSize: typography.micro,
       fontWeight: '800',
       textAlign: 'right',
-      fontVariant: ['tabular-nums'],
     },
     contributorDelta: {
       width: 24,
       fontSize: typography.micro,
       fontWeight: '800',
       textAlign: 'right',
-      fontVariant: ['tabular-nums'],
     },
     deltaSpacer: {
       width: 24,
