@@ -1,385 +1,373 @@
-/**
- * TrendsScreen — v2 MVP
- *
- * Renders trend charts for Score, Recovery, and Activity using existing
- * HomeDisplayData from getHomeDisplayData. No new data sources.
- */
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { InteractiveTrendChartV2, QuietBarChartV2 } from '../components/InteractiveTrendChartV2';
+import type { HomeDisplayData, HomeTrendMetric } from '../data/homeTypes';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
-import type { HomeDisplayData, HomeTrendMetric, HomeChartPoint } from '../data/homeTypes';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
+const RANGE_LABELS = ['1D', '7D', '1M', '6M'];
 
-const CHART_H = 72;
-const BAR_MIN_H = 3;
-
-// ---------------------------------------------------------------------------
-// Chart helpers
-// ---------------------------------------------------------------------------
-
-function normalize(points: HomeChartPoint[]): number[] {
-  if (!points.length) return [];
-  const values = points.map((p) => p.value);
-  const max = Math.max(...values, 1);
-  return values.map((v) => v / max);
-}
-
-function BarChart({ data, color }: { data: HomeChartPoint[]; color: string }) {
-  const ratios = normalize(data);
-  return (
-    <View style={chartStyles.root}>
-      {ratios.map((ratio, i) => (
-        <View key={i} style={chartStyles.barWrap}>
-          <View
-            style={[
-              chartStyles.bar,
-              {
-                height: Math.max(BAR_MIN_H, ratio * CHART_H),
-                backgroundColor: color,
-                opacity: 0.72 + ratio * 0.28,
-              },
-            ]}
-          />
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function LineChart({ data, color }: { data: HomeChartPoint[]; color: string }) {
-  const ratios = normalize(data);
-  return (
-    <View style={chartStyles.root}>
-      {ratios.map((ratio, i) => (
-        <View key={i} style={chartStyles.lineWrap}>
-          <View style={{ flex: 1 }} />
-          <View
-            style={[
-              chartStyles.lineDot,
-              {
-                marginBottom: ratio * (CHART_H - 8),
-                backgroundColor: color,
-              },
-            ]}
-          />
-        </View>
-      ))}
-    </View>
-  );
-}
-
-const chartStyles = StyleSheet.create({
-  root: {
-    height: CHART_H,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 3,
-  },
-  barWrap: {
-    flex: 1,
-    height: CHART_H,
-    justifyContent: 'flex-end',
-  },
-  bar: {
-    width: '100%',
-    borderRadius: 3,
-    minHeight: BAR_MIN_H,
-  },
-  lineWrap: {
-    flex: 1,
-    height: CHART_H,
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-  },
-  lineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Metric card
-// ---------------------------------------------------------------------------
-
-function MetricCard({
+function MetricSurface({
   metric,
-  accentColor,
+  color,
 }: {
   metric: HomeTrendMetric;
-  accentColor: string;
+  color: string;
 }) {
   const { colors } = useTheme();
-  const hasData = metric.data.length > 0;
-
   return (
-    <View
-      style={[
-        cardStyles.root,
-        { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-      ]}
-    >
-      <View style={cardStyles.header}>
-        <Text style={[cardStyles.label, { color: colors.textSubtle }]}>{metric.label}</Text>
-        {metric.value ? (
-          <View style={cardStyles.valueRow}>
-            <Text style={[cardStyles.value, { color: colors.text }]}>{metric.value}</Text>
-            {metric.delta !== null && (
-              <Text
-                style={[
-                  cardStyles.delta,
-                  { color: metric.delta >= 0 ? colors.scoreStrong : colors.textSubtle },
-                ]}
-              >
-                {metric.delta >= 0 ? `+${metric.delta}` : `${metric.delta}`}
-              </Text>
-            )}
-          </View>
-        ) : null}
+    <View style={[styles.metricCard, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+      <View style={styles.metricHeader}>
+        <View style={styles.metricHeading}>
+          <Text style={[styles.metricLabel, { color: colors.text }]}>{metric.label}</Text>
+          <Text style={[styles.metricCaption, { color: colors.textSubtle }]}>{metric.subtitle}</Text>
+        </View>
+        <View style={styles.metricValueWrap}>
+          <Text style={[styles.metricValue, { color }]}>{metric.value}</Text>
+          <Text style={[styles.metricDelta, { color: colors.textSubtle }]}>
+            {metric.delta === null ? 'Current range' : metric.delta >= 0 ? `+${metric.delta} vs previous` : `${metric.delta} vs previous`}
+          </Text>
+        </View>
       </View>
-
-      {hasData ? (
-        metric.chartType === 'bar' ? (
-          <BarChart data={metric.data} color={accentColor} />
+      {metric.data.length ? (
+        metric.chartType === 'line' ? (
+          <InteractiveTrendChartV2
+            colors={colors}
+            height={108}
+            showYAxis={false}
+            series={[{ key: metric.key, label: metric.label, color, data: metric.data }]}
+          />
         ) : (
-          <LineChart data={metric.data} color={accentColor} />
+          <QuietBarChartV2 colors={colors} data={metric.data} color={color} height={108} />
         )
       ) : (
-        <View style={cardStyles.empty}>
-          <Text style={[cardStyles.emptyText, { color: colors.textSubtle }]}>
-            {metric.emptyText || 'No data available.'}
-          </Text>
+        <View style={[styles.metricEmpty, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}>
+          <Text style={[styles.metricEmptyText, { color: colors.textSubtle }]}>{metric.emptyText}</Text>
         </View>
       )}
     </View>
   );
 }
 
-const cardStyles = StyleSheet.create({
-  root: {
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontSize: typography.caption,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  valueRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.xs,
-  },
-  value: {
-    fontSize: typography.body,
-    fontWeight: '700',
-  },
-  delta: {
-    fontSize: typography.caption,
-    fontWeight: '600',
-  },
-  empty: {
-    height: CHART_H,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyText: {
-    fontSize: typography.caption,
-    lineHeight: lineHeights.caption,
-    textAlign: 'center',
-  },
-});
-
-// ---------------------------------------------------------------------------
-// Section header
-// ---------------------------------------------------------------------------
-
-const sectionStyles = StyleSheet.create({
-  title: {
-    fontSize: typography.caption,
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xs,
-  },
-});
-
-function SectionHeader({ title }: { title: string }) {
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  children: React.ReactNode;
+}) {
   const { colors } = useTheme();
   return (
-    <Text style={[sectionStyles.title, { color: colors.textSubtle }]}>{title}</Text>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Score trend section
-// ---------------------------------------------------------------------------
-
-const scoreTrendStyles = StyleSheet.create({
-  card: {
-    marginHorizontal: layout.screenPaddingH,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  emptyCard: {
-    marginHorizontal: layout.screenPaddingH,
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: CHART_H + spacing.md * 2,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontSize: typography.caption,
-    fontWeight: '700',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  value: {
-    fontSize: typography.body,
-    fontWeight: '700',
-  },
-  legend: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  legendItem: {
-    fontSize: typography.micro,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
-  emptyText: {
-    fontSize: typography.caption,
-    lineHeight: lineHeights.caption,
-    textAlign: 'center',
-  },
-});
-
-function ScoreTrendSection({ data }: { data: HomeDisplayData }) {
-  const { colors } = useTheme();
-  const trend = data.scoreTrend;
-
-  if (trend.isEmpty || !trend.series.length) {
-    return (
-      <View
-        style={[
-          scoreTrendStyles.emptyCard,
-          { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-        ]}
-      >
-        <Text style={[scoreTrendStyles.emptyText, { color: colors.textSubtle }]}>
-          {trend.emptyText || 'No score trend available yet.'}
-        </Text>
+    <View style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.sectionSubtitle, { color: colors.textSubtle }]}>{subtitle}</Text>
       </View>
-    );
-  }
-
-  const scoreSeries = trend.series.find((s) => s.label === 'Score');
-  if (!scoreSeries || !scoreSeries.data.length) return null;
-
-  return (
-    <View
-      style={[
-        scoreTrendStyles.card,
-        { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-      ]}
-    >
-      <View style={scoreTrendStyles.header}>
-        <Text style={[scoreTrendStyles.label, { color: colors.textSubtle }]}>One L1fe Score</Text>
-        <Text style={[scoreTrendStyles.value, { color: colors.text }]}>
-          {data.score.overall !== null ? `${data.score.overall}` : '—'}
-        </Text>
-      </View>
-      <LineChart data={scoreSeries.data} color={colors.brandGreen} />
-      <View style={scoreTrendStyles.legend}>
-        {trend.series.map((s) => (
-          <Text key={s.label} style={[scoreTrendStyles.legendItem, { color: colors.textSubtle }]}>
-            {s.label}
-          </Text>
-        ))}
-      </View>
+      {children}
     </View>
   );
 }
 
-// ---------------------------------------------------------------------------
-// Page-level styles
-// ---------------------------------------------------------------------------
-
-const trendsStyles = StyleSheet.create({
-  content: {
-    paddingBottom: 100,
-  },
-  grid: {
-    paddingHorizontal: layout.screenPaddingH,
-    gap: spacing.sm,
-  },
-});
-
-// ---------------------------------------------------------------------------
-// TrendsScreen
-// ---------------------------------------------------------------------------
-
 export function TrendsScreen({ data }: { data: HomeDisplayData }) {
   const { colors } = useTheme();
-  const rec = data.recoveryMetrics;
-  const act = data.activityMetrics;
-
-  const accentRecover = colors.recovery;
-  const accentActivity = colors.activity;
+  const trend = data.scoreTrend;
+  const scoreSeries = trend.series[0]?.data ?? [];
+  const recoverySeries = trend.series[1]?.data ?? [];
+  const activitySeries = trend.series[2]?.data ?? [];
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={trendsStyles.content}
+      contentContainerStyle={styles.scroll}
       showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
     >
-      {/* Score */}
-      <SectionHeader title="Score" />
-      <ScoreTrendSection data={data} />
+      <View style={styles.container}>
+        <View style={[styles.hero, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+          <View style={styles.heroTop}>
+            <View style={styles.heroHeading}>
+              <Text style={[styles.heroEyebrow, { color: colors.brandGreen }]}>Trends</Text>
+              <Text style={[styles.heroTitle, { color: colors.text, fontFamily: 'BrandDisplay' }]}>Health rhythm</Text>
+              <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>
+                Cleaner charts, direct touch inspection, and a clearer read on how score, recovery, and activity move together.
+              </Text>
+            </View>
+            <View style={[styles.heroScoreCard, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+              <Text style={[styles.heroScoreLabel, { color: colors.textSubtle }]}>Current score</Text>
+              <Text style={[styles.heroScoreValue, { color: colors.brandGreen, fontFamily: 'BrandDisplay' }]}>
+                {data.score.overall !== null ? `${data.score.overall}%` : '--'}
+              </Text>
+            </View>
+          </View>
 
-      {/* Recovery */}
-      <SectionHeader title="Recovery" />
-      <View style={trendsStyles.grid}>
-        <MetricCard metric={rec.recovery}  accentColor={accentRecover} />
-        <MetricCard metric={rec.sleep}     accentColor={accentRecover} />
-        <MetricCard metric={rec.hrv}       accentColor={accentRecover} />
-        <MetricCard metric={rec.restingHr} accentColor={accentRecover} />
+          <View style={styles.rangeRow}>
+            {RANGE_LABELS.map((label) => {
+              const active = label === '6M';
+              return (
+                <Pressable
+                  key={label}
+                  style={[
+                    styles.rangeChip,
+                    {
+                      backgroundColor: active ? colors.brandGreenSoft : colors.surface,
+                      borderColor: active ? colors.accentBorder : colors.borderSubtle,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.rangeChipText, { color: active ? colors.brandGreenDark : colors.textSubtle }]}>
+                    {label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        <Section title="Score" subtitle="Tap anywhere in the chart to inspect that point in time.">
+          <View style={[styles.scoreCard, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
+            <InteractiveTrendChartV2
+              colors={colors}
+              height={176}
+              yMin={0}
+              yMax={100}
+              yTicks={[100, 80, 60, 40, 20, 0]}
+              showYAxis={false}
+              series={[
+                { key: 'score', label: 'Score', color: colors.brandGreen, data: scoreSeries, style: 'area' },
+                { key: 'recovery', label: 'Recovery', color: colors.recovery, data: recoverySeries },
+                { key: 'activity', label: 'Activity', color: colors.activity, data: activitySeries, style: 'dashed' },
+              ]}
+            />
+            <View style={styles.legendRow}>
+              {[
+                { label: 'Score', color: colors.brandGreen, active: true },
+                { label: 'Recovery', color: colors.recovery },
+                { label: 'Activity', color: colors.activity },
+                { label: 'Test Results', color: colors.testResults },
+                { label: 'Nutrition', color: colors.disabled },
+              ].map((item) => (
+                <View
+                  key={item.label}
+                  style={[
+                    styles.legendPill,
+                    {
+                      backgroundColor: item.active ? colors.brandGreenSoft : colors.surfaceSoft,
+                      borderColor: item.active ? colors.accentBorder : colors.borderSubtle,
+                    },
+                  ]}
+                >
+                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+                  <Text style={[styles.legendText, { color: item.active ? colors.text : colors.textSubtle }]}>
+                    {item.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </Section>
+
+        <Section title="Recovery" subtitle="Signals that shape your recovery contributor.">
+          <View style={styles.metricGrid}>
+            <MetricSurface metric={data.recoveryMetrics.recovery} color={colors.recovery} />
+            <MetricSurface metric={data.recoveryMetrics.sleep} color={colors.recovery} />
+            <MetricSurface metric={data.recoveryMetrics.hrv} color={colors.recovery} />
+            <MetricSurface metric={data.recoveryMetrics.restingHr} color={colors.recovery} />
+          </View>
+        </Section>
+
+        <Section title="Activity" subtitle="Movement and training context in the same visual system.">
+          <View style={styles.metricGrid}>
+            <MetricSurface metric={data.activityMetrics.activity} color={colors.activity} />
+            <MetricSurface metric={data.activityMetrics.steps} color={colors.activity} />
+            <MetricSurface metric={data.activityMetrics.training} color={colors.scoreSteady} />
+            <MetricSurface metric={data.activityMetrics.calories} color={colors.scoreSoft} />
+          </View>
+        </Section>
       </View>
-
-      {/* Activity */}
-      <SectionHeader title="Activity" />
-      <View style={trendsStyles.grid}>
-        <MetricCard metric={act.activity}  accentColor={accentActivity} />
-        <MetricCard metric={act.steps}     accentColor={accentActivity} />
-        <MetricCard metric={act.training}  accentColor={accentActivity} />
-        <MetricCard metric={act.calories}  accentColor={accentActivity} />
-      </View>
-
-      <View style={{ height: spacing.xl }} />
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  scroll: {
+    alignItems: 'center',
+    paddingTop: spacing.md,
+    paddingBottom: 108,
+  },
+  container: {
+    width: '100%',
+    maxWidth: layout.maxWidth,
+    paddingHorizontal: layout.screenPaddingH,
+    gap: spacing.xl,
+  },
+  hero: {
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.xl,
+    gap: spacing.lg,
+  },
+  heroTop: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'flex-start',
+  },
+  heroHeading: {
+    flex: 1,
+    gap: spacing.xs,
+  },
+  heroEyebrow: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  heroTitle: {
+    fontSize: 30,
+    lineHeight: 34,
+  },
+  heroSubtitle: {
+    fontSize: typography.bodySmall,
+    lineHeight: lineHeights.bodySmall,
+    fontWeight: '600',
+  },
+  heroScoreCard: {
+    minWidth: 106,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    gap: 2,
+    alignItems: 'flex-end',
+  },
+  heroScoreLabel: {
+    fontSize: typography.micro,
+    lineHeight: 14,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  heroScoreValue: {
+    fontSize: 32,
+    lineHeight: 36,
+  },
+  rangeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  rangeChip: {
+    minHeight: 38,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+  },
+  rangeChipText: {
+    fontSize: typography.caption,
+    fontWeight: '800',
+  },
+  section: {
+    gap: spacing.md,
+  },
+  sectionHeader: {
+    gap: 2,
+    paddingHorizontal: spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: typography.subtitle,
+    fontWeight: '800',
+  },
+  sectionSubtitle: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '600',
+  },
+  scoreCard: {
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  legendPill: {
+    minHeight: 34,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: typography.micro,
+    lineHeight: 14,
+    fontWeight: '800',
+  },
+  metricGrid: {
+    gap: spacing.sm,
+  },
+  metricCard: {
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  metricHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  metricHeading: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  metricLabel: {
+    fontSize: typography.bodySmall,
+    lineHeight: lineHeights.bodySmall,
+    fontWeight: '800',
+  },
+  metricCaption: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '600',
+  },
+  metricValueWrap: {
+    alignItems: 'flex-end',
+    maxWidth: 132,
+  },
+  metricValue: {
+    fontSize: typography.bodySmall,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  metricDelta: {
+    fontSize: typography.micro,
+    lineHeight: 14,
+    textAlign: 'right',
+  },
+  metricEmpty: {
+    minHeight: 110,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  metricEmptyText: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+});

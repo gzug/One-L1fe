@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { IdeasNotesCard } from '../components/IdeasNotesCard';
+import {
+  InteractiveTrendChartV2,
+  QuietBarChartV2,
+} from '../components/InteractiveTrendChartV2';
 import { prototypeCopy } from '../data/copy';
 import { getHomeDisplayData } from '../data/homeDataAdapter';
 import type {
-  HomeChartPoint,
   HomeDataMode,
   HomeDisplayData,
   HomeHealthInputCard,
@@ -28,21 +31,19 @@ import { loadPanels } from '../../../v1-marathon/src/data/bloodStorage';
 import type { BloodPanel } from '../../../v1-marathon/src/data/bloodStorage';
 
 type HomeScreenProps = {
-  onProfilePress: () => void;
   onDemoInfoPress: () => void;
   onViewBloodPanels: () => void;
   onManageSources: () => void;
   dataMode: HomeDataMode;
+  onDataModeChange: (mode: HomeDataMode) => void;
   timeRange: TimeRange;
   customRange: CustomRange;
   onTimeRangeSelect: (range: TimeRange) => void;
   onCustomRangeChange: (range: CustomRange) => void;
 };
 
-const SCORE_RING_SIZE = 160;
+const SCORE_RING_SIZE = 188;
 const OUTER_RING_STROKE = 12;
-const INNER_RING_STROKE = 8;
-const SOFT_NEGATIVE = '#C97872';
 const CALENDAR_DAYS = 35;
 
 const RECOVERY_KEYS: HomeTrendMetricKey[] = ['recovery', 'sleep', 'hrv', 'restingHr'];
@@ -52,16 +53,17 @@ function clamp(v: number) {
   return Math.max(0, Math.min(100, Math.round(v)));
 }
 
-function formatSignedDelta(d: number | null): string {
-  if (d === null) return '';
-  if (d === 0) return '0';
-  return d > 0 ? `+${d}` : `${d}`;
-}
-
 function formatPeriodDelta(d: number | null): string {
   if (d === null) return 'No prior comparison';
   if (d === 0) return 'Flat vs previous period';
   return d > 0 ? `+${d} vs previous period` : `${d} vs previous period`;
+}
+
+function statusFromValue(value: number | null) {
+  if (value === null) return 'Pending';
+  if (value >= 75) return 'Strong';
+  if (value >= 60) return 'Stable';
+  return 'Watch';
 }
 
 function healthStatusLabel(status: HealthConnectStatus): string {
@@ -152,24 +154,23 @@ function colorForKey(key: HomeMetricColorKey, colors: ThemeColors, score: number
       return '#36B078';
     case 'restingHr':
       return '#1FA367';
-    // activity sub-metrics: lighter shades of activity amber
+    // activity sub-metrics: quiet sage variants, not warning/action colors
     case 'steps':
-      return '#F5B85A';
+      return colors.activity;
     case 'training':
-      return '#E8882A';
+      return colors.scoreSteady;
     case 'calories':
-      return '#D46A18';
+      return colors.scoreSoft;
     default:
       return colors.brandGreen;
   }
 }
 
 export function HomeScreen({
-  onProfilePress,
-  onDemoInfoPress,
   onViewBloodPanels,
   onManageSources,
   dataMode,
+  onDataModeChange,
   timeRange,
   customRange,
   onTimeRangeSelect,
@@ -254,6 +255,8 @@ export function HomeScreen({
           <ScoreCard
             score={homeData.score}
             contributors={homeData.contributors}
+            dataMode={dataMode}
+            onDataModeChange={onDataModeChange}
             colors={colors}
           />
 
@@ -357,34 +360,54 @@ function CustomRangePicker({
 function ScoreCard({
   score,
   contributors,
+  dataMode,
+  onDataModeChange,
   colors,
 }: {
   score: HomeDisplayData['score'];
   contributors: HomeDisplayData['contributors'];
+  dataMode: HomeDataMode;
+  onDataModeChange: (mode: HomeDataMode) => void;
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
   const { width } = useWindowDimensions();
   const isWide = width >= SCORE_CARD_SPLIT_WIDTH;
+  const isCompactWide = isWide && width < 600;
   return (
     <View style={s.scoreCard}>
-      <View style={s.scoreHeader}>
-        <View style={{ flex: 1 }}>
-          <Text style={s.cardEyebrow}>{score.contextLabel}</Text>
-          <Text style={s.scoreTitle}>
-            One L<Text style={{ color: colors.brandGreen }}>1</Text>fe Score
-          </Text>
+      <View style={s.scoreTopRow}>
+        <View style={s.modeCluster}>
+          <View style={s.modeToggle} accessibilityRole="tablist">
+            {(['user', 'demo'] as const).map((mode) => {
+              const active = dataMode === mode;
+              return (
+                <Pressable
+                  key={mode}
+                  onPress={() => onDataModeChange(mode)}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  style={[s.modeButton, active && s.modeButtonActive]}
+                >
+                  <Text style={[s.modeButtonText, active && s.modeButtonTextActive]}>
+                    {mode === 'user' ? 'User Data' : 'Demo'}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
-        <View style={[s.coveragePill, { borderColor: colors.borderSubtle }]}>
-          <Text style={s.coverageText}>{score.coverageLabel}</Text>
+        <View style={s.balancePill}>
+          <View>
+            <Text style={s.balanceTitle}>{score.overall === null ? 'No score yet' : 'In balance'}</Text>
+            <Text style={s.balanceSub}>{score.overall === null ? 'Connect data' : 'Keep it up!'}</Text>
+          </View>
         </View>
       </View>
 
-      <View style={[s.scoreBodyRow, isWide && s.scoreBodyRowWide]}>
+      <View style={[s.scoreBodyRow, isWide && s.scoreBodyRowWide, isCompactWide && s.scoreBodyRowCompactWide]}>
         <MultiRingScore
           score={score.overall}
-          recoveryScore={score.recovery}
-          activityScore={score.activity}
           colors={colors}
         />
 
@@ -392,23 +415,14 @@ function ScoreCard({
           contributors={contributors}
           colors={colors}
           flex={isWide}
+          compact={isCompactWide}
         />
       </View>
     </View>
   );
 }
 
-function MultiRingScore({
-  score,
-  recoveryScore,
-  activityScore,
-  colors,
-}: {
-  score: number | null;
-  recoveryScore: number | null;
-  activityScore: number | null;
-  colors: ThemeColors;
-}) {
+function MultiRingScore({ score, colors }: { score: number | null; colors: ThemeColors }) {
   const s = createHomeStyles(colors);
   const centerColor = score === null ? colors.textSubtle : colors.brandGreen;
   return (
@@ -416,31 +430,24 @@ function MultiRingScore({
       <Svg width={SCORE_RING_SIZE} height={SCORE_RING_SIZE} viewBox={`0 0 ${SCORE_RING_SIZE} ${SCORE_RING_SIZE}`}>
         <ProgressCircle
           value={score}
-          radius={72}
+          radius={82}
           strokeWidth={OUTER_RING_STROKE}
           color={scoreTone(score, colors)}
           trackColor={colors.ringTrack}
         />
-        <ProgressCircle
-          value={recoveryScore}
-          radius={54}
-          strokeWidth={INNER_RING_STROKE}
-          color={colors.recovery}
-          trackColor={colors.progressTrack}
-        />
-        <ProgressCircle
-          value={activityScore}
-          radius={40}
-          strokeWidth={INNER_RING_STROKE}
-          color={colors.activity}
-          trackColor={colors.progressTrack}
-        />
       </Svg>
       <View style={[StyleSheet.absoluteFillObject, s.scoreRingCenter]}>
-        <Text style={[s.scoreValue, { color: centerColor }]}>
+        <Text style={[s.scoreValue, { color: centerColor, fontFamily: 'BrandDisplay' }]}>
           {score === null ? '--' : `${clamp(score)}%`}
         </Text>
-        <Text style={s.scoreLabel}>ONE L1FE SCORE</Text>
+        <Text style={s.scoreLabel}>One L1fe Score</Text>
+        <Text style={s.scoreStatusLine}>{score === null ? 'Waiting for data' : '● Good'}</Text>
+      </View>
+      <View style={s.scoreBasisRow}>
+        <View style={s.scoreBasisIcon}>
+          <ContributorIcon name="shield" color={colors.brandGreen} />
+        </View>
+        <Text style={s.scoreBasisText}>Your score is based on 4 key pillars of your health.</Text>
       </View>
     </View>
   );
@@ -502,7 +509,7 @@ function ScoreTrendMiniChart({
     return (
       <View style={s.scoreTrendCard}>
         <View style={s.scoreTrendHeader}>
-          <Text style={s.scoreTrendTitle}>Score trend</Text>
+          <Text style={s.scoreTrendTitle}>One Health Score Trend</Text>
           <Text style={s.scoreTrendCaption}>Waiting for connected data</Text>
         </View>
         <View style={s.scoreTrendEmpty}>
@@ -515,63 +522,70 @@ function ScoreTrendMiniChart({
   return (
     <View style={s.scoreTrendCard}>
       <View style={s.scoreTrendHeader}>
-        <Text style={s.scoreTrendTitle}>Score trend</Text>
-        <View style={s.scoreTrendLegend}>
-          {trend.series.map((item) => (
-            <View key={item.label} style={s.scoreTrendLegendItem}>
-              <View style={[s.scoreTrendDot, { backgroundColor: colorForKey(item.colorKey, colors, score) }]} />
-              <Text style={s.scoreTrendLegendText}>{item.label}</Text>
-            </View>
-          ))}
+        <Text style={s.scoreTrendTitle}>One Health Score Trend</Text>
+        <View style={s.scoreRangePill}>
+          <Text style={s.scoreRangeText}>6M</Text>
+          <Text style={s.scoreRangeChevron}>⌄</Text>
         </View>
       </View>
-      <Svg width="100%" height={76} viewBox="0 0 300 76">
-        {[0, 1].map((line) => (
-          <Path
-            key={line}
-            d={`M 8 ${24 + line * 26} L 292 ${24 + line * 26}`}
-            stroke={colors.borderSubtle}
-            strokeWidth={1}
-            fill="none"
-          />
-        ))}
-        {trend.series.map((item) => (
-          <MiniLineSeries
-            key={item.label}
-            data={item.data}
-            color={colorForKey(item.colorKey, colors, score)}
-          />
-        ))}
-      </Svg>
+      <InteractiveTrendChartV2
+        colors={colors}
+        height={164}
+        yMin={0}
+        yMax={100}
+        yTicks={[100, 80, 60, 40, 20, 0]}
+        showYAxis={false}
+        series={[
+          {
+            key: 'score',
+            label: 'Score',
+            color: colorForKey('score', colors, score),
+            data: trend.series[0]?.data ?? [],
+            style: 'area',
+          },
+          {
+            key: 'recovery',
+            label: 'Recovery',
+            color: colors.recovery,
+            data: trend.series[1]?.data ?? [],
+          },
+          {
+            key: 'activity',
+            label: 'Activity',
+            color: colors.activity,
+            data: trend.series[2]?.data ?? [],
+            style: 'dashed',
+          },
+        ]}
+      />
+      <View style={s.scoreTrendLegend}>
+        <TrendLegendPill label="Score" color={colorForKey('score', colors, score)} active colors={colors} />
+        <TrendLegendPill label="Recovery" color={colors.recovery} colors={colors} />
+        <TrendLegendPill label="Activity" color={colors.activity} colors={colors} />
+        <TrendLegendPill label="Test Results" color={colors.testResults} colors={colors} />
+        <TrendLegendPill label="Nutrition" color={colors.disabled} colors={colors} />
+      </View>
     </View>
   );
 }
 
-function MiniLineSeries({ data, color }: { data: HomeChartPoint[]; color: string }) {
-  const width = 300;
-  const height = 68;
-  const paddingX = 12;
-  const paddingY = 10;
-  const values = data.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = Math.max(1, max - min);
-  const points = data.map((point, index) => {
-    const x = data.length === 1 ? width / 2 : paddingX + (index * (width - paddingX * 2)) / (data.length - 1);
-    const y = paddingY + (1 - (point.value - min) / span) * (height - paddingY * 2);
-    return { x, y };
-  });
-  const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
-
+function TrendLegendPill({
+  label,
+  color,
+  active,
+  colors,
+}: {
+  label: string;
+  color: string;
+  active?: boolean;
+  colors: ThemeColors;
+}) {
+  const s = createHomeStyles(colors);
   return (
-    <>
-      {points.length > 1 ? (
-        <Path d={path} stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      ) : null}
-      {points.map((point, index) => (
-        <Circle key={`${point.x}-${index}`} cx={point.x} cy={point.y} r={2.4} fill={color} />
-      ))}
-    </>
+    <View style={[s.scoreLegendPill, active && { backgroundColor: colors.brandGreen, borderColor: colors.brandGreen }]}>
+      <View style={[s.scoreTrendDot, { backgroundColor: active ? colors.surface : color }]} />
+      <Text style={[s.scoreTrendLegendText, active && { color: colors.surface }]}>{label}</Text>
+    </View>
   );
 }
 
@@ -579,109 +593,235 @@ function ContributorLegend({
   contributors,
   colors,
   flex,
+  compact,
 }: {
   contributors: HomeDisplayData['contributors'];
   colors: ThemeColors;
   flex?: boolean;
+  compact?: boolean;
 }) {
   const s = createHomeStyles(colors);
-  const [recoveryOpen, setRecoveryOpen] = React.useState(true);
-  const [activityOpen, setActivityOpen] = React.useState(false);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    recovery: false,
+    activity: false,
+    bloodMarkers: false,
+  });
+
+  const contributorRows = [
+    {
+      id: 'recovery',
+      label: 'Recovery',
+      value: contributors.recovery.value,
+      color: colors.recovery,
+      icon: 'heart' as const,
+      inputs: contributors.recovery.inputs,
+    },
+    {
+      id: 'activity',
+      label: 'Activity',
+      value: contributors.activity.value,
+      color: colors.activity,
+      icon: 'activity' as const,
+      inputs: contributors.activity.inputs,
+    },
+    {
+      id: 'bloodMarkers',
+      label: 'Test Results',
+      value: contributors.bloodMarkers.value,
+      color: colors.testResults,
+      icon: 'flask' as const,
+      inputs: contributors.bloodMarkers.inputs,
+    },
+    {
+      id: 'nutrition',
+      label: 'Nutrition',
+      value: null,
+      color: colors.disabled,
+      icon: 'nutrition' as const,
+      comingSoon: true,
+    },
+  ];
+
   return (
     <View style={[s.legendCard, flex && s.legendCardFlex]}>
-      {/* Recovery — accordion */}
-      <Pressable
-        onPress={() => setRecoveryOpen((o) => !o)}
-        style={s.accordionHeader}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: recoveryOpen }}
-      >
-        <View style={[s.contributorDot, { backgroundColor: colors.recovery }]} />
-        <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.recovery.label}</Text>
-        <Text style={s.contributorValue}>
-          {contributors.recovery.value === null ? '--' : `${clamp(contributors.recovery.value)}%`}
-        </Text>
-        <Text style={[s.accordionChevron, { color: colors.textSubtle }]}>
-          {recoveryOpen ? '▾' : '▸'}
-        </Text>
-      </Pressable>
-      {recoveryOpen && contributors.recovery.inputs?.map((item) => (
-        <ContributorRow key={item.label} item={item} colors={colors} sub />
-      ))}
-
-      <View style={s.legendDivider} />
-
-      {/* Activity — accordion */}
-      <Pressable
-        onPress={() => setActivityOpen((o) => !o)}
-        style={s.accordionHeader}
-        accessibilityRole="button"
-        accessibilityState={{ expanded: activityOpen }}
-      >
-        <View style={[s.contributorDot, { backgroundColor: colors.activity }]} />
-        <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.activity.label}</Text>
-        <Text style={s.contributorValue}>
-          {contributors.activity.value === null ? '--' : `${clamp(contributors.activity.value)}%`}
-        </Text>
-        <Text style={[s.accordionChevron, { color: colors.textSubtle }]}>
-          {activityOpen ? '▾' : '▸'}
-        </Text>
-      </Pressable>
-      {activityOpen && contributors.activity.inputs?.map((item) => (
-        <ContributorRow key={item.label} item={item} colors={colors} sub />
-      ))}
-
-      <View style={s.legendDivider} />
-
-      {/* Test Results — single static row, no chevron */}
-      <ContributorRow item={contributors.bloodMarkers} colors={colors} />
-
-      <View style={s.legendDivider} />
-
-      {/* Nutrition — disabled / coming soon */}
-      <View style={[s.contributorRow, { opacity: 0.5 }]}>
-        <View style={[s.contributorDot, { backgroundColor: colors.disabled }]} />
-        <Text style={[s.contributorLabel, { color: colors.textSubtle }]}>Nutrition</Text>
-        <View style={s.comingSoonPill}>
-          <Text style={s.comingSoonText}>Soon</Text>
-        </View>
+      <View style={s.legendHeader}>
+        <Text style={s.legendTitle}>Contributors</Text>
+        <Text style={s.legendDetails}>Inputs</Text>
       </View>
+      {contributorRows.map((row) => (
+        <ContributorScoreRow
+          key={row.id}
+          label={row.label}
+          value={row.value}
+          color={row.color}
+          icon={row.icon}
+          comingSoon={row.comingSoon}
+          colors={colors}
+          compact={compact}
+          inputs={row.inputs}
+          expanded={!!expanded[row.id]}
+          onToggle={row.inputs?.length ? () => setExpanded((prev) => ({ ...prev, [row.id]: !prev[row.id] })) : undefined}
+        />
+      ))}
     </View>
   );
 }
 
-function ContributorRow({
-  item,
+function ContributorScoreRow({
+  label,
+  value,
+  color,
+  icon,
+  comingSoon,
   colors,
-  sub,
+  compact,
+  inputs,
+  expanded,
+  onToggle,
 }: {
-  item: {
-    label: string;
-    value: number | null;
-    delta: number | null;
-    colorKey: HomeMetricColorKey;
-  };
+  label: string;
+  value: number | null;
+  color: string;
+  icon: ContributorIconName;
+  comingSoon?: boolean;
   colors: ThemeColors;
-  sub?: boolean;
+  compact?: boolean;
+  inputs?: HomeDisplayData['contributors']['recovery']['inputs'];
+  expanded?: boolean;
+  onToggle?: () => void;
 }) {
   const s = createHomeStyles(colors);
-  const color = colorForKey(item.colorKey, colors);
-  return (
-    <View style={[s.contributorRow, sub && s.contributorSubRow]}>
-      <View style={[s.contributorDot, { backgroundColor: color, opacity: item.value === null ? 0.35 : 1 }]} />
-      <Text style={[s.contributorLabel, sub && s.contributorSubLabel]}>{item.label}</Text>
-      <Text style={s.contributorValue}>{item.value === null ? '--' : `${clamp(item.value)}%`}</Text>
-      {item.delta !== null ? (
-        <Text style={[s.contributorDelta, { color: item.delta < 0 ? SOFT_NEGATIVE : colors.positive }]}>
-          {formatSignedDelta(item.delta)}
+  const disabled = !!comingSoon;
+  const content = (
+    <>
+      <View
+        style={[
+          s.contributorIconBubble,
+          compact && s.contributorIconBubbleCompact,
+          disabled
+            ? { borderColor: colors.borderSubtle, backgroundColor: colors.surfaceSoft }
+            : { borderColor: `${color}66`, backgroundColor: `${color}14` },
+        ]}
+      >
+        <ContributorIcon name={icon} color={disabled ? colors.disabled : color} />
+      </View>
+      <View style={s.contributorLabelBlock}>
+        <Text
+          style={[s.contributorScoreLabel, compact && s.contributorScoreLabelCompact, disabled && { color: colors.textMuted }]}
+          numberOfLines={compact ? (comingSoon ? 1 : 2) : 1}
+        >
+          {label}
         </Text>
+        {inputs?.length ? (
+          <Text style={s.contributorHint}>{expanded ? 'Hide base inputs' : 'Show base inputs'}</Text>
+        ) : null}
+      </View>
+      {comingSoon ? (
+        <Text style={[s.contributorSoon, compact && s.contributorSoonCompact]}>Coming soon</Text>
       ) : (
-        <View style={s.deltaSpacer} />
+        <View style={[s.contributorScoreValueBlock, compact && s.contributorScoreValueBlockCompact]}>
+          <Text style={[s.contributorScoreValue, compact && s.contributorScoreValueCompact, { color }]}>{value === null ? '--' : `${clamp(value)}%`}</Text>
+          <Text style={[s.contributorScoreState, compact && s.contributorScoreStateCompact]}>{statusFromValue(value)}</Text>
+        </View>
       )}
+      {inputs?.length ? (
+        <Text style={[s.contributorArrow, compact && s.contributorArrowCompact]}>{expanded ? '⌃' : '⌄'}</Text>
+      ) : null}
+    </>
+  );
+
+  return (
+    <View style={[s.contributorBlock, disabled && s.contributorBlockDisabled]}>
+      {onToggle ? (
+        <Pressable onPress={onToggle} style={[s.contributorScoreRow, compact && s.contributorScoreRowCompact]}>
+          {content}
+        </Pressable>
+      ) : (
+        <View style={[s.contributorScoreRow, compact && s.contributorScoreRowCompact]}>
+          {content}
+        </View>
+      )}
+      {expanded && inputs?.length ? (
+        <View style={s.contributorInputsWrap}>
+          {inputs.map((input) => {
+            const inputColor = colorForKey(input.colorKey, colors, input.value);
+            return (
+              <View key={input.label} style={s.contributorInputRow}>
+                <View style={[s.contributorInputDot, { backgroundColor: inputColor }]} />
+                <Text style={s.contributorInputLabel}>{input.label}</Text>
+                <Text style={[s.contributorInputValue, { color: inputColor }]}>
+                  {input.value === null ? '--' : `${clamp(input.value)}%`}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
+      ) : null}
     </View>
   );
 }
 
+type ContributorIconName = 'activity' | 'balance' | 'flask' | 'heart' | 'nutrition' | 'pulse' | 'shield';
+
+function ContributorIcon({ name, color }: { name: ContributorIconName; color: string }) {
+  if (name === 'heart') {
+    return (
+      <Svg width={30} height={30} viewBox="0 0 30 30">
+        <Path d="M15 24 C10.4 20.2 6 16.4 6 11.7 C6 8.9 8 7 10.6 7 C12.4 7 13.8 8 15 9.5 C16.2 8 17.6 7 19.4 7 C22 7 24 8.9 24 11.7 C24 16.4 19.6 20.2 15 24 Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    );
+  }
+  if (name === 'activity') {
+    return (
+      <Svg width={30} height={30} viewBox="0 0 30 30">
+        <Circle cx={18.4} cy={7.2} r={2.2} stroke={color} strokeWidth={2} fill="none" />
+        <Path d="M12.2 13.6 L16.6 10.9 L20.2 12.9" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d="M16.4 11.2 L14.2 18.1 L9.4 22.4" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d="M18.2 13.1 L21.3 19.3 L25.4 21.1" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    );
+  }
+  if (name === 'flask') {
+    return (
+      <Svg width={30} height={30} viewBox="0 0 30 30">
+        <Path d="M11 5 H19 M13 6 V13 L9.4 21 C8.6 23 10 25 12.2 25 H17.8 C20 25 21.4 23 20.6 21 L17 13 V6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d="M10.6 20 H19.4" stroke={color} strokeWidth={2} strokeLinecap="round" opacity={0.75} />
+      </Svg>
+    );
+  }
+  if (name === 'nutrition') {
+    return (
+      <Svg width={30} height={30} viewBox="0 0 30 30">
+        <Path d="M9.2 6.5 V13.8" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M7 6.5 V10.8 M11.4 6.5 V10.8" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+        <Path d="M9.2 13.8 V23.2" stroke={color} strokeWidth={2} strokeLinecap="round" />
+        <Path d="M18.8 6.5 V13.3 C18.8 14.8 20 16 21.5 16 V23.2" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    );
+  }
+  if (name === 'pulse') {
+    return (
+      <Svg width={30} height={30} viewBox="0 0 30 30">
+        <Path d="M5 16 H10 L12.4 11 L16.2 21 L19 15.8 H25" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d="M8 13 C7.5 8.6 11.7 7 15 10.8 C18.3 7 22.5 8.6 22 13" stroke={color} strokeWidth={1.8} strokeLinecap="round" fill="none" opacity={0.8} />
+      </Svg>
+    );
+  }
+  if (name === 'shield') {
+    return (
+      <Svg width={24} height={24} viewBox="0 0 24 24">
+        <Path d="M12 3 L19 6 V11 C19 15.4 16.2 18.6 12 21 C7.8 18.6 5 15.4 5 11 V6 L12 3 Z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path d="M9 12 L11.2 14.2 L15.5 9.8" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      </Svg>
+    );
+  }
+  return (
+    <Svg width={30} height={30} viewBox="0 0 30 30">
+      <Path d="M7 16 C12 15 14 11 14 6 C19 8 23 12 23 18 C23 22 19.8 25 15 25 C10.2 25 7 22 7 18 Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M10 17 C13 19 17 18.5 20 15" stroke={color} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+    </Svg>
+  );
+}
 
 function TrendCard({
   title,
@@ -767,93 +907,17 @@ function MetricChart({
 
   return (
     <View style={s.chartWrap}>
-      <Svg width="100%" height={98} viewBox="0 0 300 98">
-        {metric.chartType === 'line' ? (
-          <LineChart data={metric.data} color={color} colors={colors} />
-        ) : (
-          <BarChart data={metric.data} color={color} colors={colors} />
-        )}
-      </Svg>
-      <View style={s.chartLabels}>
-        {metric.data.map((point) => (
-          <Text key={point.label} style={s.chartLabel}>{point.label}</Text>
-        ))}
-      </View>
+      {metric.chartType === 'line' ? (
+        <InteractiveTrendChartV2
+          colors={colors}
+          height={106}
+          showYAxis={false}
+          series={[{ key: metric.key, label: metric.label, color, data: metric.data }]}
+        />
+      ) : (
+        <QuietBarChartV2 colors={colors} data={metric.data} color={color} height={106} />
+      )}
     </View>
-  );
-}
-
-function LineChart({ data, color, colors }: { data: HomeChartPoint[]; color: string; colors: ThemeColors }) {
-  const width = 300;
-  const height = 82;
-  const paddingX = 12;
-  const paddingY = 12;
-  const values = data.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = Math.max(1, max - min);
-  const points = data.map((point, index) => {
-    const x = data.length === 1 ? width / 2 : paddingX + (index * (width - paddingX * 2)) / (data.length - 1);
-    const y = paddingY + (1 - (point.value - min) / span) * (height - paddingY * 2);
-    return { x, y };
-  });
-  const path = points.map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`).join(' ');
-
-  return (
-    <>
-      {[0, 1, 2].map((line) => (
-        <Path
-          key={line}
-          d={`M 8 ${18 + line * 26} L 292 ${18 + line * 26}`}
-          stroke={colors.borderSubtle}
-          strokeWidth={1}
-          fill="none"
-        />
-      ))}
-      {points.length > 1 ? <Path d={path} stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" fill="none" /> : null}
-      {points.map((point, index) => (
-        <Circle key={`${point.x}-${index}`} cx={point.x} cy={point.y} r={3.5} fill={color} />
-      ))}
-    </>
-  );
-}
-
-function BarChart({ data, color, colors }: { data: HomeChartPoint[]; color: string; colors: ThemeColors }) {
-  const width = 300;
-  const height = 82;
-  const paddingX = 14;
-  const max = Math.max(...data.map((point) => point.value), 1);
-  const slot = (width - paddingX * 2) / data.length;
-  const barWidth = Math.max(10, Math.min(28, slot * 0.58));
-  return (
-    <>
-      {[0, 1, 2].map((line) => (
-        <Path
-          key={line}
-          d={`M 8 ${18 + line * 26} L 292 ${18 + line * 26}`}
-          stroke={colors.borderSubtle}
-          strokeWidth={1}
-          fill="none"
-        />
-      ))}
-      {data.map((point, index) => {
-        const barHeight = Math.max(8, (point.value / max) * 62);
-        const x = paddingX + index * slot + (slot - barWidth) / 2;
-        const y = height - barHeight - 4;
-        return (
-          <Rect
-            key={`${point.label}-${point.value}`}
-            x={x}
-            y={y}
-            width={barWidth}
-            height={barHeight}
-            rx={barWidth / 2}
-            fill={color}
-            opacity={0.88}
-          />
-        );
-      })}
-    </>
   );
 }
 
@@ -988,8 +1052,10 @@ function HealthInputGlyph({ name, color }: { name: HomeHealthInputIcon; color: s
   if (name === 'nutrition') {
     return (
       <Svg width={22} height={22} viewBox="0 0 24 24">
-        <Path d="M13 7 C16.8 5.8 20 8.4 19.4 12.4 C18.9 16 16.4 20 13.8 20 C12.9 20 12.3 19.6 11.7 19.6 C11.1 19.6 10.5 20 9.6 20 C7 20 4.5 16 4 12.4 C3.4 8.4 6.6 5.8 10.4 7" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d="M12 7 C12 4.8 13.3 3.4 15.4 3" stroke={color} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+        <Path d="M9 4.5 V10.6" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+        <Path d="M7 4.5 V8.2 M11 4.5 V8.2" stroke={color} strokeWidth={1.6} strokeLinecap="round" />
+        <Path d="M9 10.6 V20" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+        <Path d="M15.4 4.5 V10.4 C15.4 11.7 16.5 12.8 17.8 12.8 V20" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
       </Svg>
     );
   }
@@ -1127,44 +1193,83 @@ function createHomeStyles(colors: ThemeColors) {
       backgroundColor: colors.surface,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
-      padding: spacing.lg,
+      padding: spacing.md,
       alignItems: 'center',
-      gap: spacing.md,
+      gap: spacing.lg,
+      shadowColor: '#0B1C12',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.08,
+      shadowRadius: 22,
+      elevation: 3,
     },
-    scoreHeader: {
+    scoreTopRow: {
       alignSelf: 'stretch',
       flexDirection: 'row',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'space-between',
       gap: spacing.md,
+      flexWrap: 'wrap',
     },
-    cardEyebrow: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
-      fontWeight: '800',
-      letterSpacing: 0.5,
-      textTransform: 'uppercase',
+    modeCluster: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
     },
-    scoreTitle: {
-      color: colors.text,
-      fontSize: typography.heroName,
-      lineHeight: 31,
-      fontWeight: '800',
-      letterSpacing: 0,
-      marginTop: 1,
-    },
-    coveragePill: {
-      borderRadius: radius.pill,
+    modeToggle: {
+      minHeight: 34,
+      flexDirection: 'row',
+      borderRadius: radius.md,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
+      backgroundColor: colors.surfaceSoft,
+      padding: 2,
+      minWidth: 146,
+    },
+    modeButton: {
+      flex: 1,
+      minHeight: 28,
+      borderRadius: radius.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: spacing.sm,
+    },
+    modeButtonActive: {
       backgroundColor: colors.surface,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: `${colors.brandGreen}33`,
+    },
+    modeButtonText: {
+      color: colors.textSubtle,
+      fontSize: typography.caption,
+      fontWeight: '700',
+    },
+    modeButtonTextActive: {
+      color: colors.brandGreenDark,
+      fontWeight: '800',
+    },
+    balancePill: {
+      minHeight: 44,
+      borderRadius: radius.pill,
+      backgroundColor: colors.brandGreenSoft,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: `${colors.brandGreen}22`,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.xs,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
     },
-    coverageText: {
-      color: colors.textMuted,
-      fontSize: typography.micro,
+    balanceTitle: {
+      color: colors.brandGreenDark,
+      fontSize: typography.bodySmall,
+      lineHeight: 17,
       fontWeight: '800',
+    },
+    balanceSub: {
+      color: colors.text,
+      fontSize: typography.caption,
+      lineHeight: 14,
+      fontWeight: '600',
     },
     scoreBodyRow: {
       alignSelf: 'stretch',
@@ -1175,39 +1280,76 @@ function createHomeStyles(colors: ThemeColors) {
     scoreBodyRowWide: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      gap: spacing.md,
+      gap: spacing.lg,
+    },
+    scoreBodyRowCompactWide: {
+      gap: spacing.sm,
     },
     scoreRingWrap: {
       width: SCORE_RING_SIZE,
-      height: SCORE_RING_SIZE,
+      minHeight: SCORE_RING_SIZE + 76,
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
     },
     scoreRingCenter: {
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
+      paddingTop: 52,
     },
     scoreValue: {
-      fontSize: 42,
-      lineHeight: 48,
+      fontSize: 56,
+      lineHeight: 62,
       fontWeight: '900',
-      letterSpacing: -1,
+      letterSpacing: 0,
     },
     scoreLabel: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
-      fontWeight: '800',
-      letterSpacing: 0.6,
-      textTransform: 'uppercase',
+      color: colors.text,
+      fontSize: typography.bodySmall,
+      fontWeight: '700',
+      letterSpacing: 0,
+    },
+    scoreStatusLine: {
+      color: colors.brandGreenDark,
+      fontSize: typography.bodySmall,
+      lineHeight: 22,
+      fontWeight: '700',
+      marginTop: spacing.xs,
+    },
+    scoreBasisRow: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
+    scoreBasisIcon: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      backgroundColor: colors.brandGreenSoft,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    scoreBasisText: {
+      flex: 1,
+      color: colors.textMuted,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '600',
     },
     scoreTrendCard: {
       alignSelf: 'stretch',
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
       backgroundColor: colors.surface,
-      padding: spacing.md,
-      gap: spacing.xs,
+      padding: spacing.lg,
+      gap: spacing.md,
+      shadowColor: '#0B1C12',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.06,
+      shadowRadius: 18,
+      elevation: 2,
     },
     scoreTrendHeader: {
       flexDirection: 'row',
@@ -1217,7 +1359,7 @@ function createHomeStyles(colors: ThemeColors) {
     },
     scoreTrendTitle: {
       color: colors.text,
-      fontSize: typography.bodySmall,
+      fontSize: typography.subtitle,
       fontWeight: '800',
     },
     scoreTrendCaption: {
@@ -1230,13 +1372,7 @@ function createHomeStyles(colors: ThemeColors) {
       alignItems: 'center',
       gap: spacing.sm,
       flexWrap: 'wrap',
-      justifyContent: 'flex-end',
-      flex: 1,
-    },
-    scoreTrendLegendItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
+      justifyContent: 'space-between',
     },
     scoreTrendDot: {
       width: 7,
@@ -1253,14 +1389,66 @@ function createHomeStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    legendCard: {
-      alignSelf: 'stretch',
-      borderRadius: radius.lg,
+    scoreRangePill: {
+      minHeight: 36,
+      minWidth: 62,
+      borderRadius: radius.pill,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+    },
+    scoreRangeText: {
+      color: colors.text,
+      fontSize: typography.bodySmall,
+      fontWeight: '800',
+    },
+    scoreRangeChevron: {
+      color: colors.textSubtle,
+      fontSize: typography.bodySmall,
+      fontWeight: '800',
+    },
+    scoreTrendAxisText: {
+      flex: 1,
+      color: colors.textSubtle,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+    scoreLegendPill: {
+      minHeight: 34,
+      borderRadius: radius.pill,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.borderSubtle,
+      backgroundColor: colors.surface,
+      paddingHorizontal: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.xs,
+    },
+    contributorBlock: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.borderSubtle,
+    },
+    contributorBlockDisabled: {
+      borderRadius: radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.borderSubtle,
+      borderStyle: 'dashed',
       backgroundColor: colors.surfaceSoft,
-      padding: spacing.sm,
-      gap: 2,
+      paddingHorizontal: spacing.sm,
+    },
+    legendCard: {
+      alignSelf: 'stretch',
+      backgroundColor: 'transparent',
+      paddingVertical: spacing.xs,
+      gap: 0,
     },
     legendCardFlex: {
       flex: 1,
@@ -1272,67 +1460,149 @@ function createHomeStyles(colors: ThemeColors) {
       backgroundColor: colors.borderSubtle,
       marginVertical: spacing.xs,
     },
-    accordionHeader: {
+    legendHeader: {
+      minHeight: 42,
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: 26,
-      gap: spacing.xs,
+      justifyContent: 'space-between',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.borderSubtle,
+      marginBottom: spacing.xs,
     },
-    accordionChevron: {
-      fontSize: typography.caption,
+    legendTitle: {
+      color: colors.text,
+      fontSize: typography.subtitle,
       fontWeight: '800',
-      marginLeft: 2,
     },
-    futureSection: {
-      opacity: 0.55,
+    legendDetails: {
+      color: colors.textSubtle,
+      fontSize: typography.bodySmall,
+      fontWeight: '600',
     },
-    contributorRow: {
+    contributorScoreRow: {
+      minHeight: 76,
       flexDirection: 'row',
       alignItems: 'center',
-      minHeight: 22,
+      gap: spacing.md,
+    },
+    contributorScoreRowCompact: {
+      minHeight: 62,
       gap: spacing.xs,
     },
-    contributorSubRow: {
-      marginLeft: 4,
-      paddingLeft: spacing.lg,
-      borderLeftWidth: StyleSheet.hairlineWidth,
-      borderLeftColor: colors.borderSubtle,
+    contributorIconBubble: {
+      width: 58,
+      height: 58,
+      borderRadius: 29,
+      borderWidth: StyleSheet.hairlineWidth,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    contributorDot: {
+    contributorIconBubbleCompact: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+    },
+    contributorLabelBlock: {
+      flex: 1,
+      minWidth: 0,
+      gap: 2,
+    },
+    contributorScoreLabel: {
+      color: colors.text,
+      fontSize: typography.bodySmall,
+      lineHeight: lineHeights.bodySmall,
+      fontWeight: '700',
+    },
+    contributorHint: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      lineHeight: 13,
+      fontWeight: '700',
+    },
+    contributorScoreLabelCompact: {
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '800',
+    },
+    contributorScoreValueBlock: {
+      alignItems: 'flex-end',
+      minWidth: 52,
+    },
+    contributorScoreValueBlockCompact: {
+      minWidth: 38,
+    },
+    contributorScoreValue: {
+      fontSize: typography.subtitle,
+      lineHeight: 20,
+      fontWeight: '800',
+    },
+    contributorScoreValueCompact: {
+      fontSize: typography.bodySmall,
+      lineHeight: lineHeights.bodySmall,
+    },
+    contributorScoreState: {
+      color: colors.textMuted,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '600',
+    },
+    contributorScoreStateCompact: {
+      fontSize: typography.micro,
+      lineHeight: 13,
+    },
+    contributorSoon: {
+      color: colors.disabled,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '800',
+      minWidth: 82,
+      textAlign: 'right',
+    },
+    contributorSoonCompact: {
+      fontSize: typography.micro,
+      lineHeight: 13,
+      minWidth: 54,
+    },
+    contributorArrow: {
+      color: colors.textSubtle,
+      fontSize: 18,
+      lineHeight: 22,
+      fontWeight: '700',
+    },
+    contributorArrowCompact: {
+      fontSize: 16,
+      lineHeight: 18,
+    },
+    contributorInputsWrap: {
+      paddingHorizontal: spacing.sm,
+      paddingBottom: spacing.md,
+      gap: spacing.xs,
+    },
+    contributorInputRow: {
+      minHeight: 34,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceSoft,
+      paddingHorizontal: spacing.sm,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    contributorInputDot: {
       width: 8,
       height: 8,
       borderRadius: 4,
     },
-    contributorLabel: {
+    contributorInputLabel: {
       flex: 1,
-      color: colors.text,
-      fontSize: typography.caption,
-      fontWeight: '700',
-    },
-    contributorSubLabel: {
       color: colors.textMuted,
-      fontWeight: '600',
-    },
-    contributorValue: {
-      width: 34,
-      color: colors.text,
-      fontSize: typography.micro,
-      fontWeight: '800',
-      textAlign: 'right',
-    },
-    contributorDelta: {
-      width: 24,
-      fontSize: typography.micro,
-      fontWeight: '800',
-      textAlign: 'right',
-    },
-    deltaSpacer: {
-      width: 24,
-    },
-    futureValue: {
-      color: colors.textSubtle,
-      fontSize: typography.micro,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
       fontWeight: '700',
+    },
+    contributorInputValue: {
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '800',
     },
     trendCard: {
       borderRadius: radius.lg,
@@ -1466,9 +1736,10 @@ function createHomeStyles(colors: ThemeColors) {
       gap: spacing.xs,
     },
     inputCardDisabled: {
-      opacity: 0.78,
-      backgroundColor: colors.surface,
+      opacity: 0.9,
+      backgroundColor: colors.surfaceSoft,
       borderColor: colors.borderSubtle,
+      borderStyle: 'dashed',
     },
     inputIcon: {
       width: 36,
@@ -1479,7 +1750,7 @@ function createHomeStyles(colors: ThemeColors) {
       marginBottom: spacing.xs,
     },
     inputIconDisabled: {
-      backgroundColor: colors.surfaceElevated,
+      backgroundColor: colors.surface,
     },
     inputTitle: {
       color: colors.text,
@@ -1508,21 +1779,22 @@ function createHomeStyles(colors: ThemeColors) {
       marginTop: spacing.xs,
     },
     comingSoonText: {
-      color: colors.textSubtle,
+      color: colors.disabled,
       fontSize: typography.micro,
       lineHeight: lineHeights.caption,
       fontWeight: '800',
     },
     nutritionCard: {
       borderRadius: radius.lg,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.surfaceSoft,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.borderSubtle,
+      borderStyle: 'dashed',
       padding: spacing.lg,
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      opacity: 0.9,
+      opacity: 0.95,
     },
     nutritionIcon: {
       width: 38,
@@ -1530,7 +1802,7 @@ function createHomeStyles(colors: ThemeColors) {
       borderRadius: 19,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.surfaceElevated,
+      backgroundColor: colors.surface,
     },
     sourceCard: {
       borderRadius: radius.lg,

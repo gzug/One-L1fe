@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { BrandMarkV2 } from './BrandMarkV2';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, radius, spacing, typography, type ThemeColors } from '../theme/marathonTheme';
-import { prototypeCopy } from '../data/copy';
 import {
   TIME_RANGE_LABELS,
   TIME_RANGE_OPTIONS,
@@ -13,9 +13,6 @@ import {
 
 type AppHeaderV2Props = {
   onProfilePress: () => void;
-  onDemoInfoPress: () => void;
-  dataMode: 'user' | 'demo';
-  onDataModeChange: (mode: 'user' | 'demo') => void;
   timeRange: TimeRange;
   customRange: CustomRange;
   onTimeRangeSelect: (range: TimeRange) => void;
@@ -26,18 +23,6 @@ const ICON_SIZE = 22;
 function formatShortDate(date: Date | null) {
   if (!date) return 'Select date';
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-// Logo mark: open circle + integrated "1", brand green
-function IconLogoMark({ color, size = 26 }: { color: string; size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 26 26">
-      <Circle cx={13} cy={13} r={10.5} stroke={color} strokeWidth={1.7} fill="none" />
-      {/* "1" — top-left serif, main vertical, base line */}
-      <Path d="M10 10 L13 8 L13 19" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M10.5 19 L15.5 19" stroke={color} strokeWidth={1.9} strokeLinecap="round" fill="none" />
-    </Svg>
-  );
 }
 
 function IconSun({ color }: { color: string }) {
@@ -85,15 +70,12 @@ function IconProfile({ color }: { color: string }) {
 
 export function AppHeaderV2({
   onProfilePress,
-  onDemoInfoPress,
-  dataMode,
-  onDataModeChange,
   timeRange,
   customRange,
   onTimeRangeSelect,
 }: AppHeaderV2Props) {
   const { colors, isDark, toggle } = useTheme();
-  const iconColor = colors.text;
+  const iconColor = colors.textMuted;
 
   return (
     <View
@@ -106,13 +88,9 @@ export function AppHeaderV2({
       ]}
     >
       <View style={styles.inner}>
-        {/* Top row: brand lockup left, controls right */}
         <View style={styles.topRow}>
           <View style={styles.brandRow}>
-            <IconLogoMark color={colors.brandGreen} size={26} />
-            <Text style={[styles.brandName, { color: colors.text }]}>
-              One L<Text style={{ color: colors.brandGreen }}>1</Text>fe
-            </Text>
+            <BrandMarkV2 size={44} showWordmark />
           </View>
 
           <View style={styles.controls}>
@@ -124,9 +102,9 @@ export function AppHeaderV2({
             />
             <Pressable
               onPress={toggle}
-              style={({ pressed }) => [
-                styles.iconBtn,
-                { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
+            style={({ pressed }) => [
+              styles.iconBtn,
+                { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
                 pressed && { opacity: 0.7 },
               ]}
               accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -137,9 +115,9 @@ export function AppHeaderV2({
             </Pressable>
             <Pressable
               onPress={onProfilePress}
-              style={({ pressed }) => [
-                styles.iconBtn,
-                { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
+            style={({ pressed }) => [
+              styles.iconBtn,
+                { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
                 pressed && { opacity: 0.7 },
               ]}
               accessibilityLabel="Open profile"
@@ -149,51 +127,6 @@ export function AppHeaderV2({
               <IconProfile color={iconColor} />
             </Pressable>
           </View>
-        </View>
-
-        {/* Bottom row: data mode toggle, info button */}
-        <View style={styles.modeRow}>
-          <View
-            style={[
-              styles.modeToggle,
-              { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
-            ]}
-            accessibilityRole="tablist"
-          >
-            {(['user', 'demo'] as const).map((mode) => {
-              const active = dataMode === mode;
-              return (
-                <Pressable
-                  key={mode}
-                  onPress={() => onDataModeChange(mode)}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: active }}
-                  style={[
-                    styles.modeButton,
-                    active && { backgroundColor: colors.surface, borderColor: colors.brandGreen + '44' },
-                  ]}
-                >
-                  <Text style={[styles.modeButtonText, { color: active ? colors.text : colors.textSubtle }]}>
-                    {mode === 'user' ? 'My Data' : 'Demo'}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          <Pressable
-            onPress={onDemoInfoPress}
-            style={({ pressed }) => [
-              styles.infoBtn,
-              { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
-              pressed && { opacity: 0.7 },
-            ]}
-            accessibilityLabel="About demo data"
-            accessibilityRole="button"
-            hitSlop={8}
-          >
-            <Text style={[styles.infoBtnText, { color: colors.textSubtle }]}>i</Text>
-          </Pressable>
         </View>
       </View>
     </View>
@@ -242,7 +175,7 @@ function CompactRangeDropdown({
             dropStyles.trigger,
             {
               backgroundColor: colors.brandGreenSoft,
-              borderColor: colors.brandGreen + '44',
+              borderColor: colors.accentBorder,
             },
             pressed && { opacity: 0.8 },
           ]}
@@ -373,10 +306,10 @@ const dropStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   root: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 0,
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.xs,
+    paddingBottom: spacing.md,
   },
   inner: {
     maxWidth: layout.maxWidth,
@@ -388,18 +321,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    minHeight: 40,
+    minHeight: 58,
+    gap: spacing.md,
   },
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-  },
-  brandName: {
-    fontSize: typography.heroName,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    lineHeight: 30,
+    flexShrink: 1,
   },
   controls: {
     flexDirection: 'row',
@@ -407,50 +335,11 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  modeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  modeToggle: {
-    height: 32,
-    flexDirection: 'row',
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 2,
-    gap: 2,
-  },
-  modeButton: {
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modeButtonText: {
-    fontSize: typography.caption,
-    fontWeight: '700',
-    letterSpacing: 0.1,
-  },
-  infoBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  infoBtnText: {
-    fontSize: typography.bodySmall,
-    fontWeight: '700',
-    lineHeight: 18,
   },
 });
