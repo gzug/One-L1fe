@@ -29,7 +29,7 @@ export const prototypeCopy = {
   sectionBlood: 'Blood panels',
   sectionCoaching: 'Next Actions',
   sectionTrend: 'One L1fe Score Trend',
-  sectionNotes: 'Ideas & Notes',
+  sectionNotes: 'Notes & Ideas',
   sectionTodaySignals: "Today's Signals",
   sectionRecommendations: 'Recommendations',
 
