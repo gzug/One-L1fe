@@ -14,6 +14,7 @@ import { useWebBackground } from './theme/useWebBackground';
 import { ProfileScreen } from '../../v1-marathon/src/components/ProfileScreen';
 import { BloodResultsScreen } from '../../v1-marathon/src/screens/BloodResultsScreen';
 import { ThemeProvider as LegacyV1ThemeProvider } from '../../v1-marathon/src/theme/ThemeContext';
+import { AppHeaderV2 } from './components/AppHeaderV2';
 import { BottomNavV2, type BottomTabKey } from './components/BottomNavV2';
 import { HomeScreen } from './screens/HomeScreen';
 import { TrendsScreen } from './screens/TrendsScreen';
@@ -67,6 +68,19 @@ function V2Shell() {
     setActiveView(tab);
   }
 
+  function handleTimeRangeSelect(range: TimeRange) {
+    setTimeRange(range);
+    if (range !== 'custom') {
+      setCustomRange({ start: null, end: null });
+    }
+  }
+
+  function handleCustomRangeChange(range: CustomRange) {
+    setCustomRange(range);
+  }
+
+  const showGlobalHeader = activeView !== 'blood' && activeView !== 'profile';
+
   return (
     <>
       <StatusBar
@@ -75,6 +89,18 @@ function V2Shell() {
         translucent={false}
       />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        {showGlobalHeader ? (
+          <AppHeaderV2
+            onProfilePress={openProfile}
+            onDemoInfoPress={() => setDemoInfoVisible(true)}
+            dataMode={dataMode}
+            onDataModeChange={setDataMode}
+            timeRange={timeRange}
+            customRange={customRange}
+            onTimeRangeSelect={handleTimeRangeSelect}
+          />
+        ) : null}
+
         <View style={{ flex: 1, overflow: 'hidden' }}>
           {activeView === 'blood' ? (
             <LegacyV1ThemeProvider>
@@ -95,12 +121,16 @@ function V2Shell() {
               subtitle="Insights will summarize patterns from your connected data."
             />
           ) : (
-            // HomeScreen owns its own state (bloodPanels, HealthConnect, mode, range, etc.)
             <HomeScreen
               onProfilePress={() => setActiveView('profile')}
               onDemoInfoPress={() => setDemoInfoVisible(true)}
               onViewBloodPanels={() => setActiveView('blood')}
               onManageSources={() => setActiveView('profile')}
+              dataMode={dataMode}
+              timeRange={timeRange}
+              customRange={customRange}
+              onTimeRangeSelect={handleTimeRangeSelect}
+              onCustomRangeChange={handleCustomRangeChange}
             />
           )}
         </View>

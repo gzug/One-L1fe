@@ -331,27 +331,7 @@ function ScoreTrendSection({ data }: { data: HomeDisplayData }) {
 
 const trendsStyles = StyleSheet.create({
   content: {
-    paddingBottom: spacing.xxxl,
-  },
-  pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  pageTitle: {
-    fontSize: typography.heroName,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-    lineHeight: 32,
-  },
-  pageMode: {
-    fontSize: typography.caption,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+    paddingBottom: 100,
   },
   grid: {
     paddingHorizontal: layout.screenPaddingH,
@@ -377,14 +357,6 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
       contentContainerStyle={trendsStyles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Page title */}
-      <View style={[trendsStyles.pageHeader, { borderBottomColor: colors.borderSubtle }]}>
-        <Text style={[trendsStyles.pageTitle, { color: colors.text }]}>Trends</Text>
-        <Text style={[trendsStyles.pageMode, { color: colors.textSubtle }]}>
-          {data.isDemo ? 'Demo' : 'User Data'}
-        </Text>
-      </View>
-
       {/* Score */}
       <SectionHeader title="Score" />
       <ScoreTrendSection data={data} />

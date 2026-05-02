@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { AppHeaderV2 } from '../components/AppHeaderV2';
 import { IdeasNotesCard } from '../components/IdeasNotesCard';
 import { prototypeCopy } from '../data/copy';
 import { getHomeDisplayData } from '../data/homeDataAdapter';
@@ -19,7 +18,6 @@ import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 import type { ThemeColors } from '../theme/marathonTheme';
 import {
-  DEFAULT_TIME_RANGE,
   type CustomRange,
   type TimeRange,
 } from '../types/timeRange';
@@ -33,16 +31,21 @@ type HomeScreenProps = {
   onDemoInfoPress: () => void;
   onViewBloodPanels: () => void;
   onManageSources: () => void;
+  dataMode: HomeDataMode;
+  timeRange: TimeRange;
+  customRange: CustomRange;
+  onTimeRangeSelect: (range: TimeRange) => void;
+  onCustomRangeChange: (range: CustomRange) => void;
 };
 
-const SCORE_RING_SIZE = 150;
-const OUTER_RING_STROKE = 10;
-const INNER_RING_STROKE = 6;
-const SCORE_RING_COLORS = ['#D7EFDB', '#C7DFCC', '#B2D5B8', '#94CFA0'];
-const SCORE_TEXT_LIGHT = '#3F7F56';
-const SCORE_TEXT_DARK = '#B2D5B8';
-const RECOVERY_COLOR = '#7FB88E';
-const ACTIVITY_COLOR = '#94CFA0';
+const SCORE_RING_SIZE = 160;
+const OUTER_RING_STROKE = 12;
+const INNER_RING_STROKE = 8;
+const SCORE_RING_COLORS = ['#7EC8AA', '#5DB890', '#3DA876', '#2B9463'];
+const SCORE_TEXT_LIGHT = '#1A5C38';
+const SCORE_TEXT_DARK = '#94CFA0';
+const RECOVERY_COLOR = '#5BA0B0';
+const ACTIVITY_COLOR = '#D4903A';
 const BLOOD_COLOR = '#6F9F79';
 const FUTURE_COLOR = '#B8B2AA';
 const SOFT_NEGATIVE = '#C97872';
@@ -150,17 +153,17 @@ function colorForKey(key: HomeMetricColorKey, colors: ThemeColors, score: number
     case 'future':
       return FUTURE_COLOR;
     case 'sleep':
-      return '#A8CCB0';
+      return '#7DBBC9';
     case 'hrv':
-      return '#88B894';
+      return '#4A8A98';
     case 'restingHr':
-      return colors.positive;
+      return '#3A7A88';
     case 'steps':
-      return '#9FCFA8';
+      return '#E5A857';
     case 'training':
-      return '#86BE91';
+      return '#C47A28';
     case 'calories':
-      return colors.scoreStrong;
+      return '#B86A18';
     default:
       return colors.scoreStrong;
   }
@@ -171,18 +174,28 @@ export function HomeScreen({
   onDemoInfoPress,
   onViewBloodPanels,
   onManageSources,
+  dataMode,
+  timeRange,
+  customRange,
+  onTimeRangeSelect,
+  onCustomRangeChange,
 }: HomeScreenProps) {
   const { colors } = useTheme();
   const s = createHomeStyles(colors);
 
-  const [dataMode, setDataMode] = useState<HomeDataMode>('demo');
-  const [timeRange, setTimeRange] = useState<TimeRange>(DEFAULT_TIME_RANGE);
-  const [customRange, setCustomRange] = useState<CustomRange>({ start: null, end: null });
   const [customOpen, setCustomOpen] = useState(false);
   const [recoveryMetric, setRecoveryMetric] = useState<HomeTrendMetricKey>('recovery');
   const [activityMetric, setActivityMetric] = useState<HomeTrendMetricKey>('activity');
   const [hcStatus, setHcStatus] = useState<HealthConnectStatus>('unavailable');
   const [bloodPanels, setBloodPanels] = useState<BloodPanel[]>([]);
+
+  useEffect(() => {
+    if (timeRange === 'custom') {
+      setCustomOpen(true);
+    } else {
+      setCustomOpen(false);
+    }
+  }, [timeRange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -211,41 +224,22 @@ export function HomeScreen({
     [bloodPanels, customRange, dataMode, timeRange],
   );
 
-  function selectTimeRange(range: TimeRange) {
-    setTimeRange(range);
-    if (range === 'custom') {
-      setCustomOpen(true);
-      return;
-    }
-    setCustomOpen(false);
-  }
-
   function selectCustomDate(date: Date) {
-    setTimeRange('custom');
-    setCustomOpen(true);
-    setCustomRange((current) => {
-      if (!current.start || current.end) {
-        return { start: date, end: null };
-      }
-      if (date.getTime() < current.start.getTime()) {
-        return { start: date, end: null };
-      }
-      return { start: current.start, end: date };
-    });
+    const prev = customRange;
+    let next: CustomRange;
+    if (!prev.start || prev.end) {
+      next = { start: date, end: null };
+    } else if (date.getTime() < prev.start.getTime()) {
+      next = { start: date, end: null };
+    } else {
+      next = { start: prev.start, end: date };
+    }
+    onTimeRangeSelect('custom');
+    onCustomRangeChange(next);
   }
 
   return (
     <>
-      <AppHeaderV2
-        onProfilePress={onProfilePress}
-        onDemoInfoPress={onDemoInfoPress}
-        dataMode={dataMode}
-        onDataModeChange={setDataMode}
-        timeRange={timeRange}
-        customRange={customRange}
-        onTimeRangeSelect={selectTimeRange}
-      />
-
       <ScrollView
         style={s.scrollView}
         contentContainerStyle={s.scroll}
@@ -422,21 +416,21 @@ function MultiRingScore({
       <Svg width={SCORE_RING_SIZE} height={SCORE_RING_SIZE} viewBox={`0 0 ${SCORE_RING_SIZE} ${SCORE_RING_SIZE}`}>
         <ProgressCircle
           value={score}
-          radius={66}
+          radius={72}
           strokeWidth={OUTER_RING_STROKE}
           color={scoreTone(score, colors)}
           trackColor={colors.ringTrack}
         />
         <ProgressCircle
           value={recoveryScore}
-          radius={50}
+          radius={54}
           strokeWidth={INNER_RING_STROKE}
           color={RECOVERY_COLOR}
           trackColor={colors.progressTrack}
         />
         <ProgressCircle
           value={activityScore}
-          radius={39}
+          radius={40}
           strokeWidth={INNER_RING_STROKE}
           color={ACTIVITY_COLOR}
           trackColor={colors.progressTrack}
@@ -589,26 +583,61 @@ function ContributorLegend({
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
+  const [recoveryOpen, setRecoveryOpen] = React.useState(true);
+  const [activityOpen, setActivityOpen] = React.useState(false);
   return (
     <View style={s.legendCard}>
-      <ContributorRow item={contributors.recovery} colors={colors} />
-      {contributors.recovery.inputs?.map((item) => (
+      <Pressable
+        onPress={() => setRecoveryOpen((o) => !o)}
+        style={s.accordionHeader}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: recoveryOpen }}
+      >
+        <View style={[s.contributorDot, { backgroundColor: RECOVERY_COLOR }]} />
+        <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.recovery.label}</Text>
+        <Text style={s.contributorValue}>
+          {contributors.recovery.value === null ? '--' : `${clamp(contributors.recovery.value)}%`}
+        </Text>
+        <Text style={[s.accordionChevron, { color: colors.textSubtle }]}>
+          {recoveryOpen ? '▾' : '▸'}
+        </Text>
+      </Pressable>
+      {recoveryOpen && contributors.recovery.inputs?.map((item) => (
         <ContributorRow key={item.label} item={item} colors={colors} sub />
       ))}
 
       <View style={s.legendDivider} />
 
-      <ContributorRow item={contributors.activity} colors={colors} />
-      {contributors.activity.inputs?.map((item) => (
+      <Pressable
+        onPress={() => setActivityOpen((o) => !o)}
+        style={s.accordionHeader}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: activityOpen }}
+      >
+        <View style={[s.contributorDot, { backgroundColor: ACTIVITY_COLOR }]} />
+        <Text style={[s.contributorLabel, { fontWeight: '800' }]}>{contributors.activity.label}</Text>
+        <Text style={s.contributorValue}>
+          {contributors.activity.value === null ? '--' : `${clamp(contributors.activity.value)}%`}
+        </Text>
+        <Text style={[s.accordionChevron, { color: colors.textSubtle }]}>
+          {activityOpen ? '▾' : '▸'}
+        </Text>
+      </Pressable>
+      {activityOpen && contributors.activity.inputs?.map((item) => (
         <ContributorRow key={item.label} item={item} colors={colors} sub />
       ))}
 
       <View style={s.legendDivider} />
 
       <ContributorRow item={contributors.bloodMarkers} colors={colors} />
-      {contributors.future.map((item) => (
-        <FutureContributor key={item.label} label={item.label} colors={colors} />
-      ))}
+
+      {contributors.future.length > 0 && (
+        <View style={s.futureSection}>
+          {contributors.future.map((item) => (
+            <FutureContributor key={item.label} label={item.label} colors={colors} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -1042,7 +1071,7 @@ function createHomeStyles(colors: ThemeColors) {
     scroll: {
       alignItems: 'center',
       paddingTop: spacing.md,
-      paddingBottom: spacing.xxxl,
+      paddingBottom: 100,
     },
     container: {
       width: '100%',
@@ -1156,17 +1185,17 @@ function createHomeStyles(colors: ThemeColors) {
       justifyContent: 'center',
     },
     scoreValue: {
-      fontSize: 36,
-      lineHeight: 42,
-      fontWeight: '800',
-      letterSpacing: 0,
+      fontSize: 42,
+      lineHeight: 48,
+      fontWeight: '900',
+      letterSpacing: -1,
       fontVariant: ['tabular-nums'],
     },
     scoreLabel: {
       color: colors.textSubtle,
       fontSize: typography.micro,
       fontWeight: '800',
-      letterSpacing: 0.4,
+      letterSpacing: 0.6,
       textTransform: 'uppercase',
     },
     scoreTrendCard: {
@@ -1235,6 +1264,20 @@ function createHomeStyles(colors: ThemeColors) {
       height: StyleSheet.hairlineWidth,
       backgroundColor: colors.borderSubtle,
       marginVertical: spacing.xs,
+    },
+    accordionHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      minHeight: 26,
+      gap: spacing.xs,
+    },
+    accordionChevron: {
+      fontSize: typography.caption,
+      fontWeight: '800',
+      marginLeft: 2,
+    },
+    futureSection: {
+      opacity: 0.55,
     },
     contributorRow: {
       flexDirection: 'row',
