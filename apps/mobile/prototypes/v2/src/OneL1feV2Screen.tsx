@@ -16,7 +16,12 @@ import { BloodResultsScreen } from '../../v1-marathon/src/screens/BloodResultsSc
 import { ThemeProvider as LegacyV1ThemeProvider } from '../../v1-marathon/src/theme/ThemeContext';
 import { BottomNavV2, type BottomTabKey } from './components/BottomNavV2';
 import { HomeScreen } from './screens/HomeScreen';
+import { TrendsScreen } from './screens/TrendsScreen';
 import { prototypeCopy } from './data/copy';
+import { getHomeDisplayData } from './data/homeDataAdapter';
+import type { HomeDataMode } from './data/homeTypes';
+import { DEFAULT_TIME_RANGE } from './types/timeRange';
+import type { CustomRange, TimeRange } from './types/timeRange';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 
 export function OneL1feV2Screen() {
@@ -34,7 +39,20 @@ function V2Shell() {
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
 
+  // Shared data state — owned here so Home and Trends stay in sync
+  const [dataMode, setDataMode]         = useState<HomeDataMode>('demo');
+  const [timeRange, setTimeRange]       = useState<TimeRange>(DEFAULT_TIME_RANGE);
+  const [customRange, setCustomRange]   = useState<CustomRange>({ start: null, end: null });
+  const [bloodPanels]                   = useState([]);
+
   useWebBackground(colors.background);
+
+  const displayData = getHomeDisplayData({
+    mode: dataMode,
+    timeRange,
+    customRange,
+    bloodPanels,
+  });
 
   function openProfile() {
     setDemoInfoVisible(false);
@@ -67,10 +85,7 @@ function V2Shell() {
               />
             </LegacyV1ThemeProvider>
           ) : activeView === 'trends' ? (
-            <TopLevelPlaceholder
-              title="Trends"
-              subtitle="Detailed trend views are coming next."
-            />
+            <TrendsScreen data={displayData} />
           ) : activeView === 'insights' ? (
             <TopLevelPlaceholder
               title="Insights"
@@ -78,6 +93,13 @@ function V2Shell() {
             />
           ) : (
             <HomeScreen
+              dataMode={dataMode}
+              timeRange={timeRange}
+              customRange={customRange}
+              bloodPanels={bloodPanels}
+              onDataModeChange={setDataMode}
+              onTimeRangeSelect={setTimeRange}
+              onCustomRangeChange={setCustomRange}
               onProfilePress={() => setActiveView('profile')}
               onDemoInfoPress={() => setDemoInfoVisible(true)}
               onViewBloodPanels={() => setActiveView('blood')}
