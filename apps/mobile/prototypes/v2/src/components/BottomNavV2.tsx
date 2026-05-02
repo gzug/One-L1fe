@@ -22,7 +22,7 @@ export function BottomNavV2({ activeTab, onSelect }: BottomNavV2Props) {
   const { colors } = useTheme();
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <View style={[styles.root, { backgroundColor: colors.background, borderTopColor: colors.borderSubtle }]}>
       <View
         style={[
           styles.bar,
@@ -43,14 +43,15 @@ export function BottomNavV2({ activeTab, onSelect }: BottomNavV2Props) {
               accessibilityLabel={`${tab.label} tab`}
               style={({ pressed }) => [
                 styles.item,
-                active && { backgroundColor: colors.scoreStrongSoft },
+                active && { backgroundColor: colors.brandGreenSoft },
                 pressed && { opacity: 0.72 },
               ]}
             >
-              <TabIcon name={tab.key} color={active ? colors.scoreStrong : colors.textSubtle} />
-              <Text style={[styles.label, { color: active ? colors.text : colors.textSubtle }]}>
+              <TabIcon name={tab.key} color={active ? colors.brandGreen : colors.textSubtle} />
+              <Text style={[styles.label, { color: active ? colors.brandGreenDark : colors.textSubtle }]}>
                 {tab.label}
               </Text>
+              <View style={[styles.activeLine, { backgroundColor: active ? colors.brandGreen : 'transparent' }]} />
             </Pressable>
           );
         })}
@@ -97,33 +98,43 @@ function TabIcon({ name, color }: { name: BottomTabKey; color: string }) {
 const styles = StyleSheet.create({
   root: {
     zIndex: 10,
-    paddingHorizontal: layout.screenPaddingH,
-    paddingTop: spacing.sm,
+    paddingHorizontal: 0,
+    paddingTop: 0,
     paddingBottom: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   bar: {
     width: '100%',
     maxWidth: layout.maxWidth,
     alignSelf: 'center',
-    minHeight: 66,
-    borderRadius: radius.xl,
+    minHeight: 78,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.xs,
-    gap: spacing.xs,
+    paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
   },
   item: {
     flex: 1,
-    minHeight: 54,
+    minHeight: 58,
     borderRadius: radius.lg,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 3,
   },
   label: {
     fontSize: typography.micro,
     fontWeight: '800',
     lineHeight: 14,
+  },
+  activeLine: {
+    width: 28,
+    height: 3,
+    borderRadius: 2,
+    marginTop: 2,
   },
 });

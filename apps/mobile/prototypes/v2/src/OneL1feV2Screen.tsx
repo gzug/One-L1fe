@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  BackHandler,
   Modal,
   Pressable,
   SafeAreaView,
@@ -11,12 +12,12 @@ import {
 } from 'react-native';
 import { ThemeProvider, useTheme } from './theme/ThemeContext';
 import { useWebBackground } from './theme/useWebBackground';
-import { ProfileScreen } from '../../v1-marathon/src/components/ProfileScreen';
-import { BloodResultsScreen } from '../../v1-marathon/src/screens/BloodResultsScreen';
-import { ThemeProvider as LegacyV1ThemeProvider } from '../../v1-marathon/src/theme/ThemeContext';
+import { BrandMarkV2 } from './components/BrandMarkV2';
 import { AppHeaderV2 } from './components/AppHeaderV2';
 import { BottomNavV2, type BottomTabKey } from './components/BottomNavV2';
+import { BloodResultsScreenV2 } from './screens/BloodResultsScreenV2';
 import { HomeScreen } from './screens/HomeScreen';
+import { ProfileScreenV2 } from './screens/ProfileScreenV2';
 import { TrendsScreen } from './screens/TrendsScreen';
 import { prototypeCopy } from './data/copy';
 import { getHomeDisplayData } from './data/homeDataAdapter';
@@ -47,6 +48,25 @@ function V2Shell() {
   const [customRange, setCustomRange] = useState<CustomRange>({ start: null, end: null });
 
   useWebBackground(colors.background);
+
+  React.useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (activeView === 'blood') {
+        setActiveView('profile');
+        return true;
+      }
+      if (activeView === 'profile') {
+        setActiveView('home');
+        return true;
+      }
+      if (activeView === 'trends' || activeView === 'insights') {
+        setActiveView('home');
+        return true;
+      }
+      return false;
+    });
+    return () => sub.remove();
+  }, [activeView]);
 
   // Compute display data for tabs that consume it (Trends, future Insights).
   // HomeScreen computes its own copy internally to keep its adapter
@@ -92,9 +112,6 @@ function V2Shell() {
         {showGlobalHeader ? (
           <AppHeaderV2
             onProfilePress={openProfile}
-            onDemoInfoPress={() => setDemoInfoVisible(true)}
-            dataMode={dataMode}
-            onDataModeChange={setDataMode}
             timeRange={timeRange}
             customRange={customRange}
             onTimeRangeSelect={handleTimeRangeSelect}
@@ -103,16 +120,12 @@ function V2Shell() {
 
         <View style={{ flex: 1, overflow: 'hidden' }}>
           {activeView === 'blood' ? (
-            <LegacyV1ThemeProvider>
-              <BloodResultsScreen onClose={() => setActiveView('home')} />
-            </LegacyV1ThemeProvider>
+            <BloodResultsScreenV2 onClose={() => setActiveView('profile')} />
           ) : activeView === 'profile' ? (
-            <LegacyV1ThemeProvider>
-              <ProfileScreen
-                onClose={() => setActiveView('home')}
-                onViewBlood={() => setActiveView('blood')}
-              />
-            </LegacyV1ThemeProvider>
+            <ProfileScreenV2
+              onClose={() => setActiveView('home')}
+              onViewBlood={() => setActiveView('blood')}
+            />
           ) : activeView === 'trends' ? (
             <TrendsScreen data={trendsData} />
           ) : activeView === 'insights' ? (
@@ -122,11 +135,11 @@ function V2Shell() {
             />
           ) : (
             <HomeScreen
-              onProfilePress={() => setActiveView('profile')}
               onDemoInfoPress={() => setDemoInfoVisible(true)}
               onViewBloodPanels={() => setActiveView('blood')}
               onManageSources={() => setActiveView('profile')}
               dataMode={dataMode}
+              onDataModeChange={setDataMode}
               timeRange={timeRange}
               customRange={customRange}
               onTimeRangeSelect={handleTimeRangeSelect}
@@ -155,7 +168,7 @@ function V2Shell() {
                   { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
                 ]}
               >
-                <Text style={[demoOverlay.infoGlyph, { color: colors.accent }]}>i</Text>
+                <Text style={[demoOverlay.infoGlyph, { color: colors.brandGreen }]}>i</Text>
                 <Text style={[demoOverlay.title, { color: colors.text }]}>
                   {prototypeCopy.demoInfoTitle}
                 </Text>
@@ -174,8 +187,8 @@ function V2Shell() {
                   ]}
                   accessibilityLabel="Connect a source"
                 >
-                  <Text style={[demoOverlay.connectIcon, { color: colors.accent }]}>↗</Text>
-                  <Text style={[demoOverlay.connectBtnText, { color: colors.accent }]}>
+                  <Text style={[demoOverlay.connectIcon, { color: colors.brandGreen }]}>↗</Text>
+                  <Text style={[demoOverlay.connectBtnText, { color: colors.brandGreen }]}>
                     {prototypeCopy.demoInfoConnectCta}
                   </Text>
                 </Pressable>
@@ -215,9 +228,16 @@ function TopLevelPlaceholder({
           },
         ]}
       >
-        <Text style={[placeholderStyles.eyebrow, { color: colors.textSubtle }]}>Coming soon</Text>
+        <BrandMarkV2 size={42} />
+        <Text style={[placeholderStyles.eyebrow, { color: colors.brandGreen }]}>Coming soon</Text>
         <Text style={[placeholderStyles.title, { color: colors.text }]}>{title}</Text>
         <Text style={[placeholderStyles.subtitle, { color: colors.textMuted }]}>{subtitle}</Text>
+        <View style={[placeholderStyles.previewRail, { borderColor: colors.borderSubtle }]}>
+          <View style={[placeholderStyles.previewDot, { backgroundColor: colors.brandGreen }]} />
+          <Text style={[placeholderStyles.previewText, { color: colors.textSubtle }]}>
+            Pattern summaries will stay informational and non-diagnostic.
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -238,6 +258,11 @@ const demoOverlay = StyleSheet.create({
     borderWidth: 1,
     padding: spacing.xl,
     gap: spacing.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.18,
+    shadowRadius: 32,
+    elevation: 8,
   },
   infoGlyph: {
     alignSelf: 'center',
@@ -294,9 +319,10 @@ const placeholderStyles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: layout.screenPaddingH,
-    paddingVertical: spacing.xl,
+    paddingTop: spacing.xxl,
+    paddingBottom: 104,
   },
   card: {
     width: '100%',
@@ -304,22 +330,44 @@ const placeholderStyles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.xl,
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   eyebrow: {
-    fontSize: typography.micro,
-    fontWeight: '800',
+    fontSize: typography.caption,
+    fontWeight: '900',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },
   title: {
-    fontSize: typography.heroName,
-    lineHeight: 32,
-    fontWeight: '800',
+    fontSize: 28,
+    lineHeight: 33,
+    fontWeight: '900',
   },
   subtitle: {
     fontSize: typography.bodySmall,
     lineHeight: lineHeights.bodySmall,
+    fontWeight: '600',
+  },
+  previewRail: {
+    minHeight: 52,
+    borderRadius: radius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  previewDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  previewText: {
+    flex: 1,
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '700',
   },
 });
 
