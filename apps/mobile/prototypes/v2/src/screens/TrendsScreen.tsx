@@ -8,15 +8,18 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
-import type { HomeDisplayData, HomeTrendMetric } from '../data/homeTypes';
-import type { HomeChartPoint } from '../data/homeTypes';
+import type { HomeDisplayData, HomeTrendMetric, HomeChartPoint } from '../data/homeTypes';
 
 // ---------------------------------------------------------------------------
-// Minimal inline SVG-free chart primitives (bar + line) reusing RN only
+// Constants
 // ---------------------------------------------------------------------------
 
 const CHART_H = 72;
 const BAR_MIN_H = 3;
+
+// ---------------------------------------------------------------------------
+// Chart helpers
+// ---------------------------------------------------------------------------
 
 function normalize(points: HomeChartPoint[]): number[] {
   if (!points.length) return [];
@@ -25,21 +28,15 @@ function normalize(points: HomeChartPoint[]): number[] {
   return values.map((v) => v / max);
 }
 
-function BarChart({
-  data,
-  color,
-}: {
-  data: HomeChartPoint[];
-  color: string;
-}) {
+function BarChart({ data, color }: { data: HomeChartPoint[]; color: string }) {
   const ratios = normalize(data);
   return (
-    <View style={chart.root}>
+    <View style={chartStyles.root}>
       {ratios.map((ratio, i) => (
-        <View key={i} style={chart.barWrap}>
+        <View key={i} style={chartStyles.barWrap}>
           <View
             style={[
-              chart.bar,
+              chartStyles.bar,
               {
                 height: Math.max(BAR_MIN_H, ratio * CHART_H),
                 backgroundColor: color,
@@ -53,23 +50,16 @@ function BarChart({
   );
 }
 
-function LineChart({
-  data,
-  color,
-}: {
-  data: HomeChartPoint[];
-  color: string;
-}) {
-  // Render as connected dots via thin bars for RN-only compatibility
+function LineChart({ data, color }: { data: HomeChartPoint[]; color: string }) {
   const ratios = normalize(data);
   return (
-    <View style={chart.root}>
+    <View style={chartStyles.root}>
       {ratios.map((ratio, i) => (
-        <View key={i} style={chart.lineWrap}>
+        <View key={i} style={chartStyles.lineWrap}>
           <View style={{ flex: 1 }} />
           <View
             style={[
-              chart.lineDot,
+              chartStyles.lineDot,
               {
                 marginBottom: ratio * (CHART_H - 8),
                 backgroundColor: color,
@@ -82,7 +72,7 @@ function LineChart({
   );
 }
 
-const chart = StyleSheet.create({
+const chartStyles = StyleSheet.create({
   root: {
     height: CHART_H,
     flexDirection: 'row',
@@ -130,19 +120,19 @@ function MetricCard({
   return (
     <View
       style={[
-        card.root,
+        cardStyles.root,
         { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
       ]}
     >
-      <View style={card.header}>
-        <Text style={[card.label, { color: colors.textSubtle }]}>{metric.label}</Text>
+      <View style={cardStyles.header}>
+        <Text style={[cardStyles.label, { color: colors.textSubtle }]}>{metric.label}</Text>
         {metric.value ? (
-          <View style={card.valueRow}>
-            <Text style={[card.value, { color: colors.text }]}>{metric.value}</Text>
+          <View style={cardStyles.valueRow}>
+            <Text style={[cardStyles.value, { color: colors.text }]}>{metric.value}</Text>
             {metric.delta !== null && (
               <Text
                 style={[
-                  card.delta,
+                  cardStyles.delta,
                   { color: metric.delta >= 0 ? colors.scoreStrong : colors.textSubtle },
                 ]}
               >
@@ -160,8 +150,8 @@ function MetricCard({
           <LineChart data={metric.data} color={accentColor} />
         )
       ) : (
-        <View style={card.empty}>
-          <Text style={[card.emptyText, { color: colors.textSubtle }]}>
+        <View style={cardStyles.empty}>
+          <Text style={[cardStyles.emptyText, { color: colors.textSubtle }]}>
             {metric.emptyText || 'No data available.'}
           </Text>
         </View>
@@ -170,7 +160,7 @@ function MetricCard({
   );
 }
 
-const card = StyleSheet.create({
+const cardStyles = StyleSheet.create({
   root: {
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
@@ -217,14 +207,7 @@ const card = StyleSheet.create({
 // Section header
 // ---------------------------------------------------------------------------
 
-function SectionHeader({ title }: { title: string }) {
-  const { colors } = useTheme();
-  return (
-    <Text style={[section.title, { color: colors.textSubtle }]}>{title}</Text>
-  );
-}
-
-const section = StyleSheet.create({
+const sectionStyles = StyleSheet.create({
   title: {
     fontSize: typography.caption,
     fontWeight: '800',
@@ -236,58 +219,18 @@ const section = StyleSheet.create({
   },
 });
 
-// ---------------------------------------------------------------------------
-// Score trend row (full-width line chart)
-// ---------------------------------------------------------------------------
-
-function ScoreTrendSection({ data }: { data: HomeDisplayData }) {
+function SectionHeader({ title }: { title: string }) {
   const { colors } = useTheme();
-  const trend = data.scoreTrend;
-
-  if (trend.isEmpty || !trend.series.length) {
-    return (
-      <View
-        style={[
-          scoreTrend.emptyCard,
-          { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-        ]}
-      >
-        <Text style={[scoreTrend.emptyText, { color: colors.textSubtle }]}>
-          {trend.emptyText || 'No score trend available yet.'}
-        </Text>
-      </View>
-    );
-  }
-
-  const scoreSeries = trend.series.find((s) => s.label === 'Score');
-  if (!scoreSeries || !scoreSeries.data.length) return null;
-
   return (
-    <View
-      style={[
-        scoreTrend.card,
-        { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
-      ]}
-    >
-      <View style={scoreTrend.header}>
-        <Text style={[scoreTrend.label, { color: colors.textSubtle }]}>One L1fe Score</Text>
-        <Text style={[scoreTrend.value, { color: colors.text }]}>
-          {data.score.overall !== null ? `${data.score.overall}` : '—'}
-        </Text>
-      </View>
-      <LineChart data={scoreSeries.data} color={colors.scoreStrong} />
-      <View style={scoreTrend.legend}>
-        {trend.series.map((s) => (
-          <Text key={s.label} style={[scoreTrend.legendItem, { color: colors.textSubtle }]}>
-            {s.label}
-          </Text>
-        ))}
-      </View>
-    </View>
+    <Text style={[sectionStyles.title, { color: colors.textSubtle }]}>{title}</Text>
   );
 }
 
-const scoreTrend = StyleSheet.create({
+// ---------------------------------------------------------------------------
+// Score trend section
+// ---------------------------------------------------------------------------
+
+const scoreTrendStyles = StyleSheet.create({
   card: {
     marginHorizontal: layout.screenPaddingH,
     borderRadius: radius.lg,
@@ -335,6 +278,87 @@ const scoreTrend = StyleSheet.create({
   },
 });
 
+function ScoreTrendSection({ data }: { data: HomeDisplayData }) {
+  const { colors } = useTheme();
+  const trend = data.scoreTrend;
+
+  if (trend.isEmpty || !trend.series.length) {
+    return (
+      <View
+        style={[
+          scoreTrendStyles.emptyCard,
+          { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[scoreTrendStyles.emptyText, { color: colors.textSubtle }]}>
+          {trend.emptyText || 'No score trend available yet.'}
+        </Text>
+      </View>
+    );
+  }
+
+  const scoreSeries = trend.series.find((s) => s.label === 'Score');
+  if (!scoreSeries || !scoreSeries.data.length) return null;
+
+  return (
+    <View
+      style={[
+        scoreTrendStyles.card,
+        { backgroundColor: colors.surfaceElevated, borderColor: colors.border },
+      ]}
+    >
+      <View style={scoreTrendStyles.header}>
+        <Text style={[scoreTrendStyles.label, { color: colors.textSubtle }]}>One L1fe Score</Text>
+        <Text style={[scoreTrendStyles.value, { color: colors.text }]}>
+          {data.score.overall !== null ? `${data.score.overall}` : '—'}
+        </Text>
+      </View>
+      <LineChart data={scoreSeries.data} color={colors.scoreStrong} />
+      <View style={scoreTrendStyles.legend}>
+        {trend.series.map((s) => (
+          <Text key={s.label} style={[scoreTrendStyles.legendItem, { color: colors.textSubtle }]}>
+            {s.label}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page-level styles
+// ---------------------------------------------------------------------------
+
+const trendsStyles = StyleSheet.create({
+  content: {
+    paddingBottom: spacing.xxxl,
+  },
+  pageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: layout.screenPaddingH,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  pageTitle: {
+    fontSize: typography.heroName,
+    fontWeight: '800',
+    letterSpacing: -0.4,
+    lineHeight: 32,
+  },
+  pageMode: {
+    fontSize: typography.caption,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  grid: {
+    paddingHorizontal: layout.screenPaddingH,
+    gap: spacing.sm,
+  },
+});
+
 // ---------------------------------------------------------------------------
 // TrendsScreen
 // ---------------------------------------------------------------------------
@@ -345,18 +369,18 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
   const act = data.activityMetrics;
 
   const accentRecover = colors.scoreStrong;
-  const accentActivity = colors.accent ?? colors.scoreStrong;
+  const accentActivity = (colors as Record<string, string>).accent ?? colors.scoreStrong;
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={trends.content}
+      contentContainerStyle={trendsStyles.content}
       showsVerticalScrollIndicator={false}
     >
       {/* Page title */}
-      <View style={[trends.pageHeader, { borderBottomColor: colors.borderSubtle }]}>
-        <Text style={[trends.pageTitle, { color: colors.text }]}>Trends</Text>
-        <Text style={[trends.pageMode, { color: colors.textSubtle }]}>
+      <View style={[trendsStyles.pageHeader, { borderBottomColor: colors.borderSubtle }]}>
+        <Text style={[trendsStyles.pageTitle, { color: colors.text }]}>Trends</Text>
+        <Text style={[trendsStyles.pageMode, { color: colors.textSubtle }]}>
           {data.isDemo ? 'Demo' : 'User Data'}
         </Text>
       </View>
@@ -367,20 +391,20 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
 
       {/* Recovery */}
       <SectionHeader title="Recovery" />
-      <View style={trends.grid}>
-        <MetricCard metric={rec.recovery} accentColor={accentRecover} />
-        <MetricCard metric={rec.sleep}    accentColor={accentRecover} />
-        <MetricCard metric={rec.hrv}      accentColor={accentRecover} />
+      <View style={trendsStyles.grid}>
+        <MetricCard metric={rec.recovery}  accentColor={accentRecover} />
+        <MetricCard metric={rec.sleep}     accentColor={accentRecover} />
+        <MetricCard metric={rec.hrv}       accentColor={accentRecover} />
         <MetricCard metric={rec.restingHr} accentColor={accentRecover} />
       </View>
 
       {/* Activity */}
       <SectionHeader title="Activity" />
-      <View style={trends.grid}>
-        <MetricCard metric={act.activity} accentColor={accentActivity} />
-        <MetricCard metric={act.steps}    accentColor={accentActivity} />
-        <MetricCard metric={act.training} accentColor={accentActivity} />
-        <MetricCard metric={act.calories} accentColor={accentActivity} />
+      <View style={trendsStyles.grid}>
+        <MetricCard metric={act.activity}  accentColor={accentActivity} />
+        <MetricCard metric={act.steps}     accentColor={accentActivity} />
+        <MetricCard metric={act.training}  accentColor={accentActivity} />
+        <MetricCard metric={act.calories}  accentColor={accentActivity} />
       </View>
 
       <View style={{ height: spacing.xl }} />

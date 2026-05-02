@@ -39,19 +39,22 @@ function V2Shell() {
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
 
-  // Shared data state — owned here so Home and Trends stay in sync
-  const [dataMode, setDataMode]         = useState<HomeDataMode>('demo');
-  const [timeRange, setTimeRange]       = useState<TimeRange>(DEFAULT_TIME_RANGE);
-  const [customRange, setCustomRange]   = useState<CustomRange>({ start: null, end: null });
-  const [bloodPanels]                   = useState([]);
+  // Shared data state for Trends (and any future cross-tab consumer).
+  // HomeScreen manages its own internal copy; Trends reads from here.
+  const [dataMode, setDataMode]       = useState<HomeDataMode>('demo');
+  const [timeRange, setTimeRange]     = useState<TimeRange>(DEFAULT_TIME_RANGE);
+  const [customRange, setCustomRange] = useState<CustomRange>({ start: null, end: null });
 
   useWebBackground(colors.background);
 
-  const displayData = getHomeDisplayData({
+  // Compute display data for tabs that consume it (Trends, future Insights).
+  // HomeScreen computes its own copy internally to keep its adapter
+  // boundary intact (bloodPanels, HealthConnect status, etc.).
+  const trendsData = getHomeDisplayData({
     mode: dataMode,
     timeRange,
     customRange,
-    bloodPanels,
+    bloodPanels: [],
   });
 
   function openProfile() {
@@ -85,21 +88,15 @@ function V2Shell() {
               />
             </LegacyV1ThemeProvider>
           ) : activeView === 'trends' ? (
-            <TrendsScreen data={displayData} />
+            <TrendsScreen data={trendsData} />
           ) : activeView === 'insights' ? (
             <TopLevelPlaceholder
               title="Insights"
               subtitle="Insights will summarize patterns from your connected data."
             />
           ) : (
+            // HomeScreen owns its own state (bloodPanels, HealthConnect, mode, range, etc.)
             <HomeScreen
-              dataMode={dataMode}
-              timeRange={timeRange}
-              customRange={customRange}
-              bloodPanels={bloodPanels}
-              onDataModeChange={setDataMode}
-              onTimeRangeSelect={setTimeRange}
-              onCustomRangeChange={setCustomRange}
               onProfilePress={() => setActiveView('profile')}
               onDemoInfoPress={() => setDemoInfoVisible(true)}
               onViewBloodPanels={() => setActiveView('blood')}
