@@ -10,7 +10,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { ThemeProvider, useTheme } from './theme/ThemeContext';
+import {
+  ThemeProvider as LegacyThemeProvider,
+  useTheme,
+} from '../../v1-marathon/src/theme/ThemeContext';
 import { useWebBackground } from './theme/useWebBackground';
 import { AppHeaderV2 } from './components/AppHeaderV2';
 import { BloodContextCard } from '../../v1-marathon/src/components/BloodContextCard';
@@ -33,9 +36,9 @@ import type { ThemeColors } from './theme/marathonTheme';
 
 export function OneL1feV2Screen() {
   return (
-    <ThemeProvider>
+    <LegacyThemeProvider>
       <V2Shell />
-    </ThemeProvider>
+    </LegacyThemeProvider>
   );
 }
 

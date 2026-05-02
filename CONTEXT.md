@@ -13,6 +13,14 @@ For startup: read after CHECKPOINT.md. Never load memory/ or docs/archive/ at st
 
 ---
 
+## 2026-05-02 — Codex (Android QA pass on checked-out v2 shell)
+
+- Ran `npm run typecheck`, `npm run typecheck:mobile`, `npm run test:domain`, then `cd apps/mobile && npx expo run:android` on `Pixel_9_Pro`; app installed and launched.
+- Android initially showed a blank white screen; `adb logcat` traced it to `ReadinessOrbit` calling legacy `useTheme` outside its owner provider.
+- Fixed the regression narrowly by pointing `apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx` and `components/AppHeaderV2.tsx` at the legacy theme context already used by the rendered v1-marathon cards.
+- Verified Home render, profile open, demo-info modal, scroll, and dark-mode toggle on device after the fix.
+- Important repo-truth finding: the checked-out `main` does not match the external summary claiming merged Home/Trends/bottom-nav work; the live shell is still the older score/trend/profile flow.
+
 ## 2026-05-01 — ChatGPT (agent efficiency docs cleanup)
 
 - `AGENTS.md` now carries task-type routing so agents can jump directly to the right repo path.

@@ -15,6 +15,7 @@ scope: repo
 - Stable branch: `main`.
 - Active mobile app: **One L1fe v2 prototype**.
 - Canonical app entry: `apps/mobile/App.tsx -> apps/mobile/prototypes/v2/src/OneL1feV2Screen.tsx`.
+- Android device QA was run on `Pixel_9_Pro` against the checked-out v2 shell on 2026-05-02.
 - `apps/mobile/prototypes/v1-marathon/` remains as the previous Marathon-focused snapshot.
 - v2 has its own root, header, copy, and README.
 - v2 may temporarily import unchanged components from `v1-marathon`; fork a component into `v2/` before changing v2-specific behavior.
@@ -42,6 +43,7 @@ npx expo start --clear
 - Root and mobile TypeScript checks passed locally on 2026-05-01.
 - Stale broad PRs #99, #101, #105, and #108 closed after preserving extraction work in issue #116.
 - PR #109 merged: `supabase/setup-cli@v2`, native Android resource hygiene exception, optional hygiene roots, and linked Supabase lint scoped to `public` schema.
+- Android QA found a live blank-screen regression caused by mixed v2/v1 theme ownership; fixed locally on `qa/v2-home-trends-android-pass` by unifying the live v2 shell onto the legacy theme context used by rendered cards.
 
 ## Working rules
 
@@ -57,15 +59,16 @@ npx expo start --clear
 
 ## Current blockers
 
-- Device QA not yet run for v2.
 - Full-app shell files have not yet been reference-audited for safe deletion.
 - Native Android version values drift from `app.json` unless regenerated/accepted intentionally.
+- External session summary and checked-out repo truth diverge: the live `main` shell still renders the older score/trend/profile flow and does not contain the claimed Home/Trends/bottom-nav surface.
 
 ## Next steps
 
-1. Device QA on Android for the active v2 prototype.
-2. Preferred preview path: EAS preview build.
-3. Local APK fallback: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
-4. APK check: `unzip -l apps/mobile/android/app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
-5. Extract pure Dot/Score domain work from issue #116 in a fresh code session; no UI/routing changes in that PR.
-6. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.
+1. Merge the Android QA fix from `qa/v2-home-trends-android-pass`.
+2. Reconcile repo truth before further v2 QA: confirm whether PRs #117–#120 were actually merged into this checkout or whether the branch history summary is stale.
+3. Preferred preview path: EAS preview build.
+4. Local APK fallback: `cd apps/mobile/android && ./gradlew app:assembleRelease`.
+5. APK check: `unzip -l apps/mobile/android/app/build/outputs/apk/release/app-release.apk | grep assets/index.android.bundle`.
+6. Extract pure Dot/Score domain work from issue #116 in a fresh code session; no UI/routing changes in that PR.
+7. Start Blood Intake / Scanner research as v2 work, not v1 Marathon work.
