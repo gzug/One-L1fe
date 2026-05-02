@@ -4,8 +4,8 @@
  * Dedicated v2 header. Keeps One L1fe as the primary mark and renders `v2`
  * as a small, low-emphasis marker.
  */
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, radius, spacing, typography, type ThemeColors } from '../theme/marathonTheme';
@@ -102,9 +102,6 @@ export function AppHeaderV2({
 }: AppHeaderV2Props) {
   const { colors, isDark, toggle } = useTheme();
   const iconColor = colors.text;
-  const customLabel = customRange.start && customRange.end
-    ? `${formatShortDate(customRange.start)}-${formatShortDate(customRange.end)}`
-    : 'Custom';
 
   return (
     <View
@@ -199,40 +196,185 @@ export function AppHeaderV2({
             })}
           </View>
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.rangeRow}
-            style={styles.rangeScroller}
-          >
-            {TIME_RANGE_OPTIONS.map((range) => {
-              const active = timeRange === range;
-              return (
-                <Pressable
-                  key={range}
-                  onPress={() => onTimeRangeSelect(range)}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  style={[
-                    styles.rangeButton,
-                    {
-                      backgroundColor: active ? softMint(colors) : colors.surface,
-                      borderColor: active ? colors.accentBorder : colors.borderSubtle,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.rangeButtonText, { color: active ? colors.text : colors.textSubtle }]}>
-                    {range === 'custom' ? customLabel : TIME_RANGE_LABELS[range]}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          <CompactRangeDropdown
+            value={timeRange}
+            customRange={customRange}
+            onSelect={onTimeRangeSelect}
+            colors={colors}
+          />
         </View>
       </View>
     </View>
   );
 }
+
+function CompactRangeDropdown({
+  value,
+  customRange,
+  onSelect,
+  colors,
+}: {
+  value: TimeRange;
+  customRange: CustomRange;
+  onSelect: (range: TimeRange) => void;
+  colors: ThemeColors;
+}) {
+  const [open, setOpen] = useState(false);
+  const [menuY, setMenuY] = useState(0);
+  const triggerRef = useRef<View>(null);
+
+  const customLabel =
+    customRange.start && customRange.end
+      ? `${formatShortDate(customRange.start)}–${formatShortDate(customRange.end)}`
+      : 'Custom';
+  const activeLabel = value === 'custom' ? customLabel : TIME_RANGE_LABELS[value];
+
+  function handleOpen() {
+    if (triggerRef.current) {
+      triggerRef.current.measureInWindow((_x, y, _w, h) => {
+        setMenuY(y + h + 4);
+        setOpen(true);
+      });
+    } else {
+      setMenuY(100);
+      setOpen(true);
+    }
+  }
+
+  return (
+    <>
+      <View ref={triggerRef} collapsable={false} style={dropStyles.triggerWrap}>
+        <Pressable
+          onPress={handleOpen}
+          style={[
+            dropStyles.trigger,
+            {
+              backgroundColor: softMint(colors),
+              borderColor: colors.accentBorder,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel={`Time range: ${activeLabel}. Tap to change.`}
+          accessibilityState={{ expanded: open }}
+        >
+          <Text style={[dropStyles.triggerText, { color: colors.text }]}>{activeLabel}</Text>
+          <Text style={[dropStyles.chevron, { color: colors.textSubtle }]}>{open ? '▴' : '▾'}</Text>
+        </Pressable>
+      </View>
+
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setOpen(false)}>
+          <View style={dropStyles.backdrop}>
+            <TouchableWithoutFeedback onPress={() => { /* absorb */ }}>
+              <View
+                style={[
+                  dropStyles.menu,
+                  {
+                    top: menuY,
+                    backgroundColor: colors.surfaceElevated,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                {TIME_RANGE_OPTIONS.map((opt) => {
+                  const active = value === opt;
+                  const optLabel = opt === 'custom' ? customLabel : TIME_RANGE_LABELS[opt];
+                  return (
+                    <Pressable
+                      key={opt}
+                      onPress={() => {
+                        onSelect(opt);
+                        setOpen(false);
+                      }}
+                      style={[
+                        dropStyles.option,
+                        active && { backgroundColor: softMint(colors) },
+                      ]}
+                      accessibilityRole="menuitem"
+                      accessibilityState={{ selected: active }}
+                    >
+                      <Text
+                        style={[
+                          dropStyles.optionText,
+                          { color: active ? colors.text : colors.textMuted },
+                          active && { fontWeight: '800' },
+                        ]}
+                      >
+                        {optLabel}
+                      </Text>
+                      {active ? (
+                        <Text style={[dropStyles.checkmark, { color: colors.scoreStrong }]}>✓</Text>
+                      ) : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+    </>
+  );
+}
+
+const dropStyles = StyleSheet.create({
+  triggerWrap: {
+    flex: 1,
+  },
+  trigger: {
+    flex: 1,
+    minHeight: 42,
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
+  triggerText: {
+    fontSize: typography.caption,
+    fontWeight: '800',
+  },
+  chevron: {
+    fontSize: typography.micro,
+    fontWeight: '800',
+  },
+  backdrop: {
+    flex: 1,
+  },
+  menu: {
+    position: 'absolute',
+    right: layout.screenPaddingH,
+    minWidth: 160,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    minHeight: 44,
+  },
+  optionText: {
+    fontSize: typography.bodySmall,
+    fontWeight: '600',
+    flex: 1,
+  },
+  checkmark: {
+    fontSize: typography.bodySmall,
+    fontWeight: '800',
+    marginLeft: spacing.sm,
+  },
+});
 
 const styles = StyleSheet.create({
   root: {
@@ -311,24 +453,5 @@ const styles = StyleSheet.create({
     fontSize: typography.caption,
     fontWeight: '800',
     letterSpacing: 0,
-  },
-  rangeScroller: {
-    flex: 1,
-  },
-  rangeRow: {
-    gap: spacing.sm,
-    paddingRight: spacing.md,
-  },
-  rangeButton: {
-    minHeight: 42,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rangeButtonText: {
-    fontSize: typography.caption,
-    fontWeight: '800',
   },
 });
