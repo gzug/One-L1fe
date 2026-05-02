@@ -16,7 +16,12 @@ import { BloodResultsScreen } from '../../v1-marathon/src/screens/BloodResultsSc
 import { ThemeProvider as LegacyV1ThemeProvider } from '../../v1-marathon/src/theme/ThemeContext';
 import { BottomNavV2, type BottomTabKey } from './components/BottomNavV2';
 import { HomeScreen } from './screens/HomeScreen';
+import { TrendsScreen } from './screens/TrendsScreen';
 import { prototypeCopy } from './data/copy';
+import { getHomeDisplayData } from './data/homeDataAdapter';
+import type { HomeDataMode } from './data/homeTypes';
+import { DEFAULT_TIME_RANGE } from './types/timeRange';
+import type { CustomRange, TimeRange } from './types/timeRange';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
 
 export function OneL1feV2Screen() {
@@ -34,7 +39,23 @@ function V2Shell() {
   const [activeView, setActiveView]           = useState<ActiveView>('home');
   const [demoInfoVisible, setDemoInfoVisible] = useState(false);
 
+  // Shared data state for Trends (and any future cross-tab consumer).
+  // HomeScreen manages its own internal copy; Trends reads from here.
+  const [dataMode, setDataMode]       = useState<HomeDataMode>('demo');
+  const [timeRange, setTimeRange]     = useState<TimeRange>(DEFAULT_TIME_RANGE);
+  const [customRange, setCustomRange] = useState<CustomRange>({ start: null, end: null });
+
   useWebBackground(colors.background);
+
+  // Compute display data for tabs that consume it (Trends, future Insights).
+  // HomeScreen computes its own copy internally to keep its adapter
+  // boundary intact (bloodPanels, HealthConnect status, etc.).
+  const trendsData = getHomeDisplayData({
+    mode: dataMode,
+    timeRange,
+    customRange,
+    bloodPanels: [],
+  });
 
   function openProfile() {
     setDemoInfoVisible(false);
@@ -67,16 +88,14 @@ function V2Shell() {
               />
             </LegacyV1ThemeProvider>
           ) : activeView === 'trends' ? (
-            <TopLevelPlaceholder
-              title="Trends"
-              subtitle="Detailed trend views are coming next."
-            />
+            <TrendsScreen data={trendsData} />
           ) : activeView === 'insights' ? (
             <TopLevelPlaceholder
               title="Insights"
               subtitle="Insights will summarize patterns from your connected data."
             />
           ) : (
+            // HomeScreen owns its own state (bloodPanels, HealthConnect, mode, range, etc.)
             <HomeScreen
               onProfilePress={() => setActiveView('profile')}
               onDemoInfoPress={() => setDemoInfoVisible(true)}
