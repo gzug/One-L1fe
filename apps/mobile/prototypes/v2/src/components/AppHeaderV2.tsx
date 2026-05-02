@@ -1,9 +1,3 @@
-/**
- * AppHeaderV2
- *
- * Dedicated v2 header. Keeps One L1fe as the primary mark and renders `v2`
- * as a small, low-emphasis marker.
- */
 import React, { useRef, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -29,21 +23,19 @@ type AppHeaderV2Props = {
 
 const ICON_SIZE = 22;
 
-function softMint(colors: ThemeColors) {
-  return colors.statusBar === 'dark' ? 'rgba(178,213,184,0.12)' : 'rgba(215,239,219,0.42)';
-}
-
 function formatShortDate(date: Date | null) {
   if (!date) return 'Select date';
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function IconInfo({ color }: { color: string }) {
+// Logo mark: open circle + integrated "1", brand green
+function IconLogoMark({ color, size = 26 }: { color: string; size?: number }) {
   return (
-    <Svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 22 22">
-      <Circle cx={11} cy={11} r={9} stroke={color} strokeWidth={1.6} fill="none" />
-      <Circle cx={11} cy={6.5} r={1.1} fill={color} />
-      <Path d="M11 9.6 L11 15.6" stroke={color} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+    <Svg width={size} height={size} viewBox="0 0 26 26">
+      <Circle cx={13} cy={13} r={10.5} stroke={color} strokeWidth={1.7} fill="none" />
+      {/* "1" — top-left serif, main vertical, base line */}
+      <Path d="M10 10 L13 8 L13 19" stroke={color} strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <Path d="M10.5 19 L15.5 19" stroke={color} strokeWidth={1.9} strokeLinecap="round" fill="none" />
     </Svg>
   );
 }
@@ -114,35 +106,27 @@ export function AppHeaderV2({
       ]}
     >
       <View style={styles.inner}>
+        {/* Top row: brand lockup left, controls right */}
         <View style={styles.topRow}>
           <View style={styles.brandRow}>
+            <IconLogoMark color={colors.brandGreen} size={26} />
             <Text style={[styles.brandName, { color: colors.text }]}>
-              One L<Text style={{ color: colors.scoreStrong }}>1</Text>fe
-            </Text>
-            <Text style={[styles.brandSub, { color: colors.textSubtle }]}>
-              {prototypeCopy.prototypeSub}
+              One L<Text style={{ color: colors.brandGreen }}>1</Text>fe
             </Text>
           </View>
 
           <View style={styles.controls}>
-            <Pressable
-              onPress={onDemoInfoPress}
-              style={({ pressed }) => [
-                styles.iconBtn,
-                { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
-                pressed && { opacity: 0.7 },
-              ]}
-              accessibilityLabel="About demo data"
-              accessibilityRole="button"
-              hitSlop={8}
-            >
-              <IconInfo color={iconColor} />
-            </Pressable>
+            <CompactRangeDropdown
+              value={timeRange}
+              customRange={customRange}
+              onSelect={onTimeRangeSelect}
+              colors={colors}
+            />
             <Pressable
               onPress={toggle}
               style={({ pressed }) => [
                 styles.iconBtn,
-                { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
+                { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
                 pressed && { opacity: 0.7 },
               ]}
               accessibilityLabel={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -155,7 +139,7 @@ export function AppHeaderV2({
               onPress={onProfilePress}
               style={({ pressed }) => [
                 styles.iconBtn,
-                { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
+                { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
                 pressed && { opacity: 0.7 },
               ]}
               accessibilityLabel="Open profile"
@@ -167,11 +151,12 @@ export function AppHeaderV2({
           </View>
         </View>
 
-        <View style={styles.controlRow}>
+        {/* Bottom row: data mode toggle, info button */}
+        <View style={styles.modeRow}>
           <View
             style={[
               styles.modeToggle,
-              { backgroundColor: colors.surface, borderColor: colors.borderSubtle },
+              { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
             ]}
             accessibilityRole="tablist"
           >
@@ -185,23 +170,30 @@ export function AppHeaderV2({
                   accessibilityState={{ selected: active }}
                   style={[
                     styles.modeButton,
-                    active && { backgroundColor: colors.surfaceElevated, borderColor: colors.accentBorder },
+                    active && { backgroundColor: colors.surface, borderColor: colors.brandGreen + '44' },
                   ]}
                 >
                   <Text style={[styles.modeButtonText, { color: active ? colors.text : colors.textSubtle }]}>
-                    {mode === 'user' ? 'User Data' : 'Demo'}
+                    {mode === 'user' ? 'My Data' : 'Demo'}
                   </Text>
                 </Pressable>
               );
             })}
           </View>
 
-          <CompactRangeDropdown
-            value={timeRange}
-            customRange={customRange}
-            onSelect={onTimeRangeSelect}
-            colors={colors}
-          />
+          <Pressable
+            onPress={onDemoInfoPress}
+            style={({ pressed }) => [
+              styles.infoBtn,
+              { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle },
+              pressed && { opacity: 0.7 },
+            ]}
+            accessibilityLabel="About demo data"
+            accessibilityRole="button"
+            hitSlop={8}
+          >
+            <Text style={[styles.infoBtnText, { color: colors.textSubtle }]}>i</Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -243,15 +235,16 @@ function CompactRangeDropdown({
 
   return (
     <>
-      <View ref={triggerRef} collapsable={false} style={dropStyles.triggerWrap}>
+      <View ref={triggerRef} collapsable={false}>
         <Pressable
           onPress={handleOpen}
-          style={[
+          style={({ pressed }) => [
             dropStyles.trigger,
             {
-              backgroundColor: softMint(colors),
-              borderColor: colors.accentBorder,
+              backgroundColor: colors.brandGreenSoft,
+              borderColor: colors.brandGreen + '44',
             },
+            pressed && { opacity: 0.8 },
           ]}
           accessibilityRole="button"
           accessibilityLabel={`Time range: ${activeLabel}. Tap to change.`}
@@ -276,8 +269,8 @@ function CompactRangeDropdown({
                   dropStyles.menu,
                   {
                     top: menuY,
-                    backgroundColor: colors.surfaceElevated,
-                    borderColor: colors.border,
+                    backgroundColor: colors.surface,
+                    borderColor: colors.borderSubtle,
                   },
                 ]}
               >
@@ -293,7 +286,7 @@ function CompactRangeDropdown({
                       }}
                       style={[
                         dropStyles.option,
-                        active && { backgroundColor: softMint(colors) },
+                        active && { backgroundColor: colors.brandGreenSoft },
                       ]}
                       accessibilityRole="menuitem"
                       accessibilityState={{ selected: active }}
@@ -301,14 +294,14 @@ function CompactRangeDropdown({
                       <Text
                         style={[
                           dropStyles.optionText,
-                          { color: active ? colors.text : colors.textMuted },
+                          { color: active ? colors.text : colors.textSubtle },
                           active && { fontWeight: '800' },
                         ]}
                       >
                         {optLabel}
                       </Text>
                       {active ? (
-                        <Text style={[dropStyles.checkmark, { color: colors.scoreStrong }]}>✓</Text>
+                        <Text style={[dropStyles.checkmark, { color: colors.brandGreen }]}>✓</Text>
                       ) : null}
                     </Pressable>
                   );
@@ -323,19 +316,16 @@ function CompactRangeDropdown({
 }
 
 const dropStyles = StyleSheet.create({
-  triggerWrap: {
-    flex: 1,
-  },
   trigger: {
-    flex: 1,
-    minHeight: 42,
+    height: 36,
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
     paddingHorizontal: spacing.md,
+    minWidth: 52,
   },
   triggerText: {
     fontSize: typography.caption,
@@ -351,10 +341,15 @@ const dropStyles = StyleSheet.create({
   menu: {
     position: 'absolute',
     right: layout.screenPaddingH,
-    minWidth: 160,
+    minWidth: 140,
     borderRadius: radius.lg,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   option: {
     flexDirection: 'row',
@@ -381,68 +376,59 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: layout.screenPaddingH,
     paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   inner: {
     maxWidth: layout.maxWidth,
     width: '100%',
     alignSelf: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: spacing.md,
+    minHeight: 40,
   },
   brandRow: {
     flexDirection: 'row',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   brandName: {
     fontSize: typography.heroName,
     fontWeight: '700',
-    letterSpacing: -0.8,
+    letterSpacing: -0.5,
     lineHeight: 30,
-  },
-  brandSub: {
-    fontSize: typography.caption,
-    fontWeight: '500',
-    letterSpacing: 0.8,
-    lineHeight: 16,
-    opacity: 0.42,
-    textTransform: 'lowercase',
   },
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   iconBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  controlRow: {
+  modeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
   },
   modeToggle: {
-    width: 156,
-    minHeight: 42,
+    height: 32,
     flexDirection: 'row',
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 3,
-    gap: 3,
+    padding: 2,
+    gap: 2,
   },
   modeButton: {
-    flex: 1,
+    paddingHorizontal: spacing.md,
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
@@ -451,7 +437,20 @@ const styles = StyleSheet.create({
   },
   modeButtonText: {
     fontSize: typography.caption,
-    fontWeight: '800',
-    letterSpacing: 0,
+    fontWeight: '700',
+    letterSpacing: 0.1,
+  },
+  infoBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoBtnText: {
+    fontSize: typography.bodySmall,
+    fontWeight: '700',
+    lineHeight: 18,
   },
 });
