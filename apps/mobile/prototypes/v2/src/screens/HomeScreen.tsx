@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { IdeasNotesCard } from '../components/IdeasNotesCard';
 import {
   InteractiveTrendChartV2,
   QuietBarChartV2,
@@ -122,6 +121,19 @@ function createCalendarDays() {
   const today = startOfDay(new Date());
   const first = addDays(today, -(CALENDAR_DAYS - 1));
   return Array.from({ length: CALENDAR_DAYS }, (_, index) => addDays(first, index));
+}
+
+function buildScoreInsight(
+  contributors: HomeDisplayData['contributors'],
+  isDemo: boolean,
+): string | null {
+  if (!isDemo) return null;
+  const r = contributors.recovery.delta;
+  const a = contributors.activity.delta;
+  const parts: string[] = [];
+  if (r !== null) parts.push(r > 0 ? `Recovery +${r}` : r < 0 ? `Recovery ${r}` : 'Recovery →');
+  if (a !== null) parts.push(a > 0 ? `Activity +${a}` : a < 0 ? `Activity ${a}` : 'Activity →');
+  return parts.length ? parts.join(' · ') + ' vs last period' : null;
 }
 
 function scoreTone(score: number | null, colors: ThemeColors) {
@@ -284,10 +296,6 @@ export function HomeScreen({
             colors={colors}
           />
 
-          <NextIntegrations colors={colors} />
-
-          <IdeasNotesCard />
-
           <SourceStatusCard
             hcStatus={hcStatus}
             onManageSources={onManageSources}
@@ -372,6 +380,7 @@ function ScoreCard({
   const { width } = useWindowDimensions();
   const isWide = width >= SCORE_CARD_SPLIT_WIDTH;
   const isCompactWide = isWide && width < 600;
+  const insight = buildScoreInsight(contributors, dataMode === 'demo');
   return (
     <View style={s.scoreCard}>
       <View style={s.scoreTopRow}>
@@ -406,6 +415,7 @@ function ScoreCard({
       <View style={[s.scoreBodyRow, isWide && s.scoreBodyRowWide, isCompactWide && s.scoreBodyRowCompactWide]}>
         <MultiRingScore
           score={score.overall}
+          insight={insight}
           colors={colors}
         />
 
@@ -420,7 +430,7 @@ function ScoreCard({
   );
 }
 
-function MultiRingScore({ score, colors }: { score: number | null; colors: ThemeColors }) {
+function MultiRingScore({ score, insight, colors }: { score: number | null; insight?: string | null; colors: ThemeColors }) {
   const s = createHomeStyles(colors);
   const centerColor = score === null ? colors.textSubtle : colors.brandGreen;
   return (
@@ -440,6 +450,7 @@ function MultiRingScore({ score, colors }: { score: number | null; colors: Theme
         </Text>
         <Text style={s.scoreLabel}>One L1fe Score</Text>
         <Text style={s.scoreStatusLine}>{score === null ? 'Waiting for data' : '● Good'}</Text>
+        {insight ? <Text style={s.scoreInsightLine}>{insight}</Text> : null}
       </View>
       <View style={s.scoreBasisRow}>
         <View style={s.scoreBasisIcon}>
@@ -547,8 +558,6 @@ function ScoreTrendMiniChart({
         <TrendLegendPill label="Score" color={scoreColor} on={visible.score} onPress={() => toggle('score')} colors={colors} />
         <TrendLegendPill label="Recovery" color={colors.recovery} on={visible.recovery} onPress={() => toggle('recovery')} colors={colors} />
         <TrendLegendPill label="Activity" color={colors.activity} on={visible.activity} onPress={() => toggle('activity')} colors={colors} />
-        <TrendLegendPill label="Test Results" color={colors.testResults} on={false} colors={colors} />
-        <TrendLegendPill label="Nutrition" color={colors.disabled} on={false} colors={colors} />
       </View>
     </View>
   );
@@ -995,43 +1004,6 @@ function HealthInputCard({
   );
 }
 
-const NEXT_INTEGRATIONS: { label: string; icon: HomeHealthInputIcon; description: string }[] = [
-  { label: 'Nutrition', icon: 'nutrition', description: 'Dietary intake and macro tracking' },
-  { label: 'Mental Health', icon: 'dna', description: 'Mood, stress, and cognitive signals' },
-  { label: 'DNA Insights', icon: 'dna', description: 'Genetic predispositions and traits' },
-  { label: 'Stool Analysis', icon: 'stool', description: 'Gut microbiome and digestive health' },
-  { label: 'Urine Analysis', icon: 'urine', description: 'Metabolic and kidney health markers' },
-];
-
-function NextIntegrations({ colors }: { colors: ThemeColors }) {
-  const s = createHomeStyles(colors);
-  return (
-    <View style={s.nextIntegrationsSection}>
-      <View style={s.nextIntegrationsHeader}>
-        <Text style={s.nextIntegrationsTitle}>Next Integrations</Text>
-        <Text style={s.nextIntegrationsSubtitle}>Premium data sources in development</Text>
-      </View>
-      {NEXT_INTEGRATIONS.map((item) => (
-        <View key={item.label} style={s.nextIntegrationCard}>
-          <View style={s.nextIntegrationIcon}>
-            <HealthInputGlyph name={item.icon} color={colors.disabled} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={s.nextIntegrationLabel}>{item.label}</Text>
-            <Text style={s.nextIntegrationDescription}>{item.description}</Text>
-          </View>
-          <View style={s.nextIntegrationBar}>
-            <View style={s.nextIntegrationBarFill} />
-          </View>
-          <View style={s.comingSoonPill}>
-            <Text style={s.comingSoonText}>Coming soon</Text>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-}
-
 function HealthInputGlyph({ name, color }: { name: HomeHealthInputIcon; color: string }) {
   if (name === 'blood') {
     return (
@@ -1099,7 +1071,7 @@ function SourceStatusCard({
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.sourceTitle}>Sources</Text>
-          <Text style={s.sourceSubtitle}>Health Connect is display-only in this prototype.</Text>
+          <Text style={s.sourceSubtitle}>Data sources are read-only in this version.</Text>
         </View>
       </View>
       <View style={s.sourceFooter}>
@@ -1298,7 +1270,7 @@ function createHomeStyles(colors: ThemeColors) {
     },
     scoreRingWrap: {
       width: SCORE_RING_SIZE,
-      minHeight: SCORE_RING_SIZE + 76,
+      minHeight: SCORE_RING_SIZE + 96,
       alignItems: 'center',
       justifyContent: 'flex-start',
     },
@@ -1325,6 +1297,15 @@ function createHomeStyles(colors: ThemeColors) {
       lineHeight: 22,
       fontWeight: '700',
       marginTop: spacing.xs,
+    },
+    scoreInsightLine: {
+      color: colors.textSubtle,
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '600',
+      textAlign: 'center',
+      marginTop: 2,
+      paddingHorizontal: spacing.sm,
     },
     scoreBasisRow: {
       width: '100%',
@@ -1776,67 +1757,6 @@ function createHomeStyles(colors: ThemeColors) {
       fontSize: typography.micro,
       lineHeight: lineHeights.caption,
       fontWeight: '800',
-    },
-    nextIntegrationsSection: {
-      gap: spacing.sm,
-    },
-    nextIntegrationsHeader: {
-      gap: 2,
-      paddingHorizontal: spacing.xs,
-    },
-    nextIntegrationsTitle: {
-      fontSize: typography.subtitle,
-      fontWeight: '800',
-      color: colors.textSubtle,
-    },
-    nextIntegrationsSubtitle: {
-      fontSize: typography.caption,
-      lineHeight: lineHeights.caption,
-      fontWeight: '600',
-      color: colors.textSubtle,
-    },
-    nextIntegrationCard: {
-      borderRadius: radius.lg,
-      backgroundColor: colors.surfaceSoft,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.borderSubtle,
-      borderStyle: 'dashed',
-      padding: spacing.lg,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.md,
-      opacity: 0.7,
-    },
-    nextIntegrationIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-      backgroundColor: colors.surface,
-    },
-    nextIntegrationLabel: {
-      fontSize: typography.bodySmall,
-      fontWeight: '800',
-      color: colors.textSubtle,
-    },
-    nextIntegrationDescription: {
-      fontSize: typography.caption,
-      lineHeight: lineHeights.caption,
-      fontWeight: '500',
-      color: colors.disabled,
-    },
-    nextIntegrationBar: {
-      width: 44,
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.borderSubtle,
-      overflow: 'hidden' as const,
-    },
-    nextIntegrationBarFill: {
-      width: 0,
-      height: 4,
-      backgroundColor: colors.disabled,
     },
     sourceCard: {
       borderRadius: radius.lg,

@@ -5,6 +5,39 @@ import type { HomeDisplayData, HomeTrendMetric } from '../data/homeTypes';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
 
+function DeltaBadge({ delta, colors }: { delta: number | null; colors: import('../theme/marathonTheme').ThemeColors }) {
+  if (delta === null) return <Text style={[styles.compDeltaText, { color: colors.textSubtle }]}>No prior data</Text>;
+  const sign = delta > 0 ? '+' : '';
+  const color = delta > 0 ? colors.brandGreen : delta < 0 ? colors.scoreLow : colors.textSubtle;
+  return <Text style={[styles.compDeltaText, { color }]}>{sign}{delta} pts</Text>;
+}
+
+function PeriodComparisonCard({ data }: { data: HomeDisplayData }) {
+  const { colors } = useTheme();
+  const items = [
+    { label: 'Score', delta: data.score.delta, color: colors.brandGreen },
+    { label: 'Recovery', delta: data.contributors.recovery.delta, color: colors.recovery },
+    { label: 'Activity', delta: data.contributors.activity.delta, color: colors.activity },
+  ];
+  return (
+    <View style={[styles.compCard, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
+      <View style={styles.compHeader}>
+        <Text style={[styles.compTitle, { color: colors.text }]}>Period comparison</Text>
+        <Text style={[styles.compCaption, { color: colors.textSubtle }]}>vs previous period</Text>
+      </View>
+      <View style={styles.compRow}>
+        {items.map((item) => (
+          <View key={item.label} style={[styles.compItem, { borderColor: colors.borderSubtle }]}>
+            <View style={[styles.compDot, { backgroundColor: item.color }]} />
+            <Text style={[styles.compLabel, { color: colors.textMuted }]}>{item.label}</Text>
+            <DeltaBadge delta={item.delta} colors={colors} />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function MetricSurface({
   metric,
   color,
@@ -107,6 +140,8 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
 
         </View>
 
+        <PeriodComparisonCard data={data} />
+
         <Section title="Score" subtitle="Tap anywhere in the chart to inspect that point in time.">
           <View style={[styles.scoreCard, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}>
             <InteractiveTrendChartV2
@@ -149,14 +184,6 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
                   </Pressable>
                 );
               })}
-              <View style={[styles.legendPill, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}>
-                <View style={[styles.legendDot, { backgroundColor: colors.testResults }]} />
-                <Text style={[styles.legendText, { color: colors.textSubtle }]}>Test Results</Text>
-              </View>
-              <View style={[styles.legendPill, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}>
-                <View style={[styles.legendDot, { backgroundColor: colors.disabled }]} />
-                <Text style={[styles.legendText, { color: colors.textSubtle }]}>Nutrition</Text>
-              </View>
             </View>
           </View>
         </Section>
@@ -346,5 +373,51 @@ const styles = StyleSheet.create({
     lineHeight: lineHeights.caption,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  compCard: {
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  compHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  compTitle: {
+    fontSize: typography.subtitle,
+    fontWeight: '800',
+  },
+  compCaption: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '600',
+  },
+  compRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  compItem: {
+    flex: 1,
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: spacing.md,
+    gap: spacing.xs,
+    alignItems: 'flex-start',
+  },
+  compDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  compLabel: {
+    fontSize: typography.caption,
+    lineHeight: lineHeights.caption,
+    fontWeight: '700',
+  },
+  compDeltaText: {
+    fontSize: typography.bodySmall,
+    fontWeight: '800',
   },
 });
