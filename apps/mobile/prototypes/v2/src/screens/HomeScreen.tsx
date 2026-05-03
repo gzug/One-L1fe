@@ -147,20 +147,18 @@ function colorForKey(key: HomeMetricColorKey, colors: ThemeColors, score: number
       return colors.testResults;
     case 'future':
       return colors.disabled;
-    // recovery sub-metrics: lighter shades of recovery green
     case 'sleep':
-      return '#72D4A2';
+      return colors.recoverySub1;
     case 'hrv':
-      return '#36B078';
+      return colors.recoverySub2;
     case 'restingHr':
-      return '#1FA367';
-    // activity sub-metrics: quiet sage variants, not warning/action colors
+      return colors.recoverySub3;
     case 'steps':
-      return colors.activity;
+      return colors.activitySub1;
     case 'training':
-      return colors.scoreSteady;
+      return colors.activitySub2;
     case 'calories':
-      return colors.scoreSoft;
+      return colors.activitySub3;
     default:
       return colors.brandGreen;
   }
@@ -286,7 +284,7 @@ export function HomeScreen({
             colors={colors}
           />
 
-          <NutritionHub data={homeData.nutritionHub} colors={colors} />
+          <NextIntegrations colors={colors} />
 
           <IdeasNotesCard />
 
@@ -505,6 +503,12 @@ function ScoreTrendMiniChart({
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
+  const [visible, setVisible] = React.useState({ score: true, recovery: true, activity: true });
+
+  function toggle(key: 'score' | 'recovery' | 'activity') {
+    setVisible((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
   if (trend.isEmpty || trend.series.length === 0) {
     return (
       <View style={s.scoreTrendCard}>
@@ -519,14 +523,12 @@ function ScoreTrendMiniChart({
     );
   }
 
+  const scoreColor = colorForKey('score', colors, score);
+
   return (
     <View style={s.scoreTrendCard}>
       <View style={s.scoreTrendHeader}>
         <Text style={s.scoreTrendTitle}>One Health Score Trend</Text>
-        <View style={s.scoreRangePill}>
-          <Text style={s.scoreRangeText}>6M</Text>
-          <Text style={s.scoreRangeChevron}>⌄</Text>
-        </View>
       </View>
       <InteractiveTrendChartV2
         colors={colors}
@@ -536,34 +538,17 @@ function ScoreTrendMiniChart({
         yTicks={[100, 80, 60, 40, 20, 0]}
         showYAxis={false}
         series={[
-          {
-            key: 'score',
-            label: 'Score',
-            color: colorForKey('score', colors, score),
-            data: trend.series[0]?.data ?? [],
-            style: 'area',
-          },
-          {
-            key: 'recovery',
-            label: 'Recovery',
-            color: colors.recovery,
-            data: trend.series[1]?.data ?? [],
-          },
-          {
-            key: 'activity',
-            label: 'Activity',
-            color: colors.activity,
-            data: trend.series[2]?.data ?? [],
-            style: 'dashed',
-          },
+          ...(visible.score ? [{ key: 'score', label: 'Score', color: scoreColor, data: trend.series[0]?.data ?? [], style: 'area' as const }] : []),
+          ...(visible.recovery ? [{ key: 'recovery', label: 'Recovery', color: colors.recovery, data: trend.series[1]?.data ?? [] }] : []),
+          ...(visible.activity ? [{ key: 'activity', label: 'Activity', color: colors.activity, data: trend.series[2]?.data ?? [], style: 'dashed' as const }] : []),
         ]}
       />
       <View style={s.scoreTrendLegend}>
-        <TrendLegendPill label="Score" color={colorForKey('score', colors, score)} active colors={colors} />
-        <TrendLegendPill label="Recovery" color={colors.recovery} colors={colors} />
-        <TrendLegendPill label="Activity" color={colors.activity} colors={colors} />
-        <TrendLegendPill label="Test Results" color={colors.testResults} colors={colors} />
-        <TrendLegendPill label="Nutrition" color={colors.disabled} colors={colors} />
+        <TrendLegendPill label="Score" color={scoreColor} on={visible.score} onPress={() => toggle('score')} colors={colors} />
+        <TrendLegendPill label="Recovery" color={colors.recovery} on={visible.recovery} onPress={() => toggle('recovery')} colors={colors} />
+        <TrendLegendPill label="Activity" color={colors.activity} on={visible.activity} onPress={() => toggle('activity')} colors={colors} />
+        <TrendLegendPill label="Test Results" color={colors.testResults} on={false} colors={colors} />
+        <TrendLegendPill label="Nutrition" color={colors.disabled} on={false} colors={colors} />
       </View>
     </View>
   );
@@ -572,20 +557,28 @@ function ScoreTrendMiniChart({
 function TrendLegendPill({
   label,
   color,
-  active,
+  on,
+  onPress,
   colors,
 }: {
   label: string;
   color: string;
-  active?: boolean;
+  on: boolean;
+  onPress?: () => void;
   colors: ThemeColors;
 }) {
   const s = createHomeStyles(colors);
-  return (
-    <View style={[s.scoreLegendPill, active && { backgroundColor: colors.brandGreen, borderColor: colors.brandGreen }]}>
-      <View style={[s.scoreTrendDot, { backgroundColor: active ? colors.surface : color }]} />
-      <Text style={[s.scoreTrendLegendText, active && { color: colors.surface }]}>{label}</Text>
+  const pill = (
+    <View style={[s.scoreLegendPill, on && { backgroundColor: colors.brandGreenSoft, borderColor: colors.accentBorder }]}>
+      <View style={[s.scoreTrendDot, { backgroundColor: on ? color : colors.textSubtle }]} />
+      <Text style={[s.scoreTrendLegendText, { color: on ? colors.text : colors.textSubtle }]}>{label}</Text>
     </View>
+  );
+  if (!onPress) return pill;
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ opacity: pressed ? 0.72 : 1 })}>
+      {pill}
+    </Pressable>
   );
 }
 
@@ -748,9 +741,14 @@ function ContributorScoreRow({
             return (
               <View key={input.label} style={s.contributorInputRow}>
                 <View style={[s.contributorInputDot, { backgroundColor: inputColor }]} />
-                <Text style={s.contributorInputLabel}>{input.label}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.contributorInputLabel}>{input.label}</Text>
+                  {input.refContext ? (
+                    <Text style={s.contributorInputRef}>{input.refContext}</Text>
+                  ) : null}
+                </View>
                 <Text style={[s.contributorInputValue, { color: inputColor }]}>
-                  {input.value === null ? '--' : `${clamp(input.value)}%`}
+                  {input.displayValue ?? (input.value === null ? '--' : `${clamp(input.value)}%`)}
                 </Text>
               </View>
             );
@@ -997,26 +995,39 @@ function HealthInputCard({
   );
 }
 
-function NutritionHub({
-  data,
-  colors,
-}: {
-  data: HomeDisplayData['nutritionHub'];
-  colors: ThemeColors;
-}) {
+const NEXT_INTEGRATIONS: { label: string; icon: HomeHealthInputIcon; description: string }[] = [
+  { label: 'Nutrition', icon: 'nutrition', description: 'Dietary intake and macro tracking' },
+  { label: 'Mental Health', icon: 'dna', description: 'Mood, stress, and cognitive signals' },
+  { label: 'DNA Insights', icon: 'dna', description: 'Genetic predispositions and traits' },
+  { label: 'Stool Analysis', icon: 'stool', description: 'Gut microbiome and digestive health' },
+  { label: 'Urine Analysis', icon: 'urine', description: 'Metabolic and kidney health markers' },
+];
+
+function NextIntegrations({ colors }: { colors: ThemeColors }) {
   const s = createHomeStyles(colors);
   return (
-    <View style={s.nutritionCard}>
-      <View style={s.nutritionIcon}>
-        <HealthInputGlyph name="nutrition" color={colors.textSubtle} />
+    <View style={s.nextIntegrationsSection}>
+      <View style={s.nextIntegrationsHeader}>
+        <Text style={s.nextIntegrationsTitle}>Next Integrations</Text>
+        <Text style={s.nextIntegrationsSubtitle}>Premium data sources in development</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={s.cardTitle}>{data.title}</Text>
-        <Text style={s.cardSubtitle}>{data.subtitle}</Text>
-      </View>
-      <View style={s.comingSoonPill}>
-        <Text style={s.comingSoonText}>{data.stateLabel}</Text>
-      </View>
+      {NEXT_INTEGRATIONS.map((item) => (
+        <View key={item.label} style={s.nextIntegrationCard}>
+          <View style={s.nextIntegrationIcon}>
+            <HealthInputGlyph name={item.icon} color={colors.disabled} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.nextIntegrationLabel}>{item.label}</Text>
+            <Text style={s.nextIntegrationDescription}>{item.description}</Text>
+          </View>
+          <View style={s.nextIntegrationBar}>
+            <View style={s.nextIntegrationBarFill} />
+          </View>
+          <View style={s.comingSoonPill}>
+            <Text style={s.comingSoonText}>Coming soon</Text>
+          </View>
+        </View>
+      ))}
     </View>
   );
 }
@@ -1389,29 +1400,6 @@ function createHomeStyles(colors: ThemeColors) {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    scoreRangePill: {
-      minHeight: 36,
-      minWidth: 62,
-      borderRadius: radius.pill,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.borderSubtle,
-      backgroundColor: colors.surface,
-      paddingHorizontal: spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: spacing.xs,
-    },
-    scoreRangeText: {
-      color: colors.text,
-      fontSize: typography.bodySmall,
-      fontWeight: '800',
-    },
-    scoreRangeChevron: {
-      color: colors.textSubtle,
-      fontSize: typography.bodySmall,
-      fontWeight: '800',
-    },
     scoreTrendAxisText: {
       flex: 1,
       color: colors.textSubtle,
@@ -1593,11 +1581,16 @@ function createHomeStyles(colors: ThemeColors) {
       borderRadius: 4,
     },
     contributorInputLabel: {
-      flex: 1,
       color: colors.textMuted,
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
       fontWeight: '700',
+    },
+    contributorInputRef: {
+      color: colors.textSubtle,
+      fontSize: typography.micro,
+      lineHeight: 14,
+      fontWeight: '500',
     },
     contributorInputValue: {
       fontSize: typography.caption,
@@ -1784,7 +1777,25 @@ function createHomeStyles(colors: ThemeColors) {
       lineHeight: lineHeights.caption,
       fontWeight: '800',
     },
-    nutritionCard: {
+    nextIntegrationsSection: {
+      gap: spacing.sm,
+    },
+    nextIntegrationsHeader: {
+      gap: 2,
+      paddingHorizontal: spacing.xs,
+    },
+    nextIntegrationsTitle: {
+      fontSize: typography.subtitle,
+      fontWeight: '800',
+      color: colors.textSubtle,
+    },
+    nextIntegrationsSubtitle: {
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '600',
+      color: colors.textSubtle,
+    },
+    nextIntegrationCard: {
       borderRadius: radius.lg,
       backgroundColor: colors.surfaceSoft,
       borderWidth: StyleSheet.hairlineWidth,
@@ -1794,15 +1805,38 @@ function createHomeStyles(colors: ThemeColors) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      opacity: 0.95,
+      opacity: 0.7,
     },
-    nutritionIcon: {
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      alignItems: 'center',
-      justifyContent: 'center',
+    nextIntegrationIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center' as const,
+      justifyContent: 'center' as const,
       backgroundColor: colors.surface,
+    },
+    nextIntegrationLabel: {
+      fontSize: typography.bodySmall,
+      fontWeight: '800',
+      color: colors.textSubtle,
+    },
+    nextIntegrationDescription: {
+      fontSize: typography.caption,
+      lineHeight: lineHeights.caption,
+      fontWeight: '500',
+      color: colors.disabled,
+    },
+    nextIntegrationBar: {
+      width: 44,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: colors.borderSubtle,
+      overflow: 'hidden' as const,
+    },
+    nextIntegrationBarFill: {
+      width: 0,
+      height: 4,
+      backgroundColor: colors.disabled,
     },
     sourceCard: {
       borderRadius: radius.lg,

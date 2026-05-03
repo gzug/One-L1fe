@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   BackHandler,
   Modal,
@@ -25,6 +25,8 @@ import type { HomeDataMode } from './data/homeTypes';
 import { DEFAULT_TIME_RANGE } from './types/timeRange';
 import type { CustomRange, TimeRange } from './types/timeRange';
 import { layout, lineHeights, radius, spacing, typography } from './theme/marathonTheme';
+import { loadPanels } from '../../v1-marathon/src/data/bloodStorage';
+import type { BloodPanel } from '../../v1-marathon/src/data/bloodStorage';
 
 export function OneL1feV2Screen() {
   return (
@@ -46,6 +48,11 @@ function V2Shell() {
   const [dataMode, setDataMode]       = useState<HomeDataMode>('demo');
   const [timeRange, setTimeRange]     = useState<TimeRange>(DEFAULT_TIME_RANGE);
   const [customRange, setCustomRange] = useState<CustomRange>({ start: null, end: null });
+  const [shellBloodPanels, setShellBloodPanels] = useState<BloodPanel[]>([]);
+
+  useEffect(() => {
+    loadPanels().then(setShellBloodPanels).catch(() => {});
+  }, []);
 
   useWebBackground(colors.background);
 
@@ -75,7 +82,7 @@ function V2Shell() {
     mode: dataMode,
     timeRange,
     customRange,
-    bloodPanels: [],
+    bloodPanels: shellBloodPanels,
   });
 
   function openProfile() {

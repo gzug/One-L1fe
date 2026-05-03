@@ -109,6 +109,7 @@ export function getHomeDisplayData({
         value: bloodMarkersScore,
         delta: null,
         colorKey: 'blood',
+        inputs: buildBloodMarkerInputs(bloodPanels),
       },
       future: [
         { label: 'DNA Insights' },
@@ -409,6 +410,37 @@ function blankMetric(key: HomeTrendMetricKey): HomeTrendMetric {
     colorKey: 'recovery',
     emptyText: 'No data available.',
   };
+}
+
+function buildBloodMarkerInputs(panels: BloodPanel[]): import('./homeTypes').HomeContributorInput[] | undefined {
+  const latest = panels[panels.length - 1];
+  if (!latest) return undefined;
+  const enabled = latest.markers.filter((m) => m.enabled && m.value.trim() !== '');
+  if (!enabled.length) return undefined;
+  return enabled.map((m) => {
+    const val = parseFloat(m.value);
+    const low = m.refLow ? parseFloat(m.refLow) : undefined;
+    const high = m.refHigh ? parseFloat(m.refHigh) : undefined;
+    let refContext: string | undefined;
+    if (m.refLow || m.refHigh) {
+      const lo = m.refLow || '—';
+      const hi = m.refHigh || '—';
+      refContext = `Ref ${lo}–${hi} ${m.unit}`;
+      if (!isNaN(val)) {
+        if (high !== undefined && val > high) refContext += ' · Above range';
+        else if (low !== undefined && val < low) refContext += ' · Below range';
+        else refContext += ' · Within range';
+      }
+    }
+    return {
+      label: m.label,
+      value: null,
+      delta: null,
+      colorKey: 'blood' as const,
+      displayValue: `${m.value} ${m.unit}`,
+      refContext,
+    };
+  });
 }
 
 function summarizeBloodPanels(panels: BloodPanel[]): BloodSummary {

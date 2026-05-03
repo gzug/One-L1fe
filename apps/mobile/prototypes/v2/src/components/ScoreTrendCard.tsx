@@ -423,7 +423,7 @@ function Tooltip({
       <View style={styles.tooltipHeader}>
         <Text style={[styles.tooltipDate, { color: colors.text }]}>{sel.label}</Text>
         <Pressable onPress={onClear} hitSlop={6} accessibilityLabel="Clear selection">
-          <Text style={[styles.tooltipClose, { color: colors.textSubtle }]}>×</Text>
+          <Text style={[styles.tooltipClose, { color: colors.tooltipDismiss }]}>×</Text>
         </Pressable>
       </View>
       {visible.score && (

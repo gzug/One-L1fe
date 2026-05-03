@@ -52,6 +52,8 @@ export type HomeContributorInput = {
   value: number | null;
   delta: number | null;
   colorKey: HomeMetricColorKey;
+  displayValue?: string;  // overrides percentage rendering (e.g. for blood markers)
+  refContext?: string;    // neutral reference context (e.g. "Ref 3.9–5.6 mmol/L")
 };
 
 export type HomeContributorGroup = HomeContributorInput & {

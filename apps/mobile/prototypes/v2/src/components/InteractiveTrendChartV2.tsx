@@ -223,7 +223,7 @@ export function InteractiveTrendChartV2({
             <View style={styles.tooltipHeader}>
               <Text style={[styles.tooltipDate, { color: colors.text }]}>{selectedLabel}</Text>
               <Pressable onPress={() => setSelectedIdx(null)} hitSlop={6}>
-                <Text style={[styles.tooltipClose, { color: colors.textSubtle }]}>×</Text>
+                <Text style={[styles.tooltipClose, { color: colors.tooltipDismiss }]}>×</Text>
               </Pressable>
             </View>
             {series.map((item) => {
