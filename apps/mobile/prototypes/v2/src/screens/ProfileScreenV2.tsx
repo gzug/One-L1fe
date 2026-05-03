@@ -114,13 +114,12 @@ export function ProfileScreenV2({ onClose, onViewBlood }: ProfileScreenV2Props) 
           <Text style={[styles.sectionTitle, { color: colors.textSubtle }]}>Data</Text>
           <ProfileRow
             title="Connected sources"
-            subtitle="Health Connect is display-only in this prototype."
+            subtitle="Data sources are read-only in this version."
             icon="sources"
-            actionLabel="Manage"
           />
           <ProfileRow
             title="Test results"
-            subtitle="Review local blood panels already available to v2."
+            subtitle="Review your imported blood panels."
             icon="tests"
             actionLabel="Open"
             onPress={onViewBlood}
@@ -131,12 +130,12 @@ export function ProfileScreenV2({ onClose, onViewBlood }: ProfileScreenV2Props) 
           <Text style={[styles.sectionTitle, { color: colors.textSubtle }]}>App</Text>
           <ProfileRow
             title="Demo and user data"
-            subtitle="Demo screens stay labelled; empty user states stay honest."
+            subtitle="Demo mode stays clearly labelled; your data is always separate."
             icon="mode"
           />
           <ProfileRow
             title="Privacy posture"
-            subtitle="No Supabase write, diagnosis, treatment, or clinical-risk-score claim in v2 UI."
+            subtitle="Your data stays on this device. No clinical assessments are made."
             icon="privacy"
           />
         </View>

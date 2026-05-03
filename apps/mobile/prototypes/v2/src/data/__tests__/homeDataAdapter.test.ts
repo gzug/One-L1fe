@@ -215,8 +215,8 @@ test('demo: urineTest healthInput state is comingSoon', () => {
   assert.equal(hi.state, 'comingSoon');
 });
 
-test('demo: nutritionHub stateLabel is Coming soon', () => {
-  assert.equal(demoData().nutritionHub.stateLabel, 'Coming soon');
+test('demo: nutritionHub stateLabel is Planned', () => {
+  assert.equal(demoData().nutritionHub.stateLabel, 'Planned');
 });
 
 test('demo: nutritionHub disabled is true', () => {

@@ -14,11 +14,11 @@ export const v2LightTokens = {
   brandGreen:        '#31796D',
   brandGreenDark:    '#235F56',
   brandGreenSoft:    '#E7F1EE',
-  // Recovery family — cool teal-green
-  recovery:          '#31796D',
-  recoverySub1:      '#3D9184', // sleep — brighter teal
-  recoverySub2:      '#266D63', // hrv — deeper teal
-  recoverySub3:      '#1C5E55', // resting HR — darkest teal
+  // Recovery family — cool blue (distinct from brandGreen)
+  recovery:          '#2E7DAE',
+  recoverySub1:      '#3A90C6', // sleep — lighter blue
+  recoverySub2:      '#245E8C', // hrv — deeper blue
+  recoverySub3:      '#1A4D75', // resting HR — darkest blue
   // Activity family — warm olive-green (clearly distinct from teal)
   activity:          '#6E8C4A',
   activitySub1:      '#7D9F56', // steps
@@ -42,11 +42,11 @@ export const v2DarkTokens = {
   brandGreen:        '#5EA99A',
   brandGreenDark:    '#9BCFC4',
   brandGreenSoft:    '#1D302B',
-  // Recovery family — cool teal-green
-  recovery:          '#6CB8A9',
-  recoverySub1:      '#7ECBBA', // sleep
-  recoverySub2:      '#5AA89A', // hrv
-  recoverySub3:      '#4A9487', // resting HR
+  // Recovery family — cool blue (distinct from brandGreen)
+  recovery:          '#6EB5D8',
+  recoverySub1:      '#82C8E8', // sleep
+  recoverySub2:      '#5AA0C8', // hrv
+  recoverySub3:      '#4A8CB4', // resting HR
   // Activity family — warm olive-green
   activity:          '#9DB86E',
   activitySub1:      '#AACA7C', // steps

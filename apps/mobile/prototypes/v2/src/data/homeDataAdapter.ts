@@ -147,14 +147,14 @@ export function getHomeDisplayData({
         state: 'active',
         action: 'bloodResults',
       },
-      { id: 'dnaInsights', title: 'DNA Insights', subtitle: 'Coming soon', icon: 'dna', state: 'comingSoon', action: null },
-      { id: 'stoolTest', title: 'Stool Test', subtitle: 'Coming soon', icon: 'stool', state: 'comingSoon', action: null },
-      { id: 'urineTest', title: 'Urine Test', subtitle: 'Coming soon', icon: 'urine', state: 'comingSoon', action: null },
+      { id: 'dnaInsights', title: 'DNA Insights', subtitle: 'Planned', icon: 'dna', state: 'comingSoon', action: null },
+      { id: 'stoolTest', title: 'Stool Test', subtitle: 'Planned', icon: 'stool', state: 'comingSoon', action: null },
+      { id: 'urineTest', title: 'Urine Test', subtitle: 'Planned', icon: 'urine', state: 'comingSoon', action: null },
     ],
     nutritionHub: {
       title: 'Nutrition Hub',
       subtitle: 'Tracking · Planning · Supplements',
-      stateLabel: 'Coming soon',
+      stateLabel: 'Planned',
       disabled: true,
     },
   };
@@ -446,7 +446,7 @@ function buildTestResultInputs({
       value: null,
       delta: null,
       colorKey: 'future',
-      displayValue: 'Coming soon',
+      displayValue: 'Planned',
       refContext: 'Future test integration',
     },
     {
@@ -454,7 +454,7 @@ function buildTestResultInputs({
       value: null,
       delta: null,
       colorKey: 'future',
-      displayValue: 'Coming soon',
+      displayValue: 'Planned',
       refContext: 'Future test integration',
     },
     {
@@ -462,7 +462,7 @@ function buildTestResultInputs({
       value: null,
       delta: null,
       colorKey: 'future',
-      displayValue: 'Coming soon',
+      displayValue: 'Planned',
       refContext: 'Future test integration',
     },
   ];

@@ -17,6 +17,7 @@ import { AppHeaderV2 } from './components/AppHeaderV2';
 import { BottomNavV2, type BottomTabKey } from './components/BottomNavV2';
 import { BloodResultsScreenV2 } from './screens/BloodResultsScreenV2';
 import { HomeScreen } from './screens/HomeScreen';
+import { InsightsScreen } from './screens/InsightsScreen';
 import { ProfileScreenV2 } from './screens/ProfileScreenV2';
 import { TrendsScreen } from './screens/TrendsScreen';
 import { prototypeCopy } from './data/copy';
@@ -122,6 +123,7 @@ function V2Shell() {
             timeRange={timeRange}
             customRange={customRange}
             onTimeRangeSelect={handleTimeRangeSelect}
+            dataMode={dataMode}
           />
         ) : null}
 
@@ -136,10 +138,7 @@ function V2Shell() {
           ) : activeView === 'trends' ? (
             <TrendsScreen data={trendsData} />
           ) : activeView === 'insights' ? (
-            <TopLevelPlaceholder
-              title="Insights"
-              subtitle="Insights will summarize patterns from your connected data."
-            />
+            <InsightsScreen />
           ) : (
             <HomeScreen
               onDemoInfoPress={() => setDemoInfoVisible(true)}
