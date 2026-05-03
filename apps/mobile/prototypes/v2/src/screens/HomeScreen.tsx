@@ -125,9 +125,8 @@ function createCalendarDays() {
 
 function buildScoreInsight(
   contributors: HomeDisplayData['contributors'],
-  isDemo: boolean,
+  _isDemo: boolean,
 ): string | null {
-  if (!isDemo) return null;
   const r = contributors.recovery.delta;
   const a = contributors.activity.delta;
   const parts: string[] = [];
@@ -270,7 +269,7 @@ export function HomeScreen({
             colors={colors}
           />
 
-          <ScoreTrendMiniChart score={homeData.score.overall} trend={homeData.scoreTrend} colors={colors} />
+          <ScoreTrendMiniChart score={homeData.score.overall} trend={homeData.scoreTrend} colors={colors} onManageSources={onManageSources} />
 
           <TrendCard
             title="Recovery"
@@ -448,7 +447,9 @@ function MultiRingScore({ score, insight, colors }: { score: number | null; insi
         <Text style={[s.scoreValue, { color: centerColor, fontFamily: 'BrandDisplay' }]}>
           {score === null ? '--' : `${clamp(score)}%`}
         </Text>
-        <Text style={s.scoreLabel}>One L1fe Score</Text>
+        <Text style={s.scoreLabel}>
+          One L<Text style={{ color: colors.brandGreen }}>1</Text>fe Score
+        </Text>
         <Text style={s.scoreStatusLine}>{score === null ? 'Waiting for data' : '● Good'}</Text>
         {insight ? <Text style={s.scoreInsightLine}>{insight}</Text> : null}
       </View>
@@ -456,7 +457,7 @@ function MultiRingScore({ score, insight, colors }: { score: number | null; insi
         <View style={s.scoreBasisIcon}>
           <ContributorIcon name="shield" color={colors.brandGreen} />
         </View>
-        <Text style={s.scoreBasisText}>Your score is based on 4 key pillars of your health.</Text>
+        <Text style={s.scoreBasisText}>Based on your active health inputs.</Text>
       </View>
     </View>
   );
@@ -508,10 +509,12 @@ function ScoreTrendMiniChart({
   score,
   trend,
   colors,
+  onManageSources,
 }: {
   score: number | null;
   trend: HomeDisplayData['scoreTrend'];
   colors: ThemeColors;
+  onManageSources?: () => void;
 }) {
   const s = createHomeStyles(colors);
   const [visible, setVisible] = React.useState({ score: true, recovery: true, activity: true });
@@ -524,11 +527,22 @@ function ScoreTrendMiniChart({
     return (
       <View style={s.scoreTrendCard}>
         <View style={s.scoreTrendHeader}>
-          <Text style={s.scoreTrendTitle}>One Health Score Trend</Text>
+          <Text style={s.scoreTrendTitle}>
+            One L<Text style={{ color: colors.brandGreen }}>1</Text>fe Score Trend
+          </Text>
           <Text style={s.scoreTrendCaption}>Waiting for connected data</Text>
         </View>
         <View style={s.scoreTrendEmpty}>
           <Text style={s.emptyChartText}>{trend.emptyText}</Text>
+          {onManageSources ? (
+            <Pressable
+              onPress={onManageSources}
+              hitSlop={8}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, marginTop: 10 })}
+            >
+              <Text style={[s.emptyChartCta, { color: colors.brandGreen }]}>Connect a health source →</Text>
+            </Pressable>
+          ) : null}
         </View>
       </View>
     );
@@ -539,7 +553,9 @@ function ScoreTrendMiniChart({
   return (
     <View style={s.scoreTrendCard}>
       <View style={s.scoreTrendHeader}>
-        <Text style={s.scoreTrendTitle}>One Health Score Trend</Text>
+        <Text style={s.scoreTrendTitle}>
+          One L<Text style={{ color: colors.brandGreen }}>1</Text>fe Score Trend
+        </Text>
       </View>
       <InteractiveTrendChartV2
         colors={colors}
@@ -719,7 +735,7 @@ function ContributorScoreRow({
         ) : null}
       </View>
       {comingSoon ? (
-        <Text style={[s.contributorSoon, compact && s.contributorSoonCompact]}>Coming soon</Text>
+        <Text style={[s.contributorSoon, compact && s.contributorSoonCompact]}>Planned</Text>
       ) : (
         <View style={[s.contributorScoreValueBlock, compact && s.contributorScoreValueBlockCompact]}>
           <Text style={[s.contributorScoreValue, compact && s.contributorScoreValueCompact, { color }]}>{value === null ? '--' : `${clamp(value)}%`}</Text>
@@ -781,10 +797,14 @@ function ContributorIcon({ name, color }: { name: ContributorIconName; color: st
   if (name === 'activity') {
     return (
       <Svg width={30} height={30} viewBox="0 0 30 30">
-        <Circle cx={18.4} cy={7.2} r={2.2} stroke={color} strokeWidth={2} fill="none" />
-        <Path d="M12.2 13.6 L16.6 10.9 L20.2 12.9" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d="M16.4 11.2 L14.2 18.1 L9.4 22.4" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-        <Path d="M18.2 13.1 L21.3 19.3 L25.4 21.1" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+        <Path
+          d="M17.5 5 L11 16.5 H16 L12.5 25 L22 13 H17 L17.5 5 Z"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </Svg>
     );
   }
@@ -981,7 +1001,7 @@ function HealthInputCard({
       <Text style={s.inputSubtitle}>{card.subtitle}</Text>
       {!active ? (
         <View style={s.comingSoonPill}>
-          <Text style={s.comingSoonText}>Coming soon</Text>
+          <Text style={s.comingSoonText}>Planned</Text>
         </View>
       ) : null}
     </>
@@ -1667,6 +1687,11 @@ function createHomeStyles(colors: ThemeColors) {
       color: colors.textSubtle,
       fontSize: typography.caption,
       lineHeight: lineHeights.caption,
+      textAlign: 'center',
+    },
+    emptyChartCta: {
+      fontSize: typography.caption,
+      fontWeight: '800',
       textAlign: 'center',
     },
     metricToggleRow: {

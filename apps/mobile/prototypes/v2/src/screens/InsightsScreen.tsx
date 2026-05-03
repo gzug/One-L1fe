@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   Keyboard,
   Modal,
   Pressable,
@@ -65,13 +66,6 @@ async function persistExperiments(items: Experiment[]): Promise<void> {
   } catch { /* noop */ }
 }
 
-const NEXT_INTEGRATIONS: { label: string; desc: string }[] = [
-  { label: 'Nutrition', desc: 'Dietary intake and macro tracking' },
-  { label: 'Mental Health', desc: 'Mood, stress, and cognitive signals' },
-  { label: 'DNA Insights', desc: 'Genetic predispositions and traits' },
-  { label: 'Stool Analysis', desc: 'Gut microbiome and digestive health' },
-  { label: 'Urine Analysis', desc: 'Metabolic and kidney health markers' },
-];
 
 export function InsightsScreen() {
   const { colors } = useTheme();
@@ -97,7 +91,14 @@ export function InsightsScreen() {
   }, []);
 
   function handleDelete(id: string) {
-    setExperiments((prev) => prev.filter((e) => e.id !== id));
+    Alert.alert(
+      'Delete experiment',
+      'This experiment will be permanently removed.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: () => setExperiments((prev) => prev.filter((e) => e.id !== id)) },
+      ],
+    );
   }
 
   return (
@@ -178,30 +179,6 @@ export function InsightsScreen() {
             <IdeasNotesCard />
           </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeaderRow}>
-              <View>
-                <Text style={[styles.sectionTitle, { color: colors.textSubtle }]}>Next integrations</Text>
-                <Text style={[styles.sectionSubtitle, { color: colors.disabled }]}>
-                  Premium data sources in development
-                </Text>
-              </View>
-            </View>
-            {NEXT_INTEGRATIONS.map((item) => (
-              <View
-                key={item.label}
-                style={[styles.nextRow, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.nextLabel, { color: colors.textSubtle }]}>{item.label}</Text>
-                  <Text style={[styles.nextDesc, { color: colors.disabled }]}>{item.desc}</Text>
-                </View>
-                <View style={[styles.comingSoonPill, { borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}>
-                  <Text style={[styles.comingSoonText, { color: colors.disabled }]}>Coming soon</Text>
-                </View>
-              </View>
-            ))}
-          </View>
         </View>
       </ScrollView>
 
@@ -296,10 +273,25 @@ function ExperimentFormModal({
   const [hypothesis, setHypothesis] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [startDateInvalid, setStartDateInvalid] = useState(false);
+  const [endDateInvalid, setEndDateInvalid] = useState(false);
+
+  const ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
 
   function reset() {
     setTitle(''); setDescription(''); setCategory('Custom');
     setHypothesis(''); setStartDate(''); setEndDate('');
+    setStartDateInvalid(false); setEndDateInvalid(false);
+  }
+
+  function handleStartDateChange(v: string) {
+    setStartDate(v);
+    setStartDateInvalid(v.length > 0 && !ISO_RE.test(v));
+  }
+
+  function handleEndDateChange(v: string) {
+    setEndDate(v);
+    setEndDateInvalid(v.length > 0 && !ISO_RE.test(v));
   }
 
   function handleClose() {
@@ -322,7 +314,7 @@ function ExperimentFormModal({
     Keyboard.dismiss();
   }
 
-  const canSave = title.trim().length > 0;
+  const canSave = title.trim().length > 0 && !startDateInvalid && !endDateInvalid;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
@@ -405,10 +397,10 @@ function ExperimentFormModal({
                   <FormField label="Start date" colors={colors}>
                     <TextInput
                       value={startDate}
-                      onChangeText={setStartDate}
+                      onChangeText={handleStartDateChange}
                       placeholder="YYYY-MM-DD"
                       placeholderTextColor={colors.textSubtle}
-                      style={[formStyles.input, { color: colors.text, borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}
+                      style={[formStyles.input, { color: colors.text, borderColor: startDateInvalid ? colors.tooltipDismiss : colors.borderSubtle, backgroundColor: colors.surface }]}
                     />
                     <View style={formStyles.quickRow}>
                       <Pressable
@@ -424,10 +416,10 @@ function ExperimentFormModal({
                   <FormField label="End date" colors={colors}>
                     <TextInput
                       value={endDate}
-                      onChangeText={setEndDate}
+                      onChangeText={handleEndDateChange}
                       placeholder="YYYY-MM-DD"
                       placeholderTextColor={colors.textSubtle}
-                      style={[formStyles.input, { color: colors.text, borderColor: colors.borderSubtle, backgroundColor: colors.surface }]}
+                      style={[formStyles.input, { color: colors.text, borderColor: endDateInvalid ? colors.tooltipDismiss : colors.borderSubtle, backgroundColor: colors.surface }]}
                     />
                     <View style={formStyles.quickRow}>
                       {([30, 90] as const).map((d) => (
@@ -675,36 +667,6 @@ const styles = StyleSheet.create({
     fontSize: typography.caption,
     fontWeight: '700',
     letterSpacing: 0.1,
-  },
-  nextRow: {
-    borderRadius: radius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderStyle: 'dashed',
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    opacity: 0.72,
-  },
-  nextLabel: {
-    fontSize: typography.bodySmall,
-    fontWeight: '800',
-  },
-  nextDesc: {
-    fontSize: typography.caption,
-    lineHeight: lineHeights.caption,
-    fontWeight: '500',
-    marginTop: 1,
-  },
-  comingSoonPill: {
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  comingSoonText: {
-    fontSize: typography.micro,
-    fontWeight: '800',
   },
   disabled: {
     opacity: 0.7,

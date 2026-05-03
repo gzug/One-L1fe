@@ -89,7 +89,7 @@ export type HomeHealthInputCard = {
 export type HomeNutritionHub = {
   title: 'Nutrition Hub';
   subtitle: string;
-  stateLabel: 'Coming soon';
+  stateLabel: 'Planned';
   disabled: boolean;
 };
 

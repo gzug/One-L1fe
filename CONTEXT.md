@@ -29,6 +29,14 @@ For startup: read after CHECKPOINT.md. Never load `memory/` or `docs/archive/` a
 - Test Results contributor dropdown now populates from loaded blood panel markers with `displayValue` (string) + neutral `refContext` ("Ref lo–hi unit · Within/Above/Below range"); blood panels wired to TrendsScreen via `shellBloodPanels` state in OneL1feV2Screen shell.
 - NutritionHub replaced by "Next Integrations" section: 5 premium disabled cards (Nutrition, Mental Health, DNA Insights, Stool Analysis, Urine Analysis) with icon + empty bar + "Coming soon" pill. `cd apps/mobile && npm run typecheck` passes.
 
+## 2026-05-03 — Codex (v2 UX final pass)
+
+- Recovery color changed to distinct blue (`#2E7DAE` light, `#6EB5D8` dark) — was identical to `brandGreen`, now visually separable in score rings and charts.
+- BrandMarkV2 arc SVG pulled leftward (endpoints x=38 vs old x=44); "1" glyph shifted slightly right (x=48–56); clear gap at all sizes 24–40. Score ring label and trend chart title now show colored "1" (brandGreen).
+- `buildScoreInsight` demo gate removed — insight line shows whenever deltas are non-null. Demo badge pill added to AppHeaderV2 header and TrendsScreen hero. "Coming soon" → "Planned" everywhere except type keys. Basis text updated to "Based on your active health inputs."
+- Activity contributor icon replaced with lightning bolt SVG. Experiment delete requires Alert.alert confirmation. ISO regex validation + red border added to ExperimentFormModal date fields. Empty score trend state shows "Connect a health source →" CTA.
+- InsightsScreen "Next integrations" section removed entirely. `cd apps/mobile && npm run typecheck` passes.
+
 ## 2026-05-03 — Codex (v2 follow-up QA closeout)
 
 - Rechecked the unfinished parts from the prior pass: `Test Results` Compare mode now visibly renders the panel overview plus marker comparison cards, and Home dark mode was recaptured after the chart changes.

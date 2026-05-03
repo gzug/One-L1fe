@@ -10,12 +10,14 @@ import {
   type CustomRange,
   type TimeRange,
 } from '../types/timeRange';
+import type { HomeDataMode } from '../data/homeTypes';
 
 type AppHeaderV2Props = {
   onProfilePress: () => void;
   timeRange: TimeRange;
   customRange: CustomRange;
   onTimeRangeSelect: (range: TimeRange) => void;
+  dataMode?: HomeDataMode;
 };
 
 const ICON_SIZE = 22;
@@ -73,6 +75,7 @@ export function AppHeaderV2({
   timeRange,
   customRange,
   onTimeRangeSelect,
+  dataMode,
 }: AppHeaderV2Props) {
   const { colors, isDark, toggle } = useTheme();
   const iconColor = colors.textMuted;
@@ -91,6 +94,11 @@ export function AppHeaderV2({
         <View style={styles.topRow}>
           <View style={styles.brandRow}>
             <BrandMarkV2 size={44} showWordmark />
+            {dataMode === 'demo' ? (
+              <View style={[styles.demoBadge, { backgroundColor: colors.brandGreenSoft, borderColor: colors.accentBorder }]}>
+                <Text style={[styles.demoBadgeText, { color: colors.brandGreenDark }]}>Demo</Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.controls}>
@@ -327,7 +335,19 @@ const styles = StyleSheet.create({
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs,
     flexShrink: 1,
+  },
+  demoBadge: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  demoBadgeText: {
+    fontSize: typography.micro,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   controls: {
     flexDirection: 'row',

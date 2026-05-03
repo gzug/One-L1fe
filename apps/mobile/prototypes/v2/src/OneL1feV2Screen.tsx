@@ -123,6 +123,7 @@ function V2Shell() {
             timeRange={timeRange}
             customRange={customRange}
             onTimeRangeSelect={handleTimeRangeSelect}
+            dataMode={dataMode}
           />
         ) : null}
 

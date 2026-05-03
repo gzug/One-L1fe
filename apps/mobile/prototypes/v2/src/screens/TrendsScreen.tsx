@@ -124,7 +124,14 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
         <View style={[styles.hero, { backgroundColor: colors.surfaceElevated, borderColor: colors.border }]}>
           <View style={styles.heroTop}>
             <View style={styles.heroHeading}>
-              <Text style={[styles.heroEyebrow, { color: colors.brandGreen }]}>Trends</Text>
+              <View style={styles.heroEyebrowRow}>
+                <Text style={[styles.heroEyebrow, { color: colors.brandGreen }]}>Trends</Text>
+                {data.isDemo ? (
+                  <View style={[styles.demoBadge, { backgroundColor: colors.brandGreenSoft, borderColor: colors.accentBorder }]}>
+                    <Text style={[styles.demoBadgeText, { color: colors.brandGreenDark }]}>Demo data</Text>
+                  </View>
+                ) : null}
+              </View>
               <Text style={[styles.heroTitle, { color: colors.text, fontFamily: 'BrandDisplay' }]}>Health rhythm</Text>
               <Text style={[styles.heroSubtitle, { color: colors.textMuted }]}>
                 Cleaner charts, direct touch inspection, and a clearer read on how score, recovery, and activity move together.
@@ -237,11 +244,27 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.xs,
   },
+  heroEyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   heroEyebrow: {
     fontSize: typography.caption,
     lineHeight: lineHeights.caption,
     fontWeight: '900',
     textTransform: 'uppercase',
+  },
+  demoBadge: {
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  demoBadgeText: {
+    fontSize: typography.micro,
+    fontWeight: '800',
+    letterSpacing: 0.2,
   },
   heroTitle: {
     fontSize: 30,
