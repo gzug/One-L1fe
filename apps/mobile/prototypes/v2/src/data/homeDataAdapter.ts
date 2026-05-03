@@ -14,6 +14,7 @@ import type { BloodPanel } from '../../../v1-marathon/src/data/bloodStorage';
 import type { CustomRange, TimeRange } from '../types/timeRange';
 import type {
   HomeChartPoint,
+  HomeContributorInput,
   HomeDataMode,
   HomeDisplayData,
   HomeTrendMetric,
@@ -109,6 +110,7 @@ export function getHomeDisplayData({
         value: bloodMarkersScore,
         delta: null,
         colorKey: 'blood',
+        inputs: buildTestResultInputs({ isDemo, bloodMarkersScore, bloodSummary }),
       },
       future: [
         { label: 'DNA Insights' },
@@ -409,6 +411,61 @@ function blankMetric(key: HomeTrendMetricKey): HomeTrendMetric {
     colorKey: 'recovery',
     emptyText: 'No data available.',
   };
+}
+
+function buildTestResultInputs({
+  isDemo,
+  bloodMarkersScore,
+  bloodSummary,
+}: {
+  isDemo: boolean;
+  bloodMarkersScore: number | null;
+  bloodSummary: BloodSummary;
+}): HomeContributorInput[] {
+  const hasBloodPanel = bloodSummary.markerCount > 0;
+  const bloodDisplay = hasBloodPanel
+    ? `${bloodSummary.markerCount} markers`
+    : isDemo && bloodMarkersScore !== null
+      ? `${clamp(bloodMarkersScore)}%`
+      : 'No panel yet';
+  const bloodContext = hasBloodPanel
+    ? `${bloodSummary.panelLabel} · Blood marker panel`
+    : 'Blood marker panel';
+
+  return [
+    {
+      label: 'Blood Markers',
+      value: isDemo ? bloodMarkersScore : null,
+      delta: null,
+      colorKey: 'blood',
+      displayValue: bloodDisplay,
+      refContext: bloodContext,
+    },
+    {
+      label: 'DNA Insights',
+      value: null,
+      delta: null,
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+    {
+      label: 'Stool Test',
+      value: null,
+      delta: null,
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+    {
+      label: 'Urine Test',
+      value: null,
+      delta: null,
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+  ];
 }
 
 function summarizeBloodPanels(panels: BloodPanel[]): BloodSummary {

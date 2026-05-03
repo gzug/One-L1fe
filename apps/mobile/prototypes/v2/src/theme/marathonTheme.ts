@@ -80,10 +80,22 @@ export type ThemeColors = {
   brandGreen:        string;
   brandGreenDark:    string;
   brandGreenSoft:    string;
+  // Recovery family
   recovery:          string;
+  recoverySub1:      string;
+  recoverySub2:      string;
+  recoverySub3:      string;
+  // Activity family
   activity:          string;
+  activitySub1:      string;
+  activitySub2:      string;
+  activitySub3:      string;
+  // Test Results family
   testResults:       string;
+  testResultsSub1:   string;
+  testResultsSub2:   string;
   disabled:          string;
+  tooltipDismiss:    string;
 };
 
 export const lightColors: ThemeColors = {
@@ -123,9 +135,18 @@ export const lightColors: ThemeColors = {
   brandGreenDark:   v2LightTokens.brandGreenDark,
   brandGreenSoft:   v2LightTokens.brandGreenSoft,
   recovery:         v2LightTokens.recovery,
+  recoverySub1:     v2LightTokens.recoverySub1,
+  recoverySub2:     v2LightTokens.recoverySub2,
+  recoverySub3:     v2LightTokens.recoverySub3,
   activity:         v2LightTokens.activity,
+  activitySub1:     v2LightTokens.activitySub1,
+  activitySub2:     v2LightTokens.activitySub2,
+  activitySub3:     v2LightTokens.activitySub3,
   testResults:      v2LightTokens.testResults,
+  testResultsSub1:  v2LightTokens.testResultsSub1,
+  testResultsSub2:  v2LightTokens.testResultsSub2,
   disabled:         v2LightTokens.disabled,
+  tooltipDismiss:   v2LightTokens.tooltipDismiss,
 };
 
 export const darkColors: ThemeColors = {
@@ -165,7 +186,16 @@ export const darkColors: ThemeColors = {
   brandGreenDark:   v2DarkTokens.brandGreenDark,
   brandGreenSoft:   v2DarkTokens.brandGreenSoft,
   recovery:         v2DarkTokens.recovery,
+  recoverySub1:     v2DarkTokens.recoverySub1,
+  recoverySub2:     v2DarkTokens.recoverySub2,
+  recoverySub3:     v2DarkTokens.recoverySub3,
   activity:         v2DarkTokens.activity,
+  activitySub1:     v2DarkTokens.activitySub1,
+  activitySub2:     v2DarkTokens.activitySub2,
+  activitySub3:     v2DarkTokens.activitySub3,
   testResults:      v2DarkTokens.testResults,
+  testResultsSub1:  v2DarkTokens.testResultsSub1,
+  testResultsSub2:  v2DarkTokens.testResultsSub2,
   disabled:         v2DarkTokens.disabled,
+  tooltipDismiss:   v2DarkTokens.tooltipDismiss,
 };

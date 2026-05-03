@@ -2,7 +2,7 @@
 status: current
 canonical_for: current execution state
 owner: repo
-last_verified: 2026-05-02
+last_verified: 2026-05-03
 supersedes: []
 superseded_by: null
 scope: repo
@@ -26,6 +26,7 @@ scope: repo
 - Android emulator QA for the full v2 visual reset was run on the same `Pixel_9_Pro` emulator; light Home plus dark Home/Trends/Insights/Profile screenshots were captured and the clipped logo mark found during QA was fixed.
 - Follow-up Android QA on the same `Pixel_9_Pro` emulator confirmed: refined logo geometry, Manrope-based brand wordmark, Home contributor accordion rows, stronger disabled Nutrition states, interactive score/trend charts with vertical inspection guide, and a v2-forked `Test Results` screen replacing the legacy Blood Results surface in the active flow.
 - Additional follow-up on 2026-05-03: Compare mode for `Test Results` renders the panel overview and per-marker context cards; light and dark Home screenshots were re-captured; `OneL1feV2Screen.tsx` now handles Android hardware back inside the shell (`blood -> profile -> home`) instead of relying on the system default.
+- v2 polish pass 2 on 2026-05-03: distinct color families for Recovery (cool teal), Activity (olive-green), and Test Results (blue-teal); sub-shade tokens for all three families plus sub-metrics (sleep/hrv/restingHr, steps/training/calories); BrandMarkV2 O+1 arc/1 glyph overlap fixed; tooltip × changed to pastel red (`tooltipDismiss` token) in all charts; range chips removed from TrendsScreen hero and HomeScreen score trend (range lives in global header only); per-series toggle chips added to score trend on both Home and Trends; Test Results contributor dropdown now populates from loaded blood panel with value + reference range + neutral range context; NutritionHub replaced by "Next Integrations" section with 5 disabled cards (Nutrition, Mental Health, DNA Insights, Stool Analysis, Urine Analysis); blood panels wired to TrendsScreen via shell; key Pressables in BloodResultsScreenV2 now have opacity press feedback.
 - Health Connect is foreground display-only: no background sync, no Supabase write, no score recomputation.
 - App config: `apps/mobile/app.json`; Expo `0.2.2`, Android `versionCode: 4`, `minSdkVersion: 26`.
 - CI is green on latest `main`.

@@ -35,7 +35,7 @@ export function BrandMarkV2({
       >
         <Svg width={size} height={size} viewBox="0 0 64 64">
           <Path
-            d="M42 14 C36 10 28 9 21 12 C13 16 9 24 10 33 C11 44 20 51 31 51 C37 51 42 49 46 45"
+            d="M44 14 C38 10 29 9 21 12 C13 16 9 24 10 33 C11 44 20 51 31 51 C37 51 41 49 44 46"
             stroke={colors.brandGreen}
             strokeWidth={stroke}
             strokeLinecap="round"
@@ -43,7 +43,7 @@ export function BrandMarkV2({
             fill="none"
           />
           <Path
-            d="M42 20 L51 13 L51 50"
+            d="M47 20 L55 13 L55 50"
             stroke={colors.brandGreen}
             strokeWidth={stroke}
             strokeLinecap="round"

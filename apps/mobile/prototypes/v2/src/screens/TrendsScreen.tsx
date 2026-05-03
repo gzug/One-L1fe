@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { InteractiveTrendChartV2, QuietBarChartV2 } from '../components/InteractiveTrendChartV2';
 import type { HomeDisplayData, HomeTrendMetric } from '../data/homeTypes';
 import { useTheme } from '../theme/ThemeContext';
 import { layout, lineHeights, radius, spacing, typography } from '../theme/marathonTheme';
-
-const RANGE_LABELS = ['1D', '7D', '1M', '6M'];
 
 function MetricSurface({
   metric,
@@ -77,6 +75,11 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
   const recoverySeries = trend.series[1]?.data ?? [];
   const activitySeries = trend.series[2]?.data ?? [];
 
+  const [visible, setVisible] = useState({ score: true, recovery: true, activity: true });
+  function toggleSeries(key: 'score' | 'recovery' | 'activity') {
+    setVisible((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
@@ -102,27 +105,6 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
             </View>
           </View>
 
-          <View style={styles.rangeRow}>
-            {RANGE_LABELS.map((label) => {
-              const active = label === '6M';
-              return (
-                <Pressable
-                  key={label}
-                  style={[
-                    styles.rangeChip,
-                    {
-                      backgroundColor: active ? colors.brandGreenSoft : colors.surface,
-                      borderColor: active ? colors.accentBorder : colors.borderSubtle,
-                    },
-                  ]}
-                >
-                  <Text style={[styles.rangeChipText, { color: active ? colors.brandGreenDark : colors.textSubtle }]}>
-                    {label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
         </View>
 
         <Section title="Score" subtitle="Tap anywhere in the chart to inspect that point in time.">
@@ -135,35 +117,46 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
               yTicks={[100, 80, 60, 40, 20, 0]}
               showYAxis={false}
               series={[
-                { key: 'score', label: 'Score', color: colors.brandGreen, data: scoreSeries, style: 'area' },
-                { key: 'recovery', label: 'Recovery', color: colors.recovery, data: recoverySeries },
-                { key: 'activity', label: 'Activity', color: colors.activity, data: activitySeries, style: 'dashed' },
+                ...(visible.score ? [{ key: 'score', label: 'Score', color: colors.brandGreen, data: scoreSeries, style: 'area' as const }] : []),
+                ...(visible.recovery ? [{ key: 'recovery', label: 'Recovery', color: colors.recovery, data: recoverySeries }] : []),
+                ...(visible.activity ? [{ key: 'activity', label: 'Activity', color: colors.activity, data: activitySeries, style: 'dashed' as const }] : []),
               ]}
             />
             <View style={styles.legendRow}>
-              {[
-                { label: 'Score', color: colors.brandGreen, active: true },
-                { label: 'Recovery', color: colors.recovery },
-                { label: 'Activity', color: colors.activity },
-                { label: 'Test Results', color: colors.testResults },
-                { label: 'Nutrition', color: colors.disabled },
-              ].map((item) => (
-                <View
-                  key={item.label}
-                  style={[
-                    styles.legendPill,
-                    {
-                      backgroundColor: item.active ? colors.brandGreenSoft : colors.surfaceSoft,
-                      borderColor: item.active ? colors.accentBorder : colors.borderSubtle,
-                    },
-                  ]}
-                >
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={[styles.legendText, { color: item.active ? colors.text : colors.textSubtle }]}>
-                    {item.label}
-                  </Text>
-                </View>
-              ))}
+              {([
+                { key: 'score' as const, label: 'Score', color: colors.brandGreen },
+                { key: 'recovery' as const, label: 'Recovery', color: colors.recovery },
+                { key: 'activity' as const, label: 'Activity', color: colors.activity },
+              ]).map((item) => {
+                const on = visible[item.key];
+                return (
+                  <Pressable
+                    key={item.label}
+                    onPress={() => toggleSeries(item.key)}
+                    style={({ pressed }) => [
+                      styles.legendPill,
+                      {
+                        backgroundColor: on ? colors.brandGreenSoft : colors.surfaceSoft,
+                        borderColor: on ? colors.accentBorder : colors.borderSubtle,
+                        opacity: pressed ? 0.72 : 1,
+                      },
+                    ]}
+                  >
+                    <View style={[styles.legendDot, { backgroundColor: on ? item.color : colors.textSubtle }]} />
+                    <Text style={[styles.legendText, { color: on ? colors.text : colors.textSubtle }]}>
+                      {item.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+              <View style={[styles.legendPill, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.legendDot, { backgroundColor: colors.testResults }]} />
+                <Text style={[styles.legendText, { color: colors.textSubtle }]}>Test Results</Text>
+              </View>
+              <View style={[styles.legendPill, { backgroundColor: colors.surfaceSoft, borderColor: colors.borderSubtle }]}>
+                <View style={[styles.legendDot, { backgroundColor: colors.disabled }]} />
+                <Text style={[styles.legendText, { color: colors.textSubtle }]}>Nutrition</Text>
+              </View>
             </View>
           </View>
         </Section>
@@ -171,18 +164,18 @@ export function TrendsScreen({ data }: { data: HomeDisplayData }) {
         <Section title="Recovery" subtitle="Signals that shape your recovery contributor.">
           <View style={styles.metricGrid}>
             <MetricSurface metric={data.recoveryMetrics.recovery} color={colors.recovery} />
-            <MetricSurface metric={data.recoveryMetrics.sleep} color={colors.recovery} />
-            <MetricSurface metric={data.recoveryMetrics.hrv} color={colors.recovery} />
-            <MetricSurface metric={data.recoveryMetrics.restingHr} color={colors.recovery} />
+            <MetricSurface metric={data.recoveryMetrics.sleep} color={colors.recoverySub1} />
+            <MetricSurface metric={data.recoveryMetrics.hrv} color={colors.recoverySub2} />
+            <MetricSurface metric={data.recoveryMetrics.restingHr} color={colors.recoverySub3} />
           </View>
         </Section>
 
         <Section title="Activity" subtitle="Movement and training context in the same visual system.">
           <View style={styles.metricGrid}>
             <MetricSurface metric={data.activityMetrics.activity} color={colors.activity} />
-            <MetricSurface metric={data.activityMetrics.steps} color={colors.activity} />
-            <MetricSurface metric={data.activityMetrics.training} color={colors.scoreSteady} />
-            <MetricSurface metric={data.activityMetrics.calories} color={colors.scoreSoft} />
+            <MetricSurface metric={data.activityMetrics.steps} color={colors.activitySub1} />
+            <MetricSurface metric={data.activityMetrics.training} color={colors.activitySub2} />
+            <MetricSurface metric={data.activityMetrics.calories} color={colors.activitySub3} />
           </View>
         </Section>
       </View>
@@ -250,22 +243,6 @@ const styles = StyleSheet.create({
   heroScoreValue: {
     fontSize: 32,
     lineHeight: 36,
-  },
-  rangeRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  rangeChip: {
-    minHeight: 38,
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: 'center',
-    paddingHorizontal: spacing.md,
-  },
-  rangeChipText: {
-    fontSize: typography.caption,
-    fontWeight: '800',
   },
   section: {
     gap: spacing.md,

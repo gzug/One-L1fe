@@ -114,7 +114,7 @@ export function BloodResultsScreenV2({ onClose }: Props) {
       <View style={[s.header, { paddingTop: ANDROID_TOP_INSET + spacing.sm }]}>
         <Pressable
           onPress={onClose}
-          style={s.backBtn}
+          style={({ pressed }) => [s.backBtn, pressed && { opacity: 0.72 }]}
           hitSlop={10}
           accessibilityLabel="Back to Overview"
         >
@@ -630,7 +630,7 @@ function CompareCard({
         <>
           <Pressable
             onPress={() => setExpanded((e) => !e)}
-            style={[s.contextToggle, { borderTopColor: colors.borderSubtle }]}
+            style={({ pressed }) => [s.contextToggle, { borderTopColor: colors.borderSubtle }, pressed && { opacity: 0.72 }]}
             accessibilityLabel={expanded ? 'Hide context' : 'Show context'}
           >
             <Text style={[s.contextToggleText, { color: colors.textSubtle }]}>
@@ -757,7 +757,7 @@ function MarkerRow({
             accessibilityLabel={`Edit ${marker.label}`}
           />
         ) : (
-          <Pressable onPress={onStartEdit} hitSlop={8}>
+          <Pressable onPress={onStartEdit} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.72 : 1 })}>
             <Text style={[rowStyles.value, { color: missingValue ? colors.warning : colors.text }]}>
               {missingValue ? 'Add value' : marker.value}
             </Text>
