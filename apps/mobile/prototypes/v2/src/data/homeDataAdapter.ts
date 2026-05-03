@@ -14,6 +14,7 @@ import type { BloodPanel } from '../../../v1-marathon/src/data/bloodStorage';
 import type { CustomRange, TimeRange } from '../types/timeRange';
 import type {
   HomeChartPoint,
+  HomeContributorInput,
   HomeDataMode,
   HomeDisplayData,
   HomeTrendMetric,
@@ -109,7 +110,7 @@ export function getHomeDisplayData({
         value: bloodMarkersScore,
         delta: null,
         colorKey: 'blood',
-        inputs: buildBloodMarkerInputs(bloodPanels),
+        inputs: buildTestResultInputs({ isDemo, bloodMarkersScore, bloodSummary }),
       },
       future: [
         { label: 'DNA Insights' },
@@ -412,35 +413,59 @@ function blankMetric(key: HomeTrendMetricKey): HomeTrendMetric {
   };
 }
 
-function buildBloodMarkerInputs(panels: BloodPanel[]): import('./homeTypes').HomeContributorInput[] | undefined {
-  const latest = panels[panels.length - 1];
-  if (!latest) return undefined;
-  const enabled = latest.markers.filter((m) => m.enabled && m.value.trim() !== '');
-  if (!enabled.length) return undefined;
-  return enabled.map((m) => {
-    const val = parseFloat(m.value);
-    const low = m.refLow ? parseFloat(m.refLow) : undefined;
-    const high = m.refHigh ? parseFloat(m.refHigh) : undefined;
-    let refContext: string | undefined;
-    if (m.refLow || m.refHigh) {
-      const lo = m.refLow || '—';
-      const hi = m.refHigh || '—';
-      refContext = `Ref ${lo}–${hi} ${m.unit}`;
-      if (!isNaN(val)) {
-        if (high !== undefined && val > high) refContext += ' · Above range';
-        else if (low !== undefined && val < low) refContext += ' · Below range';
-        else refContext += ' · Within range';
-      }
-    }
-    return {
-      label: m.label,
+function buildTestResultInputs({
+  isDemo,
+  bloodMarkersScore,
+  bloodSummary,
+}: {
+  isDemo: boolean;
+  bloodMarkersScore: number | null;
+  bloodSummary: BloodSummary;
+}): HomeContributorInput[] {
+  const hasBloodPanel = bloodSummary.markerCount > 0;
+  const bloodDisplay = hasBloodPanel
+    ? `${bloodSummary.markerCount} markers`
+    : isDemo && bloodMarkersScore !== null
+      ? `${clamp(bloodMarkersScore)}%`
+      : 'No panel yet';
+  const bloodContext = hasBloodPanel
+    ? `${bloodSummary.panelLabel} · Blood marker panel`
+    : 'Blood marker panel';
+
+  return [
+    {
+      label: 'Blood Markers',
+      value: isDemo ? bloodMarkersScore : null,
+      delta: null,
+      colorKey: 'blood',
+      displayValue: bloodDisplay,
+      refContext: bloodContext,
+    },
+    {
+      label: 'DNA Insights',
       value: null,
       delta: null,
-      colorKey: 'blood' as const,
-      displayValue: `${m.value} ${m.unit}`,
-      refContext,
-    };
-  });
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+    {
+      label: 'Stool Test',
+      value: null,
+      delta: null,
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+    {
+      label: 'Urine Test',
+      value: null,
+      delta: null,
+      colorKey: 'future',
+      displayValue: 'Coming soon',
+      refContext: 'Future test integration',
+    },
+  ];
 }
 
 function summarizeBloodPanels(panels: BloodPanel[]): BloodSummary {
